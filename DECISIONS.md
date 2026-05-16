@@ -38,11 +38,12 @@ Date: 2026-05-16
 
 ---
 
-## PostgreSQL as the database
-Alternatives considered: SQLite.
-Reason: multiple users write to the same session simultaneously. SQLite
-struggles with concurrent writes. PostgreSQL handles this cleanly and is the
-standard for team tools.
+## SQLite for local development, PostgreSQL for production
+Alternatives considered: PostgreSQL from day one.
+Reason: SQLite requires no installation and runs as a local file, which
+removes a setup step while the app is being proved out. The switch to
+PostgreSQL is deferred until the app is production-ready. Prisma makes
+this swap a one-line change in schema.prisma plus a new DATABASE_URL.
 Date: 2026-05-16
 
 ---

@@ -3,7 +3,7 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
+  provider = "sqlite"
   url      = env("DATABASE_URL")
 }
 
@@ -18,7 +18,7 @@ model User {
 model Session {
   id        String   @id @default(cuid())
   title     String
-  content   Json     @default("{}")
+  content   String   @default("{}")
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   createdBy User     @relation(fields: [userId], references: [id])
