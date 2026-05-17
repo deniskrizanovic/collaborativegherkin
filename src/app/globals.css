@@ -22,3 +22,232 @@ h1 {
   font-weight: 700;
   margin-bottom: 1.5rem;
 }
+
+h2 {
+  font-size: 1.1rem;
+  font-weight: 600;
+  margin-bottom: 0.75rem;
+  color: #374151;
+}
+
+/* Home page */
+.create-form {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 1.5rem;
+  flex-wrap: wrap;
+}
+
+.create-input {
+  flex: 1;
+  min-width: 200px;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  font-size: 1rem;
+  outline: none;
+}
+
+.create-input:focus {
+  border-color: #6366f1;
+  box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.15);
+}
+
+.create-btn {
+  padding: 0.5rem 1.25rem;
+  background: #6366f1;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  font-size: 1rem;
+  cursor: pointer;
+  font-weight: 500;
+}
+
+.create-btn:hover:not(:disabled) {
+  background: #4f46e5;
+}
+
+.create-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.form-error {
+  color: #dc2626;
+  font-size: 0.875rem;
+  margin-top: 0.5rem;
+}
+
+.sessions-list {
+  margin-top: 2rem;
+}
+
+.sessions-list ul {
+  list-style: none;
+}
+
+.sessions-list li + li {
+  border-top: 1px solid #f3f4f6;
+}
+
+.session-link {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.6rem 0;
+  color: #111827;
+  text-decoration: none;
+  font-size: 0.95rem;
+}
+
+.session-link:hover {
+  color: #6366f1;
+}
+
+.session-date {
+  font-size: 0.8rem;
+  color: #9ca3af;
+}
+
+/* Session page */
+.session-header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin-bottom: 0.5rem;
+}
+
+.copy-link-btn {
+  padding: 0.35rem 0.9rem;
+  font-size: 0.85rem;
+  border: 1px solid #d1d5db;
+  border-radius: 5px;
+  background: #fff;
+  cursor: pointer;
+  color: #374151;
+}
+
+.copy-link-btn:hover {
+  background: #f3f4f6;
+}
+
+.session-hint {
+  font-size: 0.85rem;
+  color: #6b7280;
+  margin-bottom: 1.25rem;
+}
+
+kbd {
+  display: inline-block;
+  padding: 1px 5px;
+  border: 1px solid #d1d5db;
+  border-radius: 3px;
+  font-size: 0.8rem;
+  background: #f9fafb;
+  font-family: monospace;
+}
+
+/* Gherkin editor */
+.gherkin-editor-wrapper {
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  background: #fff;
+  overflow: hidden;
+}
+
+.gherkin-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  padding: 0.6rem 0.75rem;
+  border-bottom: 1px solid #e5e7eb;
+  background: #f9fafb;
+}
+
+.gherkin-toolbar-btn {
+  padding: 0.25rem 0.65rem;
+  font-size: 0.8rem;
+  font-weight: 600;
+  border: 1px solid #d1d5db;
+  border-radius: 4px;
+  background: #fff;
+  cursor: pointer;
+  color: #374151;
+}
+
+.gherkin-toolbar-btn:hover {
+  background: #ede9fe;
+  border-color: #a5b4fc;
+  color: #4f46e5;
+}
+
+.gherkin-export-btn {
+  margin-left: auto;
+  padding: 0.25rem 0.75rem;
+  font-size: 0.8rem;
+  font-weight: 600;
+  border: 1px solid #6366f1;
+  border-radius: 4px;
+  background: #6366f1;
+  color: #fff;
+  cursor: pointer;
+}
+
+.gherkin-export-btn:hover {
+  background: #4f46e5;
+}
+
+.gherkin-editor {
+  min-height: 400px;
+  padding: 1rem 1.25rem;
+  outline: none;
+  font-family: ui-monospace, "SFMono-Regular", Menlo, monospace;
+  font-size: 0.9rem;
+  line-height: 1.8;
+}
+
+.gherkin-editor p {
+  margin: 0;
+}
+
+/* Gherkin block type labels */
+.gherkin-editor p[data-gherkin-type]::before {
+  display: inline-block;
+  min-width: 100px;
+  font-weight: 700;
+  margin-right: 0.25rem;
+  color: #6366f1;
+}
+
+.gherkin-editor p[data-gherkin-type="feature"]::before { content: "Feature:"; }
+.gherkin-editor p[data-gherkin-type="rule"]::before { content: "Rule:"; }
+.gherkin-editor p[data-gherkin-type="background"]::before { content: "Background:"; }
+.gherkin-editor p[data-gherkin-type="scenario"]::before { content: "Scenario:"; }
+.gherkin-editor p[data-gherkin-type="given"]::before { content: "Given"; color: #059669; }
+.gherkin-editor p[data-gherkin-type="when"]::before { content: "When"; color: #d97706; }
+.gherkin-editor p[data-gherkin-type="then"]::before { content: "Then"; color: #7c3aed; }
+.gherkin-editor p[data-gherkin-type="and"]::before { content: "And"; color: #6b7280; }
+.gherkin-editor p[data-gherkin-type="but"]::before { content: "But"; color: #6b7280; }
+
+/* Y.js collaboration cursors */
+.collaboration-cursor__caret {
+  border-left: 2px solid currentColor;
+  position: relative;
+}
+
+.collaboration-cursor__label {
+  position: absolute;
+  top: -1.4em;
+  left: -1px;
+  font-size: 0.7rem;
+  font-weight: 600;
+  white-space: nowrap;
+  padding: 1px 4px;
+  border-radius: 3px;
+  background: currentColor;
+  color: #fff;
+  pointer-events: none;
+}

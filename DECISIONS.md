@@ -69,3 +69,27 @@ Alternatives considered: winston, console.log.
 Reason: Pino is the fastest structured logger for Node.js, widely used, and
 its output format is easy to search and read back when diagnosing issues.
 Date: 2026-05-16
+
+---
+
+## Y.js sync server runs as a separate process, not a Next.js API route
+Alternatives considered: WebSocket handler inside Next.js (e.g. via a custom
+server.js or a Route Handler).
+Reason: Next.js App Router does not support long-lived WebSocket connections
+in its standard server model. The sync server is a standalone Node.js process
+(`y-websocket-server.mjs`) that listens on port 1234. Run it alongside the
+Next.js dev server with `npm run dev:ws`.
+Date: 2026-05-17
+
+---
+
+## Tiptap Paragraph node extended with data-gherkin-type attribute
+Alternatives considered: defining a fully custom ProseMirror node type for
+each Gherkin block (Feature, Scenario, Given, etc.).
+Reason: extending the built-in Paragraph node with a single attribute is
+significantly simpler — Tiptap handles all the rendering and serialisation
+plumbing. The trade-off is that Gherkin block identity lives in an attribute
+rather than a distinct node type, which means ProseMirror cannot enforce
+node-level schema constraints. Sequence enforcement is handled instead by the
+`canFollow()` function in `src/lib/gherkin.ts` at interaction time.
+Date: 2026-05-17

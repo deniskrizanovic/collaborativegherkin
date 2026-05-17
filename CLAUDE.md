@@ -9,7 +9,7 @@ tools like Jira. The app is a workspace, not a permanent archive.
 ## Stack
 - **Framework:** Next.js 15 (App Router) — TypeScript front end and back end
 - **Editor:** Tiptap with Y.js for real-time collaboration
-- **Database:** PostgreSQL via Prisma
+- **Database:** SQLite (dev) / PostgreSQL (production) via Prisma
 - **Auth:** NextAuth.js v5
 - **Validation:** Zod
 - **Logging:** Pino → logs/app.log and logs/error.log
@@ -17,25 +17,40 @@ tools like Jira. The app is a workspace, not a permanent archive.
 
 ## Key commands
 ```bash
-npm run dev       # start local dev server at http://localhost:3000
+npm run dev       # start Next.js dev server at http://localhost:3000
+npm run dev:ws    # start Y.js WebSocket sync server at ws://localhost:1234
 npm run build     # production build
 npm run test      # run tests with Vitest
 npm run lint      # lint with Next.js ESLint config
+npm run seed      # seed dev database with placeholder user
 npx prisma migrate dev   # run database migrations in development
 npx prisma studio        # open database browser UI
 ```
 
+Both `dev` and `dev:ws` must be running for real-time collaboration to work.
+
 ## Project structure
 ```
 src/
-  app/            # Next.js App Router — pages and API routes
-  components/     # React components (editor, session UI)
+  app/
+    page.tsx                    # Home — session list + create form
+    HomeClient.tsx              # Client component for home page
+    layout.tsx                  # Root layout
+    globals.css                 # Global styles
+    api/sessions/               # REST API: list/create sessions
+    api/sessions/[id]/          # REST API: get/delete a session
+    sessions/[id]/page.tsx      # Session page (server component)
+    sessions/[id]/SessionView.tsx  # Session page (client shell)
+  components/
+    GherkinEditor.tsx           # Tiptap + Y.js collaborative editor
   lib/
     gherkin.ts    # Gherkin block types, validation rules, export logic
     logger.ts     # Pino logger — use this everywhere, not console.log
     db.ts         # Prisma client singleton
 prisma/
   schema.prisma   # Database schema
+  seed.ts         # Dev seed — creates placeholder user
+y-websocket-server.mjs  # Standalone Y.js WebSocket sync server
 logs/             # Written at runtime — never commit
 ```
 
