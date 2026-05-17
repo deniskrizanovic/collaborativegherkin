@@ -232,6 +232,15 @@ kbd {
 .gherkin-editor p[data-gherkin-type="and"]::before { content: "And"; color: #6b7280; }
 .gherkin-editor p[data-gherkin-type="but"]::before { content: "But"; color: #6b7280; }
 
+/* Separator between consecutive Given-When-Then groups */
+.gherkin-editor p[data-gherkin-type="then"] + p[data-gherkin-type="given"],
+.gherkin-editor p[data-gherkin-type="and"] + p[data-gherkin-type="given"],
+.gherkin-editor p[data-gherkin-type="but"] + p[data-gherkin-type="given"] {
+  margin-top: 1.25rem;
+  padding-top: 1.25rem;
+  border-top: 1px solid #e5e7eb;
+}
+
 /* Y.js collaboration cursors */
 .collaboration-cursor__caret {
   border-left: 2px solid currentColor;

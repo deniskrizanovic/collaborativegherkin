@@ -100,11 +100,12 @@ function getValidNextTypes(previous: GherkinBlockType | null): GherkinBlockType[
 interface BlockPickerProps {
   anchor: DOMRect;
   options: GherkinBlockType[];
+  selectedIndex: number;
   onSelect: (type: GherkinBlockType) => void;
   onClose: () => void;
 }
 
-function BlockPicker({ anchor, options, onSelect, onClose }: BlockPickerProps) {
+function BlockPicker({ anchor, options, selectedIndex, onSelect, onClose }: BlockPickerProps) {
   const ref = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -130,7 +131,7 @@ function BlockPicker({ anchor, options, onSelect, onClose }: BlockPickerProps) {
         minWidth: 160,
       }}
     >
-      {options.map((type) => (
+      {options.map((type, i) => (
         <button
           key={type}
           onMouseDown={(e) => {
@@ -142,14 +143,14 @@ function BlockPicker({ anchor, options, onSelect, onClose }: BlockPickerProps) {
             width: "100%",
             padding: "8px 14px",
             textAlign: "left",
-            background: "none",
+            background: i === selectedIndex ? "#f3f4f6" : "none",
             border: "none",
             cursor: "pointer",
             fontSize: 14,
             color: "#111827",
           }}
           onMouseEnter={(e) => (e.currentTarget.style.background = "#f3f4f6")}
-          onMouseLeave={(e) => (e.currentTarget.style.background = "none")}
+          onMouseLeave={(e) => (e.currentTarget.style.background = i === selectedIndex ? "#f3f4f6" : "none")}
         >
           <span style={{ fontWeight: 600 }}>{GHERKIN_LABELS[type]}</span>
         </button>
@@ -196,10 +197,14 @@ export default function GherkinEditor({
     show: boolean;
     anchor: DOMRect | null;
     options: GherkinBlockType[];
-  }>({ show: false, anchor: null, options: [] });
+    selectedIndex: number;
+  }>({ show: false, anchor: null, options: [], selectedIndex: 0 });
+
+  const pickerStateRef = useRef(pickerState);
+  useEffect(() => { pickerStateRef.current = pickerState; }, [pickerState]);
 
   const closePicker = useCallback(() => {
-    setPickerState({ show: false, anchor: null, options: [] });
+    setPickerState({ show: false, anchor: null, options: [], selectedIndex: 0 });
   }, []);
 
   const editor = useEditor({
@@ -246,14 +251,12 @@ export default function GherkinEditor({
           const prevType = getCurrentBlockType(editor.state) ?? getPreviousBlockType(editor.state);
           const options = getValidNextTypes(prevType);
           if (options.length > 0) {
-            const sel = window.getSelection();
-            const range = sel?.getRangeAt(0);
-            const rect = range?.getBoundingClientRect();
-            if (rect && rect.width + rect.height > 0) {
-              setTimeout(() => {
-                setPickerState({ show: true, anchor: rect, options });
-              }, 0);
-            }
+            const { from } = editor.state.selection;
+            const coords = editor.view.coordsAtPos(from);
+            const rect = new DOMRect(coords.left, coords.top, 0, coords.bottom - coords.top);
+            setTimeout(() => {
+              setPickerState({ show: true, anchor: rect, options, selectedIndex: 0 });
+            }, 0);
           }
           return false;
         }
@@ -280,6 +283,34 @@ export default function GherkinEditor({
     },
     [editor]
   );
+
+  useEffect(() => {
+    if (!pickerState.show) return;
+    const handler = (e: KeyboardEvent) => {
+      if (e.key === "ArrowDown") {
+        e.preventDefault();
+        e.stopPropagation();
+        setPickerState((s) => ({ ...s, selectedIndex: (s.selectedIndex + 1) % s.options.length }));
+      } else if (e.key === "ArrowUp") {
+        e.preventDefault();
+        e.stopPropagation();
+        setPickerState((s) => ({ ...s, selectedIndex: (s.selectedIndex - 1 + s.options.length) % s.options.length }));
+      } else if (e.key === "Enter") {
+        e.preventDefault();
+        e.stopPropagation();
+        const { options, selectedIndex } = pickerStateRef.current;
+        const type = options[selectedIndex];
+        if (type) insertBlock(type, true);
+        closePicker();
+      } else if (e.key === "Escape") {
+        e.preventDefault();
+        e.stopPropagation();
+        closePicker();
+      }
+    };
+    document.addEventListener("keydown", handler, true);
+    return () => document.removeEventListener("keydown", handler, true);
+  }, [pickerState.show, closePicker, insertBlock]);
 
   const handlePickerSelect = useCallback(
     (type: GherkinBlockType) => {
@@ -333,6 +364,7 @@ export default function GherkinEditor({
         <BlockPicker
           anchor={pickerState.anchor}
           options={pickerState.options}
+          selectedIndex={pickerState.selectedIndex}
           onSelect={handlePickerSelect}
           onClose={closePicker}
         />
