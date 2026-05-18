@@ -33,11 +33,11 @@ const ALLOWED_AFTER: Record<GherkinBlockType, GherkinBlockType[]> = {
   rule: ["background", "scenario"],
   background: ["given"],
   scenario: ["given"],
-  given: ["given", "when", "and", "but"],
-  when: ["when", "then", "and", "but"],
-  then: ["then", "and", "but", "scenario", "rule"],
+  given: ["when", "and", "but"],
+  when: [ "then", "and", "but"],
+  then: ["and", "but", "scenario", "rule"],
   and: ["given", "when", "then", "and", "but", "scenario", "rule"],
-  but: ["given", "when", "then", "and", "but", "scenario", "rule"],
+  but: ["given", "when", "then", "and", "scenario", "rule"],
 };
 
 export function canFollow(
@@ -59,7 +59,7 @@ export const NEXT_BLOCK_ON_ENTER: Record<GherkinBlockType, GherkinBlockType> =
     when: "then",
     then: "scenario",
     and: "and",
-    but: "but",
+    but: "and",
   };
 
 export const GherkinBlockSchema = z.object({

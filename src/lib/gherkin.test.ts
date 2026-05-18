@@ -65,40 +65,40 @@ describe("canFollow — after scenario", () => {
 });
 
 describe("canFollow — after given", () => {
-  it.each(["given", "when", "and", "but"] as GherkinBlockType[])(
+  it.each(["when", "and", "but"] as GherkinBlockType[])(
     "allows %s",
     (type) => expect(canFollow("given", type)).toBe(true)
   );
 
   it.each(
     GHERKIN_BLOCK_TYPES.filter(
-      (t) => !["given", "when", "and", "but"].includes(t)
+      (t) => !["when", "and", "but"].includes(t)
     )
   )("rejects %s", (type) => expect(canFollow("given", type)).toBe(false));
 });
 
 describe("canFollow — after when", () => {
-  it.each(["when", "then", "and", "but"] as GherkinBlockType[])(
+  it.each(["then", "and", "but"] as GherkinBlockType[])(
     "allows %s",
     (type) => expect(canFollow("when", type)).toBe(true)
   );
 
   it.each(
     GHERKIN_BLOCK_TYPES.filter(
-      (t) => !["when", "then", "and", "but"].includes(t)
+      (t) => !["then", "and", "but"].includes(t)
     )
   )("rejects %s", (type) => expect(canFollow("when", type)).toBe(false));
 });
 
 describe("canFollow — after then", () => {
-  it.each(["then", "and", "but", "scenario", "rule"] as GherkinBlockType[])(
+  it.each(["and", "but", "scenario", "rule"] as GherkinBlockType[])(
     "allows %s",
     (type) => expect(canFollow("then", type)).toBe(true)
   );
 
   it.each(
     GHERKIN_BLOCK_TYPES.filter(
-      (t) => !["then", "and", "but", "scenario", "rule"].includes(t)
+      (t) => !["and", "but", "scenario", "rule"].includes(t)
     )
   )("rejects %s", (type) => expect(canFollow("then", type)).toBe(false));
 });
@@ -120,7 +120,7 @@ describe("canFollow — after and", () => {
 
 describe("canFollow — after but", () => {
   const allowed: GherkinBlockType[] = [
-    "given", "when", "then", "and", "but", "scenario", "rule",
+    "given", "when", "then", "and", "scenario", "rule",
   ];
 
   it.each(allowed)("allows %s", (type) =>
@@ -145,7 +145,7 @@ describe("NEXT_BLOCK_ON_ENTER", () => {
     ["when",       "then"],
     ["then",       "scenario"],
     ["and",        "and"],
-    ["but",        "but"],
+    ["but",        "and"],
   ];
 
   it.each(table)("after %s → %s", (current, expected) => {

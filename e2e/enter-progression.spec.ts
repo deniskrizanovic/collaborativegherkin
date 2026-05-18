@@ -110,7 +110,7 @@ test.describe("enter-key auto-progression", () => {
     expect(typesAfter[lastAndBefore + 1]).toBe("and");
   });
 
-  test("but → but", async ({ page }) => {
+  test("but → and", async ({ page }) => {
     await openSession(page);
     await page.locator(".gherkin-toolbar-btn", { hasText: "Feature" }).click();
     await pressEnterAndWait(page, "scenario");
@@ -122,11 +122,11 @@ test.describe("enter-key auto-progression", () => {
       (els) => els.map((el) => el.getAttribute("data-gherkin-type"))
     );
     const lastButIdx = typesBefore.lastIndexOf("but");
-    await pressEnterAndWait(page, "but");
+    await pressEnterAndWait(page, "and");
     const typesAfter = await page.locator(".gherkin-editor [data-gherkin-type]").evaluateAll(
       (els) => els.map((el) => el.getAttribute("data-gherkin-type"))
     );
-    expect(typesAfter[lastButIdx + 1]).toBe("but");
+    expect(typesAfter[lastButIdx + 1]).toBe("and");
   });
 
   test("background → given", async ({ page }) => {
