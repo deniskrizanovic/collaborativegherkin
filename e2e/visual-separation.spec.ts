@@ -77,6 +77,64 @@ test.describe("visual separation", () => {
     expect(borderTop).toBe("1px");
   });
 
+  test("scenario after then has a top border (start of new step group)", async ({ page }) => {
+    await openSession(page);
+
+    await page.locator(".gherkin-toolbar-btn", { hasText: "Feature" }).click();
+    await pressEnterAndWait(page, "scenario");
+    await pressEnterAndWait(page, "given");
+    await pressEnterAndWait(page, "when");
+    await pressEnterAndWait(page, "then");
+    await pressEnterAndWait(page, "scenario");
+
+    const scenarioBlocks = page.locator('[data-gherkin-type="scenario"]');
+    const secondScenario = scenarioBlocks.last();
+    const borderTop = await secondScenario.evaluate(
+      (el) => window.getComputedStyle(el).borderTopWidth
+    );
+    expect(borderTop).toBe("1px");
+  });
+
+  test("scenario after and has a top border", async ({ page }) => {
+    await openSession(page);
+
+    await page.locator(".gherkin-toolbar-btn", { hasText: "Feature" }).click();
+    await pressEnterAndWait(page, "scenario");
+    await pressEnterAndWait(page, "given");
+    await pressEnterAndWait(page, "when");
+    await pressEnterAndWait(page, "then");
+    await page.locator(".gherkin-toolbar-btn", { hasText: "And" }).click();
+    await page.locator('[data-gherkin-type="and"]').last().click();
+    await page.locator(".gherkin-toolbar-btn", { hasText: "Scenario" }).click();
+
+    const scenarioBlocks = page.locator('[data-gherkin-type="scenario"]');
+    const lastScenario = scenarioBlocks.last();
+    const borderTop = await lastScenario.evaluate(
+      (el) => window.getComputedStyle(el).borderTopWidth
+    );
+    expect(borderTop).toBe("1px");
+  });
+
+  test("scenario after but has a top border", async ({ page }) => {
+    await openSession(page);
+
+    await page.locator(".gherkin-toolbar-btn", { hasText: "Feature" }).click();
+    await pressEnterAndWait(page, "scenario");
+    await pressEnterAndWait(page, "given");
+    await pressEnterAndWait(page, "when");
+    await pressEnterAndWait(page, "then");
+    await page.locator(".gherkin-toolbar-btn", { hasText: "But" }).click();
+    await page.locator('[data-gherkin-type="but"]').last().click();
+    await page.locator(".gherkin-toolbar-btn", { hasText: "Scenario" }).click();
+
+    const scenarioBlocks = page.locator('[data-gherkin-type="scenario"]');
+    const lastScenario = scenarioBlocks.last();
+    const borderTop = await lastScenario.evaluate(
+      (el) => window.getComputedStyle(el).borderTopWidth
+    );
+    expect(borderTop).toBe("1px");
+  });
+
   test("first given after scenario does not have a separator border", async ({ page }) => {
     await openSession(page);
 

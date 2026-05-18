@@ -235,7 +235,10 @@ kbd {
 /* Separator between consecutive Given-When-Then groups */
 .gherkin-editor p[data-gherkin-type="then"] + p[data-gherkin-type="given"],
 .gherkin-editor p[data-gherkin-type="and"] + p[data-gherkin-type="given"],
-.gherkin-editor p[data-gherkin-type="but"] + p[data-gherkin-type="given"] {
+.gherkin-editor p[data-gherkin-type="but"] + p[data-gherkin-type="given"],
+.gherkin-editor p[data-gherkin-type="then"] + p[data-gherkin-type="scenario"],
+.gherkin-editor p[data-gherkin-type="and"] + p[data-gherkin-type="scenario"],
+.gherkin-editor p[data-gherkin-type="but"] + p[data-gherkin-type="scenario"] {
   margin-top: 1.25rem;
   padding-top: 1.25rem;
   border-top: 1px solid #e5e7eb;
