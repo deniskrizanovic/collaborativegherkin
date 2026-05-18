@@ -75,7 +75,7 @@ export default function HomeClient({ sessions: initialSessions }: Props) {
                 <a href={`/sessions/${s.id}`} className="session-link">
                   {s.title}
                   <span className="session-date">
-                    {new Date(s.createdAt).toLocaleDateString()}
+                    {new Date(s.createdAt).toLocaleDateString("en-GB")}
                   </span>
                 </a>
               </li>
