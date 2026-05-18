@@ -41,6 +41,7 @@ Open [http://localhost:3000](http://localhost:3000).
 
 - [SPEC.md](./SPEC.md) — what the app does and who uses it
 - [DECISIONS.md](./DECISIONS.md) — why the stack was chosen
+- [TESTING.md](./TESTING.md) — testing strategy and layer 3 plan
 - [CLAUDE.md](./CLAUDE.md) — orientation for AI-assisted development
 
 ## Logs

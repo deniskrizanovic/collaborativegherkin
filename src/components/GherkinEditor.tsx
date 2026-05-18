@@ -235,13 +235,16 @@ export default function GherkinEditor({
           const nextType = contextType ? NEXT_BLOCK_ON_ENTER[contextType] : null;
 
           if (nextType && canFollow(currentType ?? prevType, nextType)) {
+            const { $from } = editor.state.selection;
+            const insertPos = $from.after();
             editor
               .chain()
               .focus()
-              .insertContent({
+              .insertContentAt(insertPos, {
                 type: "paragraph",
                 attrs: { "data-gherkin-type": nextType },
               })
+              .setTextSelection(insertPos + 1)
               .run();
           }
           return true;
@@ -269,16 +272,21 @@ export default function GherkinEditor({
   const insertBlock = useCallback(
     (type: GherkinBlockType, deleteSlash = false) => {
       if (!editor) return;
-      const chain = editor.chain().focus();
+
       if (deleteSlash) {
         const { from } = editor.state.selection;
-        chain.deleteRange({ from: from - 1, to: from });
+        editor.chain().focus().deleteRange({ from: from - 1, to: from }).run();
       }
-      chain
-        .insertContent({
+
+      const { $from } = editor.state.selection;
+      const insertPos = $from.after();
+
+      editor.chain().focus()
+        .insertContentAt(insertPos, {
           type: "paragraph",
           attrs: { "data-gherkin-type": type },
         })
+        .setTextSelection(insertPos + 1)
         .run();
     },
     [editor]
