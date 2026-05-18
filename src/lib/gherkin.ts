@@ -57,7 +57,7 @@ export const NEXT_BLOCK_ON_ENTER: Record<GherkinBlockType, GherkinBlockType> =
     scenario: "given",
     given: "when",
     when: "then",
-    then: "scenario",
+    then: "and",
     and: "and",
     but: "and",
   };

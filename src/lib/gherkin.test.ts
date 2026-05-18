@@ -143,7 +143,7 @@ describe("NEXT_BLOCK_ON_ENTER", () => {
     ["scenario",   "given"],
     ["given",      "when"],
     ["when",       "then"],
-    ["then",       "scenario"],
+    ["then",       "and"],
     ["and",        "and"],
     ["but",        "and"],
   ];

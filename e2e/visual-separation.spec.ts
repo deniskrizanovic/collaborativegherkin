@@ -85,7 +85,11 @@ test.describe("visual separation", () => {
     await pressEnterAndWait(page, "given");
     await pressEnterAndWait(page, "when");
     await pressEnterAndWait(page, "then");
-    await pressEnterAndWait(page, "scenario");
+    // Enter after "then" now produces "and"; use the toolbar to insert the next scenario
+    await page.locator(".gherkin-toolbar-btn", { hasText: "Scenario" }).click();
+    await page.waitForFunction(
+      () => document.querySelectorAll('[data-gherkin-type="scenario"]').length >= 2
+    );
 
     const scenarioBlocks = page.locator('[data-gherkin-type="scenario"]');
     const secondScenario = scenarioBlocks.last();

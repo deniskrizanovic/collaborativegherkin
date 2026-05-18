@@ -107,6 +107,10 @@ Pressing Enter at the end of a block creates a new block of a predetermined type
 **Then** a horizontal rule and vertical space are rendered above the `given` block  
 **And** this separation is purely visual and does not affect the document structure or export output
 
+**Given** a `scenario` block immediately follows a `then`, `and`, or `but` block  
+**Then** a horizontal rule and vertical space are rendered above the `scenario` block  
+**And** this separation is purely visual and does not affect the document structure or export output
+
 ---
 
 **Example export output:**

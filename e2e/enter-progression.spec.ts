@@ -69,7 +69,7 @@ test.describe("enter-key auto-progression", () => {
     expect(types[whenIdx + 1]).toBe("then");
   });
 
-  test("then → scenario", async ({ page }) => {
+  test("then → and", async ({ page }) => {
     await openSession(page);
     await page.locator(".gherkin-toolbar-btn", { hasText: "Feature" }).click();
     await page.locator('[data-gherkin-type="feature"]').click();
@@ -87,7 +87,7 @@ test.describe("enter-key auto-progression", () => {
       (els) => els.map((el) => el.getAttribute("data-gherkin-type"))
     );
     const thenIdx = types.indexOf("then");
-    expect(types[thenIdx + 1]).toBe("scenario");
+    expect(types[thenIdx + 1]).toBe("and");
   });
 
   test("and → and", async ({ page }) => {
