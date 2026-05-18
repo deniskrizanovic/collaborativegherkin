@@ -474,7 +474,7 @@ export default function GherkinEditor({
             </button>
           ))}
         <button
-          className="gherkin-image-btn"
+          className="gherkin-toolbar-btn"
           onMouseDown={(e) => {
             e.preventDefault();
             fileInputRef.current?.click();
