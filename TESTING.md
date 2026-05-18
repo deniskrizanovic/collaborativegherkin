@@ -11,6 +11,12 @@ application and a different cost/confidence trade-off.
 | 2 — API routes | `src/app/api/sessions/` | Vitest (mocked db) | Done |
 | 3 — Editor UI | Browser interactions, real-time collaboration | Playwright | Done |
 
+## Run all layers in parallel
+
+```bash
+npm run test:all
+```
+
 ---
 
 ## Layer 1 — Pure logic
@@ -24,6 +30,10 @@ Covers every exported function in `gherkin.ts`:
 - `exportToText()` — format, ordering, empty input, text preservation
 
 Runs instantly, no infrastructure needed.
+
+```bash
+npm run test
+```
 
 ---
 
@@ -40,6 +50,10 @@ Calls route handler functions directly with `NextRequest` objects. `db` and
 - `DELETE /api/sessions/[id]` — 204 and correct `where` clause, 500 on db error
 
 No test database required.
+
+```bash
+npm run test
+```
 
 ---
 

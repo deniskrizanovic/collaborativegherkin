@@ -21,7 +21,9 @@ test.describe("visual separation", () => {
     await pressEnterAndWait(page, "when");
     await pressEnterAndWait(page, "then");
 
-    // Now insert a given block via toolbar while cursor is on then
+    // Insert And after then, then insert Given after And (given cannot follow then directly)
+    await page.locator(".gherkin-toolbar-btn", { hasText: "And" }).click();
+    await page.locator('[data-gherkin-type="and"]').last().click();
     await page.locator(".gherkin-toolbar-btn", { hasText: "Given" }).click();
 
     const givenBlocks = page.locator('[data-gherkin-type="given"]');
@@ -104,7 +106,9 @@ test.describe("visual separation", () => {
     await pressEnterAndWait(page, "then");
     await page.keyboard.type("T");
 
-    // Insert second given (triggers separator)
+    // Insert And after then, then Given after And (given cannot follow then directly)
+    await page.locator(".gherkin-toolbar-btn", { hasText: "And" }).click();
+    await page.locator('[data-gherkin-type="and"]').last().click();
     await page.locator(".gherkin-toolbar-btn", { hasText: "Given" }).click();
     await page.locator('[data-gherkin-type="given"]').last().click();
     await page.keyboard.type("G2");
