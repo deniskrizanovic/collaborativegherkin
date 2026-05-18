@@ -38,16 +38,16 @@ These rules govern which block type may follow another. They are enforced by `ca
 **Then** the only valid next block type is `given`
 
 **Given** the current block is `given`  
-**Then** the valid next block types are: `given`, `when`, `and`, `but`
+**Then** the valid next block types are: `when`, `and`, `but`
 
 **Given** the current block is `when`  
-**Then** the valid next block types are: `when`, `then`, `and`, `but`
+**Then** the valid next block types are: `then`, `and`, `but`
 
 **Given** the current block is `then`  
-**Then** the valid next block types are: `then`, `and`, `but`, `scenario`, `rule`
+**Then** the valid next block types are: `and`, `but`, `scenario`, `rule`
 
 **Given** the current block is `and`  
 **Then** the valid next block types are: `given`, `when`, `then`, `and`, `but`, `scenario`, `rule`
 
 **Given** the current block is `but`  
-**Then** the valid next block types are: `given`, `when`, `then`, `and`, `but`, `scenario`, `rule`
+**Then** the valid next block types are: `given`, `when`, `then`, `and`, `scenario`, `rule`
