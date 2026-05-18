@@ -16,7 +16,43 @@ import {
   NEXT_BLOCK_ON_ENTER,
   exportToText,
   GherkinBlock,
+  DocumentBlock,
 } from "@/lib/gherkin";
+
+const GherkinImage = Node.create({
+  name: "gherkin_image",
+  group: "block",
+  atom: true,
+  draggable: true,
+
+  addAttributes() {
+    return {
+      src: { default: null },
+      alt: { default: "" },
+    };
+  },
+
+  parseHTML() {
+    return [{ tag: "img[data-gherkin-image]" }];
+  },
+
+  renderHTML({ HTMLAttributes }) {
+    return ["img", mergeAttributes(HTMLAttributes, { "data-gherkin-image": "" })];
+  },
+
+  addNodeView() {
+    return ({ node }) => {
+      const dom = document.createElement("div");
+      dom.className = "gherkin-image-block";
+      const img = document.createElement("img");
+      img.src = node.attrs.src;
+      img.alt = node.attrs.alt ?? "";
+      img.style.maxWidth = "100%";
+      dom.appendChild(img);
+      return { dom };
+    };
+  },
+});
 
 // Paragraph extension extended to carry data-gherkin-type on every block
 const GherkinParagraph = Node.create({
@@ -84,24 +120,47 @@ function getCurrentBlockType(state: import("@tiptap/pm/state").EditorState): Ghe
   return current;
 }
 
-function getAllBlocks(state: import("@tiptap/pm/state").EditorState): GherkinBlock[] {
-  const blocks: GherkinBlock[] = [];
+function getAllBlocks(state: import("@tiptap/pm/state").EditorState): DocumentBlock[] {
+  const blocks: DocumentBlock[] = [];
   state.doc.forEach((node) => {
-    const type = node.attrs?.["data-gherkin-type"] as GherkinBlockType | undefined;
-    if (type) blocks.push({ type, text: node.textContent });
+    if (node.type.name === "gherkin_image") {
+      blocks.push({ type: "image", src: node.attrs.src, alt: node.attrs.alt ?? "" });
+    } else {
+      const type = node.attrs?.["data-gherkin-type"] as GherkinBlockType | undefined;
+      if (type) blocks.push({ type, text: node.textContent });
+    }
   });
   return blocks;
 }
 
-function getValidNextTypes(previous: GherkinBlockType | null): GherkinBlockType[] {
-  return GHERKIN_BLOCK_TYPES.filter((t) => canFollow(previous, t));
+type InsertableType = GherkinBlockType | "image";
+
+function getValidNextTypes(previous: GherkinBlockType | null): InsertableType[] {
+  return [...GHERKIN_BLOCK_TYPES.filter((t) => canFollow(previous, t)), "image"];
+}
+
+function insertImageFromFile(file: File, editor: import("@tiptap/react").Editor) {
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    const src = e.target?.result as string;
+    const { $from } = editor.state.selection;
+    editor
+      .chain()
+      .focus()
+      .insertContentAt($from.after(), {
+        type: "gherkin_image",
+        attrs: { src, alt: file.name },
+      })
+      .run();
+  };
+  reader.readAsDataURL(file);
 }
 
 interface BlockPickerProps {
   anchor: DOMRect;
-  options: GherkinBlockType[];
+  options: InsertableType[];
   selectedIndex: number;
-  onSelect: (type: GherkinBlockType) => void;
+  onSelect: (type: InsertableType) => void;
   onClose: () => void;
 }
 
@@ -152,7 +211,7 @@ function BlockPicker({ anchor, options, selectedIndex, onSelect, onClose }: Bloc
           onMouseEnter={(e) => (e.currentTarget.style.background = "#f3f4f6")}
           onMouseLeave={(e) => (e.currentTarget.style.background = i === selectedIndex ? "#f3f4f6" : "none")}
         >
-          <span style={{ fontWeight: 600 }}>{GHERKIN_LABELS[type]}</span>
+          <span style={{ fontWeight: 600 }}>{type === "image" ? "Image" : GHERKIN_LABELS[type]}</span>
         </button>
       ))}
     </div>
@@ -193,10 +252,12 @@ export default function GherkinEditor({
     };
   }, []);
 
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
+
   const [pickerState, setPickerState] = useState<{
     show: boolean;
     anchor: DOMRect | null;
-    options: GherkinBlockType[];
+    options: InsertableType[];
     selectedIndex: number;
     replace: boolean;
   }>({ show: false, anchor: null, options: [], selectedIndex: 0, replace: false });
@@ -215,6 +276,7 @@ export default function GherkinEditor({
         paragraph: false, // replaced by GherkinParagraph
       }),
       GherkinParagraph,
+      GherkinImage,
       Collaboration.configure({ document: ydocRef.current }),
       CollaborationCursor.configure({
         provider: providerRef.current,
@@ -275,8 +337,17 @@ export default function GherkinEditor({
   });
 
   const insertBlock = useCallback(
-    (type: GherkinBlockType, deleteSlash = false, replace = false) => {
+    (type: InsertableType, deleteSlash = false, replace = false) => {
       if (!editor) return;
+
+      if (type === "image") {
+        if (deleteSlash) {
+          const { from } = editor.state.selection;
+          editor.chain().focus().deleteRange({ from: from - 1, to: from }).run();
+        }
+        fileInputRef.current?.click();
+        return;
+      }
 
       if (deleteSlash) {
         const { from } = editor.state.selection;
@@ -338,7 +409,7 @@ export default function GherkinEditor({
   }, [pickerState.show, closePicker, insertBlock]);
 
   const handlePickerSelect = useCallback(
-    (type: GherkinBlockType) => {
+    (type: InsertableType) => {
       insertBlock(type, true, pickerState.replace);
       closePicker();
     },
@@ -363,25 +434,63 @@ export default function GherkinEditor({
     : null;
   const validNext = getValidNextTypes(prevBlockType);
 
+  const handleFileInputChange = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      const file = e.target.files?.[0];
+      if (file && editor) insertImageFromFile(file, editor);
+      e.target.value = "";
+    },
+    [editor]
+  );
+
   return (
-    <div className="gherkin-editor-wrapper">
+    <div
+      className="gherkin-editor-wrapper"
+      onDrop={(e) => {
+        const file = e.dataTransfer?.files?.[0];
+        if (file?.type.startsWith("image/") && editor) {
+          e.preventDefault();
+          insertImageFromFile(file, editor);
+        }
+      }}
+      onDragOver={(e) => e.preventDefault()}
+    >
       <div className="gherkin-toolbar">
-        {validNext.map((type) => (
-          <button
-            key={type}
-            className="gherkin-toolbar-btn"
-            onMouseDown={(e) => {
-              e.preventDefault();
-              insertBlock(type);
-            }}
-          >
-            {GHERKIN_LABELS[type]}
-          </button>
-        ))}
+        {validNext
+          .filter((type) => type !== "image")
+          .map((type) => (
+            <button
+              key={type}
+              className="gherkin-toolbar-btn"
+              onMouseDown={(e) => {
+                e.preventDefault();
+                insertBlock(type);
+              }}
+            >
+              {GHERKIN_LABELS[type as GherkinBlockType]}
+            </button>
+          ))}
+        <button
+          className="gherkin-image-btn"
+          onMouseDown={(e) => {
+            e.preventDefault();
+            fileInputRef.current?.click();
+          }}
+        >
+          Image
+        </button>
         <button className="gherkin-export-btn" onClick={handleExport}>
           Export
         </button>
       </div>
+
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept="image/*"
+        style={{ display: "none" }}
+        onChange={handleFileInputChange}
+      />
 
       <EditorContent editor={editor} />
 

@@ -69,8 +69,14 @@ export const GherkinBlockSchema = z.object({
 
 export type GherkinBlock = z.infer<typeof GherkinBlockSchema>;
 
-export function exportToText(blocks: GherkinBlock[]): string {
+export type ImageBlock = { type: "image"; src: string; alt: string };
+export type DocumentBlock = GherkinBlock | ImageBlock;
+
+export function exportToText(blocks: DocumentBlock[]): string {
   return blocks
-    .map((b) => `${GHERKIN_LABELS[b.type]}: ${b.text}`)
+    .map((b) => {
+      if (b.type === "image") return b.src;
+      return `${GHERKIN_LABELS[b.type]}: ${b.text}`;
+    })
     .join("\n");
 }

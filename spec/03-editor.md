@@ -38,7 +38,8 @@ Pressing Enter at the end of a block creates a new block of a predetermined type
 **Given** the cursor is inside a block  
 **When** the user types `/`  
 **Then** a block picker menu opens  
-**And** the menu lists only the block types that are valid next blocks for the current block, according to `canFollow()`
+**And** the menu lists the block types that are valid next blocks for the current block, according to `canFollow()`  
+**And** the menu always includes `Image` as the final option, regardless of the current block type
 
 **Given** the block picker menu is open  
 **When** the user presses the down arrow key  
@@ -70,7 +71,8 @@ Pressing Enter at the end of a block creates a new block of a predetermined type
 
 **Given** the cursor is inside a block  
 **When** the editor toolbar renders  
-**Then** the toolbar shows only the block types that are valid next blocks for the current block, according to `canFollow()`
+**Then** the toolbar shows the block types that are valid next blocks for the current block, according to `canFollow()`  
+**And** the toolbar always shows an Image button, regardless of the current block type
 
 **Given** the toolbar is showing valid block types  
 **When** the user clicks a toolbar button  
@@ -96,8 +98,9 @@ Pressing Enter at the end of a block creates a new block of a predetermined type
 **Given** a user is in a session editor  
 **When** the user clicks the Export button  
 **Then** a plain-text file is downloaded  
-**And** the file contains one line per block in the format `Keyword: text`  
-**And** lines appear in document order
+**And** keyword blocks appear as one line each in the format `Keyword: text`  
+**And** image blocks appear as one line each containing the full base64 data-URI  
+**And** all lines appear in document order
 
 ---
 
@@ -113,6 +116,30 @@ Pressing Enter at the end of a block creates a new block of a predetermined type
 
 ---
 
+---
+
+## 3.8 Image insertion
+
+**Given** a user is in a session editor  
+**When** the user clicks the Image toolbar button  
+**Then** a file picker opens  
+**And** selecting an image file embeds it as an image block immediately after the current block
+
+**Given** a user is in a session editor  
+**When** the user types `/` and selects Image from the block picker  
+**Then** a file picker opens  
+**And** selecting an image file embeds it as an image block immediately after the current block
+
+**Given** a user is in a session editor  
+**When** the user drags an image file onto the editor  
+**Then** the image is embedded as an image block at the drop position
+
+**Given** an image block is in the document  
+**Then** the image is displayed inline at full available width  
+**And** the image block may appear after any keyword block type
+
+---
+
 **Example export output:**
 ```
 Feature: User login
@@ -120,4 +147,5 @@ Scenario: Successful login
 Given the user is on the login page
 When the user enters valid credentials
 Then the user is redirected to the dashboard
+data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAA...
 ```

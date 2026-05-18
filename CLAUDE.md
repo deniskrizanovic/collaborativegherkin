@@ -72,6 +72,13 @@ logs/             # Written at runtime — never commit
 - Do not run database migrations against production without a backup.
 - Do not add validation client-side only — validate with Zod on the server too.
 
+## Planning UI changes
+Before finalising a plan that adds or changes a UI element, grep `e2e/` for
+every selector or class name the element will use. Read each matching spec and
+note which assertions (count, text, visibility) are affected. Resolve any
+conflict in the plan — distinct class, updated test, or design adjustment —
+before writing any code.
+
 ## Do Not Touch (without explicit permission)
 1. `src/lib/gherkin.ts` — the Gherkin block structure and validation rules
 2. Tiptap + Y.js collaboration configuration once real-time sync is working

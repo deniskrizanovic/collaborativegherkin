@@ -2,7 +2,7 @@
 
 ## 2.1 Block types
 
-A Gherkin document is composed of typed blocks. Each block has a keyword type and free-form text. The valid types are:
+A Gherkin document is composed of typed blocks. Keyword blocks have a keyword prefix and free-form text. The valid keyword types are:
 
 | Type       | Keyword prefix |
 |------------|----------------|
@@ -15,6 +15,8 @@ A Gherkin document is composed of typed blocks. Each block has a keyword type an
 | then       | Then           |
 | and        | And            |
 | but        | But            |
+
+In addition, documents may contain **image blocks**. An image block carries an embedded image (stored as a base64 data-URI) and an alt-text string. Image blocks carry no Gherkin step semantics — they are not subject to `canFollow()` rules and may appear after any keyword block.
 
 ---
 
