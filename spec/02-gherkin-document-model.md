@@ -44,7 +44,7 @@ These rules govern which block type may follow another. They are enforced by `ca
 **Then** the valid next block types are: `then`, `and`, `but`
 
 **Given** the current block is `then`  
-**Then** the valid next block types are: `and`, `but`, `scenario`, `rule`
+**Then** the valid next block types are: `and`, `but`, `given`, `scenario`, `rule`
 
 **Given** the current block is `and`  
 **Then** the valid next block types are: `given`, `when`, `then`, `and`, `but`, `scenario`, `rule`

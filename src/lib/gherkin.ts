@@ -35,7 +35,7 @@ const ALLOWED_AFTER: Record<GherkinBlockType, GherkinBlockType[]> = {
   scenario: ["given"],
   given: ["when", "and", "but"],
   when: [ "then", "and", "but"],
-  then: ["and", "but", "scenario", "rule"],
+  then: ["and", "but", "given", "scenario", "rule"],
   and: ["given", "when", "then", "and", "but", "scenario", "rule"],
   but: ["given", "when", "then", "and", "scenario", "rule"],
 };

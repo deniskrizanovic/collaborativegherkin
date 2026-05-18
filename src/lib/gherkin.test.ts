@@ -91,14 +91,14 @@ describe("canFollow — after when", () => {
 });
 
 describe("canFollow — after then", () => {
-  it.each(["and", "but", "scenario", "rule"] as GherkinBlockType[])(
+  it.each(["and", "but", "given", "scenario", "rule"] as GherkinBlockType[])(
     "allows %s",
     (type) => expect(canFollow("then", type)).toBe(true)
   );
 
   it.each(
     GHERKIN_BLOCK_TYPES.filter(
-      (t) => !["and", "but", "scenario", "rule"].includes(t)
+      (t) => !["and", "but", "given", "scenario", "rule"].includes(t)
     )
   )("rejects %s", (type) => expect(canFollow("then", type)).toBe(false));
 });

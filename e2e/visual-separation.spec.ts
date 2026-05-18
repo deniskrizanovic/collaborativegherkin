@@ -21,7 +21,7 @@ test.describe("visual separation", () => {
     await pressEnterAndWait(page, "when");
     await pressEnterAndWait(page, "then");
 
-    // Insert And after then, then insert Given after And (given cannot follow then directly)
+    // Insert And after then, then insert Given after And
     await page.locator(".gherkin-toolbar-btn", { hasText: "And" }).click();
     await page.locator('[data-gherkin-type="and"]').last().click();
     await page.locator(".gherkin-toolbar-btn", { hasText: "Given" }).click();
@@ -168,7 +168,7 @@ test.describe("visual separation", () => {
     await pressEnterAndWait(page, "then");
     await page.keyboard.type("T");
 
-    // Insert And after then, then Given after And (given cannot follow then directly)
+    // Insert And after then, then Given after And
     await page.locator(".gherkin-toolbar-btn", { hasText: "And" }).click();
     await page.locator('[data-gherkin-type="and"]').last().click();
     await page.locator(".gherkin-toolbar-btn", { hasText: "Given" }).click();
