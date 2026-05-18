@@ -5,7 +5,6 @@ A real-time collaborative editor for writing Gherkin acceptance criteria togethe
 ## Prerequisites
 
 - Node.js 20+
-- PostgreSQL running locally
 
 ## Getting started
 
@@ -30,7 +29,8 @@ Open [http://localhost:3000](http://localhost:3000).
 
 | Command | What it does |
 |---|---|
-| `npm run dev` | Start local development server |
+| `npm run dev` | Start Next.js dev server |
+| `npm run dev:ws` | Start Y.js WebSocket sync server (required for real-time collaboration) |
 | `npm run build` | Build for production |
 | `npm run test` | Run tests |
 | `npm run lint` | Lint the codebase |
