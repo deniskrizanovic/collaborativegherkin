@@ -299,7 +299,10 @@ export default function GherkinEditor({
 
           if (nextType && canFollow(currentType ?? prevType, nextType)) {
             const { $from } = editor.state.selection;
-            const insertPos = $from.after();
+            const insertPos =
+              $from.depth > 0
+                ? $from.after()
+                : $from.pos + ($from.nodeAfter?.nodeSize ?? 0);
             editor
               .chain()
               .focus()

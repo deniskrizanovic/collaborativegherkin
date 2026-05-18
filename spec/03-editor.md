@@ -31,6 +31,11 @@ Pressing Enter at the end of a block creates a new block of a predetermined type
 **Then** a new block of the auto-progression type is inserted immediately after the current block  
 **And** the cursor is placed at the start of the new block's text
 
+**Given** the cursor is on an image block  
+**When** the user presses Enter  
+**Then** a new block is inserted after the image using the auto-progression type of the most recent Gherkin block that precedes the image  
+**And** the cursor is placed at the start of the new block's text
+
 ---
 
 ## 3.3 Slash-command block picker

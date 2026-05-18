@@ -1,7 +1,10 @@
 import { test, expect } from "@playwright/test";
 import { openSession, pressEnterAndWait } from "./helpers";
+import path from "path";
+import fs from "fs";
+import os from "os";
 
-// spec §3.2 — all 9 rows of the enter-progression table
+// spec §3.2 — all 9 rows of the enter-progression table + image Enter
 
 test.describe("enter-key auto-progression", () => {
   // Insert a sequence of blocks by using the toolbar/picker for the first one,
@@ -155,5 +158,55 @@ test.describe("enter-key auto-progression", () => {
     );
     const ruleIdx = types.indexOf("rule");
     expect(types[ruleIdx + 1]).toBe("scenario");
+  });
+
+  // spec §3.2 — image block: Enter inserts next block using prevType context
+  test("Enter on image block inserts next block by prevType context", async ({ page }) => {
+    await openSession(page);
+
+    // Build: feature → scenario → given → when → then
+    await page.locator(".gherkin-toolbar-btn", { hasText: "Feature" }).click();
+    await pressEnterAndWait(page, "scenario");
+    await pressEnterAndWait(page, "given");
+    await pressEnterAndWait(page, "when");
+    await pressEnterAndWait(page, "then");
+
+    // Insert an image after the 'then' block via the toolbar Image button
+    const tmpImg = path.join(os.tmpdir(), "test-gherkin.png");
+    // minimal 1×1 red PNG
+    const PNG_1x1 = Buffer.from(
+      "89504e470d0a1a0a0000000d49484452000000010000000108020000009001" +
+      "2e00000000c4944415478016360f8cfc00000000200016c3455300000000049454e44ae426082",
+      "hex"
+    );
+    fs.writeFileSync(tmpImg, PNG_1x1);
+
+    await page.locator('[data-gherkin-type="then"]').last().click();
+    await page.locator(".gherkin-toolbar-btn", { hasText: "Image" }).click();
+    await page.locator('input[type="file"]').setInputFiles(tmpImg);
+
+    // Wait for image block to appear
+    await page.waitForSelector(".gherkin-image-block");
+
+    // Click the image block to select it, then press Enter
+    await page.locator(".gherkin-image-block").click();
+    const typesBefore = await page.locator(".gherkin-editor [data-gherkin-type]").evaluateAll(
+      (els) => els.map((el) => el.getAttribute("data-gherkin-type"))
+    );
+    const countBefore = typesBefore.length;
+
+    await page.keyboard.press("Enter");
+
+    // A new block should appear after the image — prevType is 'then', so next is 'and'
+    await page.waitForFunction(
+      (count: number) => document.querySelectorAll("[data-gherkin-type]").length > count,
+      countBefore
+    );
+    const typesAfter = await page.locator(".gherkin-editor [data-gherkin-type]").evaluateAll(
+      (els) => els.map((el) => el.getAttribute("data-gherkin-type"))
+    );
+    expect(typesAfter[typesAfter.length - 1]).toBe("and");
+
+    fs.unlinkSync(tmpImg);
   });
 });
