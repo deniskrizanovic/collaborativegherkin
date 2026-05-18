@@ -99,6 +99,16 @@ Pressing Enter at the end of a block creates a new block of a predetermined type
 **And** the file contains one line per block in the format `Keyword: text`  
 **And** lines appear in document order
 
+---
+
+## 3.7 Visual separation between step groups
+
+**Given** a `given` block immediately follows a `then`, `and`, or `but` block  
+**Then** a horizontal rule and vertical space are rendered above the `given` block  
+**And** this separation is purely visual and does not affect the document structure or export output
+
+---
+
 **Example export output:**
 ```
 Feature: User login
