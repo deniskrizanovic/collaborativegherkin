@@ -198,13 +198,14 @@ export default function GherkinEditor({
     anchor: DOMRect | null;
     options: GherkinBlockType[];
     selectedIndex: number;
-  }>({ show: false, anchor: null, options: [], selectedIndex: 0 });
+    replace: boolean;
+  }>({ show: false, anchor: null, options: [], selectedIndex: 0, replace: false });
 
   const pickerStateRef = useRef(pickerState);
   useEffect(() => { pickerStateRef.current = pickerState; }, [pickerState]);
 
   const closePicker = useCallback(() => {
-    setPickerState({ show: false, anchor: null, options: [], selectedIndex: 0 });
+    setPickerState({ show: false, anchor: null, options: [], selectedIndex: 0, replace: false });
   }, []);
 
   const editor = useEditor({
@@ -251,14 +252,18 @@ export default function GherkinEditor({
         }
 
         if (event.key === "/") {
-          const prevType = getCurrentBlockType(editor.state) ?? getPreviousBlockType(editor.state);
+          const currentType = getCurrentBlockType(editor.state);
+          const prevType = getPreviousBlockType(editor.state);
+          // On a typed block: replace its type using what precedes it as context.
+          // On an untyped line: insert after using the same prev context.
           const options = getValidNextTypes(prevType);
+          const replacing = currentType !== null;
           if (options.length > 0) {
             const { from } = editor.state.selection;
             const coords = editor.view.coordsAtPos(from);
             const rect = new DOMRect(coords.left, coords.top, 0, coords.bottom - coords.top);
             setTimeout(() => {
-              setPickerState({ show: true, anchor: rect, options, selectedIndex: 0 });
+              setPickerState({ show: true, anchor: rect, options, selectedIndex: 0, replace: replacing });
             }, 0);
           }
           return false;
@@ -270,12 +275,24 @@ export default function GherkinEditor({
   });
 
   const insertBlock = useCallback(
-    (type: GherkinBlockType, deleteSlash = false) => {
+    (type: GherkinBlockType, deleteSlash = false, replace = false) => {
       if (!editor) return;
 
       if (deleteSlash) {
         const { from } = editor.state.selection;
         editor.chain().focus().deleteRange({ from: from - 1, to: from }).run();
+      }
+
+      if (replace) {
+        const { $from } = editor.state.selection;
+        const nodeStart = $from.before();
+        editor.chain().focus()
+          .command(({ tr }) => {
+            tr.setNodeMarkup(nodeStart, undefined, { "data-gherkin-type": type });
+            return true;
+          })
+          .run();
+        return;
       }
 
       const { $from } = editor.state.selection;
@@ -306,9 +323,9 @@ export default function GherkinEditor({
       } else if (e.key === "Enter") {
         e.preventDefault();
         e.stopPropagation();
-        const { options, selectedIndex } = pickerStateRef.current;
+        const { options, selectedIndex, replace } = pickerStateRef.current;
         const type = options[selectedIndex];
-        if (type) insertBlock(type, true);
+        if (type) insertBlock(type, true, replace);
         closePicker();
       } else if (e.key === "Escape") {
         e.preventDefault();
@@ -322,10 +339,10 @@ export default function GherkinEditor({
 
   const handlePickerSelect = useCallback(
     (type: GherkinBlockType) => {
-      insertBlock(type, true);
+      insertBlock(type, true, pickerState.replace);
       closePicker();
     },
-    [insertBlock, closePicker]
+    [insertBlock, closePicker, pickerState.replace]
   );
 
   const handleExport = useCallback(() => {
