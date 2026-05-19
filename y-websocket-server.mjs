@@ -28,6 +28,17 @@ function getRoom(name) {
   const room = { ydoc, awareness, clients: new Set() };
   rooms.set(name, room);
 
+  // Single room-level handler: broadcast to all clients except the origin sender.
+  ydoc.on("update", (update, origin) => {
+    const encoder = encoding.createEncoder();
+    encoding.writeVarUint(encoder, messageSync);
+    syncProtocol.writeUpdate(encoder, update);
+    const msg = encoding.toUint8Array(encoder);
+    for (const client of room.clients) {
+      if (client !== origin && client.readyState === 1) client.send(msg);
+    }
+  });
+
   awareness.on("update", ({ added, updated, removed }) => {
     const changedClients = [...added, ...updated, ...removed];
     const encoder = encoding.createEncoder();
@@ -38,7 +49,7 @@ function getRoom(name) {
     );
     const msg = encoding.toUint8Array(encoder);
     for (const client of room.clients) {
-      if (client.readyState === 1 /* OPEN */) client.send(msg);
+      if (client.readyState === 1) client.send(msg);
     }
   });
 
@@ -96,7 +107,7 @@ wss.on("connection", (ws, req) => {
           decoder,
           encoder,
           room.ydoc,
-          null
+          ws
         );
         if (encoding.length(encoder) > 1) {
           ws.send(encoding.toUint8Array(encoder));
@@ -117,22 +128,8 @@ wss.on("connection", (ws, req) => {
     }
   });
 
-  // Broadcast Y.js doc updates to all other clients in the room
-  const updateHandler = (update, origin) => {
-    if (origin === ws) return;
-    const encoder = encoding.createEncoder();
-    encoding.writeVarUint(encoder, messageSync);
-    syncProtocol.writeUpdate(encoder, update);
-    const msg = encoding.toUint8Array(encoder);
-    for (const client of room.clients) {
-      if (client !== ws && client.readyState === 1) client.send(msg);
-    }
-  };
-  room.ydoc.on("update", updateHandler);
-
   ws.on("close", () => {
     room.clients.delete(ws);
-    room.ydoc.off("update", updateHandler);
     awarenessProtocol.removeAwarenessStates(
       room.awareness,
       [room.ydoc.clientID],

@@ -13,7 +13,7 @@ tools like Jira. The app is a workspace, not a permanent archive.
 - **Auth:** NextAuth.js v5
 - **Validation:** Zod
 - **Logging:** Pino → logs/app.log and logs/error.log
-- **Testing:** Vitest
+- **Testing:** Vitest, playwright
 
 ## Key commands
 ```bash
@@ -71,6 +71,10 @@ logs/             # Written at runtime — never commit
 - Do not commit the `logs/` directory or any `.env*` file except `.env.example`.
 - Do not run database migrations against production without a backup.
 - Do not add validation client-side only — validate with Zod on the server too.
+
+## Planning sessions
+After every planning session, save the plan to `plans/YYYY-MM-DD-HH:MM-<short-description>.md`
+in the project root before exiting plan mode.
 
 ## Planning UI changes
 Before finalising a plan that adds or changes a UI element, grep `e2e/` for

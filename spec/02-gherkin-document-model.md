@@ -18,6 +18,8 @@ A Gherkin document is composed of typed blocks. Keyword blocks have a keyword pr
 
 In addition, documents may contain **image blocks**. An image block carries an embedded image (stored as a base64 data-URI) and an alt-text string. Image blocks carry no Gherkin step semantics — they are not subject to `canFollow()` rules and may appear after any keyword block.
 
+Documents may also contain **data table blocks**. A data table block carries a 2D array of string cells (rows × columns). Data table blocks carry no Gherkin step semantics — they are not subject to `canFollow()` rules. A data table may appear immediately after any step block (`given`, `when`, `then`, `and`, `but`) or after another data table; placement is enforced in the editor layer.
+
 ---
 
 ## 2.2 Document structure rules

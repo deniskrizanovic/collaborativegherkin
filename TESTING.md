@@ -28,6 +28,8 @@ Covers every exported function in `gherkin.ts`:
   empty-document case
 - `NEXT_BLOCK_ON_ENTER` — all entries from the §3.2 table
 - `exportToText()` — format, ordering, empty input, text preservation
+- `exportToText()` data tables — pipe-delimited rows, column-width padding
+- `exportToMarkdown()` data tables — header row, `| --- |` separator, data rows
 
 Runs instantly, no infrastructure needed.
 
@@ -122,4 +124,12 @@ npx playwright test e2e/collaboration.spec.ts
 ```
 ```bash
 npx playwright test e2e/collaboration.spec.ts --ui
+```
+
+#### Data table
+```bash
+npx playwright test e2e/data-table.spec.ts
+```
+```bash
+npx playwright test e2e/data-table.spec.ts --ui
 ```

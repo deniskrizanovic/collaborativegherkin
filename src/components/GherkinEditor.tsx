@@ -3,6 +3,7 @@
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import { useEditor, EditorContent } from "@tiptap/react";
 import { Node, mergeAttributes } from "@tiptap/core";
+import { TextSelection } from "@tiptap/pm/state";
 import StarterKit from "@tiptap/starter-kit";
 import Collaboration from "@tiptap/extension-collaboration";
 import CollaborationCursor from "@tiptap/extension-collaboration-cursor";
@@ -16,14 +17,15 @@ import {
   NEXT_BLOCK_ON_ENTER,
   exportToText,
   exportToMarkdown,
-  GherkinBlock,
   DocumentBlock,
+  DataTableBlock,
 } from "@/lib/gherkin";
 
 const GherkinImage = Node.create({
   name: "gherkin_image",
   group: "block",
   atom: true,
+  selectable: false,
   draggable: true,
 
   addAttributes() {
@@ -51,6 +53,155 @@ const GherkinImage = Node.create({
       img.style.maxWidth = "100%";
       dom.appendChild(img);
       return { dom };
+    };
+  },
+});
+
+const STEP_TYPES: GherkinBlockType[] = ["given", "when", "then", "and", "but"];
+
+const GherkinDataTable = Node.create({
+  name: "gherkin_data_table",
+  group: "block",
+  atom: true,
+  selectable: false,
+  draggable: true,
+
+  addAttributes() {
+    return {
+      // JSON string: Y.js attribute equality is reference-based, so arrays always
+      // trigger setAttribute; a string only writes when the content actually changes.
+      rows: { default: JSON.stringify([["", ""], ["", ""]]) },
+    };
+  },
+
+  parseHTML() {
+    return [{ tag: "div[data-gherkin-table]" }];
+  },
+
+  renderHTML({ HTMLAttributes }) {
+    return ["div", mergeAttributes(HTMLAttributes, { "data-gherkin-table": "" })];
+  },
+
+  addNodeView() {
+    return ({ node, getPos, editor: nodeEditor }) => {
+      let rows: string[][] = JSON.parse(node.attrs.rows as string);
+
+      const dom = document.createElement("div");
+      dom.className = "gherkin-table-block";
+      dom.setAttribute("data-gherkin-table", "");
+      dom.contentEditable = "false";
+
+      const table = document.createElement("table");
+      table.style.borderCollapse = "collapse";
+
+      const tbody = document.createElement("tbody");
+
+      function getCells(): HTMLElement[] {
+        return Array.from(dom.querySelectorAll("td[data-cell]")) as HTMLElement[];
+      }
+
+      let committedRows = node.attrs.rows as string;
+
+      function commitRows() {
+        if (typeof getPos !== "function") return;
+        const serialized = JSON.stringify(rows);
+        if (serialized === committedRows) return;
+        committedRows = serialized;
+        nodeEditor.commands.command(({ tr }) => {
+          tr.setNodeMarkup(getPos(), undefined, { rows: serialized });
+          return true;
+        });
+      }
+
+      function buildTable() {
+        tbody.innerHTML = "";
+        rows.forEach((row, ri) => {
+          const tr = document.createElement("tr");
+          row.forEach((cell, ci) => {
+            const td = document.createElement("td");
+            td.setAttribute("data-cell", `${ri}-${ci}`);
+            td.contentEditable = "true";
+            td.textContent = cell;
+            td.style.cssText =
+              "border:1px solid #d1d5db;padding:4px 8px;min-width:60px;outline:none;";
+
+            td.addEventListener("input", () => {
+              rows[ri][ci] = td.textContent ?? "";
+            });
+
+            td.addEventListener("blur", () => {
+              rows[ri][ci] = td.textContent ?? "";
+              commitRows();
+            });
+
+            td.addEventListener("keydown", (e) => {
+              if (e.key === "Tab") {
+                e.preventDefault();
+                e.stopPropagation();
+                const cells = getCells();
+                const idx = cells.indexOf(td);
+                const next = e.shiftKey ? cells[idx - 1] : cells[idx + 1];
+                if (next) (next as HTMLElement).focus();
+              }
+            });
+
+            tr.appendChild(td);
+          });
+          tbody.appendChild(tr);
+        });
+      }
+
+      buildTable();
+      table.appendChild(tbody);
+      dom.appendChild(table);
+
+      const controls = document.createElement("div");
+      controls.style.cssText = "margin-top:4px;display:flex;gap:6px;";
+
+      const addRowBtn = document.createElement("button");
+      addRowBtn.textContent = "Add row";
+      addRowBtn.className = "gherkin-table-add-row";
+      addRowBtn.style.cssText =
+        "font-size:12px;padding:2px 8px;border:1px solid #d1d5db;border-radius:4px;cursor:pointer;background:#f9fafb;";
+      addRowBtn.addEventListener("mousedown", (e) => {
+        e.preventDefault();
+        rows.push(Array(rows[0].length).fill(""));
+        buildTable();
+        commitRows();
+      });
+
+      const addColBtn = document.createElement("button");
+      addColBtn.textContent = "Add column";
+      addColBtn.className = "gherkin-table-add-col";
+      addColBtn.style.cssText =
+        "font-size:12px;padding:2px 8px;border:1px solid #d1d5db;border-radius:4px;cursor:pointer;background:#f9fafb;";
+      addColBtn.addEventListener("mousedown", (e) => {
+        e.preventDefault();
+        rows = rows.map((r) => [...r, ""]);
+        buildTable();
+        commitRows();
+      });
+
+      controls.appendChild(addRowBtn);
+      controls.appendChild(addColBtn);
+      dom.appendChild(controls);
+
+      return {
+        dom,
+        update(updatedNode) {
+          if (updatedNode.type.name !== "gherkin_data_table") return false;
+          committedRows = updatedNode.attrs.rows as string;
+          rows = JSON.parse(committedRows);
+          buildTable();
+          return true;
+        },
+        stopEvent() {
+          return true;
+        },
+        ignoreMutation() {
+          return true;
+        },
+      };
     };
   },
 });
@@ -92,11 +243,6 @@ function randomColor() {
   return CURSOR_COLORS[Math.floor(Math.random() * CURSOR_COLORS.length)];
 }
 
-function getBlockTypeAtPos(doc: Y.Doc | null, pos: number, state: import("@tiptap/pm/state").EditorState): GherkinBlockType | null {
-  const node = state.doc.nodeAt(pos);
-  return (node?.attrs?.["data-gherkin-type"] as GherkinBlockType) ?? null;
-}
-
 function getPreviousBlockType(state: import("@tiptap/pm/state").EditorState): GherkinBlockType | null {
   const { selection, doc } = state;
   let prev: GherkinBlockType | null = null;
@@ -126,6 +272,8 @@ function getAllBlocks(state: import("@tiptap/pm/state").EditorState): DocumentBl
   state.doc.forEach((node) => {
     if (node.type.name === "gherkin_image") {
       blocks.push({ type: "image", src: node.attrs.src, alt: node.attrs.alt ?? "" });
+    } else if (node.type.name === "gherkin_data_table") {
+      blocks.push({ type: "data_table", rows: JSON.parse(node.attrs.rows as string) } as DataTableBlock);
     } else {
       const type = node.attrs?.["data-gherkin-type"] as GherkinBlockType | undefined;
       if (type) blocks.push({ type, text: node.textContent });
@@ -134,25 +282,40 @@ function getAllBlocks(state: import("@tiptap/pm/state").EditorState): DocumentBl
   return blocks;
 }
 
-type InsertableType = GherkinBlockType | "image";
+type InsertableType = GherkinBlockType | "image" | "data_table";
+
+const INSERTABLE_LABELS: Record<InsertableType, string> = {
+  ...GHERKIN_LABELS,
+  image: "Image",
+  data_table: "Table",
+};
 
 function getValidNextTypes(previous: GherkinBlockType | null): InsertableType[] {
-  return [...GHERKIN_BLOCK_TYPES.filter((t) => canFollow(previous, t)), "image"];
+  const types: InsertableType[] = [...GHERKIN_BLOCK_TYPES.filter((t) => canFollow(previous, t))];
+  if (previous && STEP_TYPES.includes(previous)) types.push("data_table");
+  if (previous !== null) types.push("image");
+  return types;
+}
+
+// Atom nodes (selectable:false) must be inserted via a single raw transaction
+// so y-prosemirror never snapshots a NodeSelection it can't restore.
+function insertAtomNode(
+  editor: import("@tiptap/react").Editor,
+  node: import("@tiptap/pm/model").Node
+) {
+  const { state, view } = editor;
+  const insertPos = state.selection.$from.after();
+  const tr = state.tr.insert(insertPos, node);
+  const afterPos = Math.min(insertPos + node.nodeSize, tr.doc.content.size);
+  tr.setSelection(TextSelection.near(tr.doc.resolve(afterPos)));
+  view.dispatch(tr);
 }
 
 function insertImageFromFile(file: File, editor: import("@tiptap/react").Editor) {
   const reader = new FileReader();
   reader.onload = (e) => {
     const src = e.target?.result as string;
-    const { $from } = editor.state.selection;
-    editor
-      .chain()
-      .focus()
-      .insertContentAt($from.after(), {
-        type: "gherkin_image",
-        attrs: { src, alt: file.name },
-      })
-      .run();
+    insertAtomNode(editor, editor.state.schema.nodes.gherkin_image.create({ src, alt: file.name }));
   };
   reader.readAsDataURL(file);
 }
@@ -212,7 +375,7 @@ function BlockPicker({ anchor, options, selectedIndex, onSelect, onClose }: Bloc
           onMouseEnter={(e) => (e.currentTarget.style.background = "#f3f4f6")}
           onMouseLeave={(e) => (e.currentTarget.style.background = i === selectedIndex ? "#f3f4f6" : "none")}
         >
-          <span style={{ fontWeight: 600 }}>{type === "image" ? "Image" : GHERKIN_LABELS[type]}</span>
+          <span style={{ fontWeight: 600 }}>{INSERTABLE_LABELS[type]}</span>
         </button>
       ))}
     </div>
@@ -278,6 +441,7 @@ export default function GherkinEditor({
       }),
       GherkinParagraph,
       GherkinImage,
+      GherkinDataTable,
       Collaboration.configure({ document: ydocRef.current }),
       CollaborationCursor.configure({
         provider: providerRef.current,
@@ -343,6 +507,20 @@ export default function GherkinEditor({
   const insertBlock = useCallback(
     (type: InsertableType, deleteSlash = false, replace = false) => {
       if (!editor) return;
+
+      if (type === "data_table") {
+        if (deleteSlash) {
+          const { from } = editor.state.selection;
+          editor.chain().focus().deleteRange({ from: from - 1, to: from }).run();
+        }
+        insertAtomNode(
+          editor,
+          editor.state.schema.nodes.gherkin_data_table.create({
+            rows: JSON.stringify([["", ""], ["", ""]]),
+          })
+        );
+        return;
+      }
 
       if (type === "image") {
         if (deleteSlash) {
@@ -474,7 +652,7 @@ export default function GherkinEditor({
     >
       <div className="gherkin-toolbar">
         {validNext
-          .filter((type) => type !== "image")
+          .filter((type) => type !== "image" && type !== "data_table")
           .map((type) => (
             <button
               key={type}
@@ -487,15 +665,28 @@ export default function GherkinEditor({
               {GHERKIN_LABELS[type as GherkinBlockType]}
             </button>
           ))}
-        <button
-          className="gherkin-toolbar-btn"
-          onMouseDown={(e) => {
-            e.preventDefault();
-            fileInputRef.current?.click();
-          }}
-        >
-          Image
-        </button>
+        {validNext.includes("data_table") && (
+          <button
+            className="gherkin-toolbar-btn"
+            onMouseDown={(e) => {
+              e.preventDefault();
+              insertBlock("data_table");
+            }}
+          >
+            Table
+          </button>
+        )}
+        {validNext.includes("image") && (
+          <button
+            className="gherkin-toolbar-btn"
+            onMouseDown={(e) => {
+              e.preventDefault();
+              fileInputRef.current?.click();
+            }}
+          >
+            Image
+          </button>
+        )}
         <button className="gherkin-export-btn" onClick={handleExport}>
           Export TXT
         </button>

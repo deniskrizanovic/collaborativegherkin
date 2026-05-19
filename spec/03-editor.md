@@ -182,3 +182,39 @@ data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAA...
 
 **And** this indentation is purely visual and does not affect the document
 structure or export output
+
+---
+
+## 3.11 Data table insertion
+
+**Given** the cursor is on a step block (`given`, `when`, `then`, `and`, or `but`) or on a data table block that follows a step  
+**Then** the toolbar shows a "Table" button
+
+**Given** the toolbar shows a "Table" button  
+**When** the user clicks it  
+**Then** a 2×2 data table stub with empty cells is inserted immediately after the current block  
+**And** the cursor is placed inside the first cell
+
+**Given** the user types `/` and the current/previous block is a step type  
+**Then** the block picker includes "Table" as an option
+
+**Given** a data table is in the document  
+**When** the user presses Tab inside a cell  
+**Then** focus moves to the next cell (left to right, top to bottom)
+
+**Given** a data table is in the document  
+**When** the user presses Shift+Tab inside a cell  
+**Then** focus moves to the previous cell
+
+**Given** a data table is in the document  
+**Then** "Add row" and "Add column" controls are available within the table UI
+
+**Given** a data table block is present  
+**When** the user exports as TXT  
+**Then** each row appears as one line in `| cell | cell |` format with cells padded to column width
+
+**Given** a data table block is present  
+**When** the user exports as MD  
+**Then** the first row is the header row  
+**And** a `| --- | --- |` separator row follows the header  
+**And** subsequent rows follow in order

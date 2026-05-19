@@ -70,12 +70,27 @@ export const GherkinBlockSchema = z.object({
 export type GherkinBlock = z.infer<typeof GherkinBlockSchema>;
 
 export type ImageBlock = { type: "image"; src: string; alt: string };
-export type DocumentBlock = GherkinBlock | ImageBlock;
+export type DataTableBlock = { type: "data_table"; rows: string[][] };
+export type DocumentBlock = GherkinBlock | ImageBlock | DataTableBlock;
+
+function tableColWidths(rows: string[][], minWidth = 0): number[] {
+  return rows[0].map((_, ci) =>
+    Math.max(minWidth, ...rows.map((r) => r[ci]?.length ?? 0))
+  );
+}
+
+function formatTableRow(row: string[], widths: number[]): string {
+  return "| " + row.map((cell, ci) => cell.padEnd(widths[ci])).join(" | ") + " |";
+}
 
 export function exportToText(blocks: DocumentBlock[]): string {
   return blocks
     .map((b) => {
       if (b.type === "image") return b.src;
+      if (b.type === "data_table") {
+        const widths = tableColWidths(b.rows);
+        return b.rows.map((row) => formatTableRow(row, widths)).join("\n");
+      }
       return `${GHERKIN_LABELS[b.type]}: ${b.text}`;
     })
     .join("\n");
@@ -85,6 +100,12 @@ export function exportToMarkdown(blocks: DocumentBlock[]): string {
   return blocks
     .map((b) => {
       if (b.type === "image") return `![${b.alt}](${b.src})`;
+      if (b.type === "data_table") {
+        const widths = tableColWidths(b.rows, 3);
+        const fmt = (row: string[]) => formatTableRow(row, widths);
+        const sep = "| " + widths.map((w) => "-".repeat(w)).join(" | ") + " |";
+        return [fmt(b.rows[0]), sep, ...b.rows.slice(1).map(fmt)].join("\n");
+      }
       if (b.type === "feature") return `# Feature: ${b.text}`;
       if (b.type === "rule") return `## Rule: ${b.text}`;
       if (b.type === "background") return `## Background: ${b.text}`;

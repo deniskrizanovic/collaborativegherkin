@@ -250,3 +250,62 @@ describe("exportToMarkdown", () => {
     expect(exportToMarkdown([])).toBe("");
   });
 });
+
+// ─── exportToText — data table ────────────────────────────────────────────────
+
+describe("exportToText — data table", () => {
+  it("emits pipe-delimited rows for equal-width cells", () => {
+    const block = { type: "data_table" as const, rows: [["a", "b"], ["c", "d"]] };
+    expect(exportToText([block])).toBe("| a | b |\n| c | d |");
+  });
+
+  it("pads cells to the widest value in each column", () => {
+    const block = {
+      type: "data_table" as const,
+      rows: [["name", "age"], ["Alice", "30"]],
+    };
+    expect(exportToText([block])).toBe("| name  | age |\n| Alice | 30  |");
+  });
+
+  it("includes data table rows in document order alongside other blocks", () => {
+    const result = exportToText([
+      { type: "given", text: "a state" },
+      { type: "data_table", rows: [["x", "y"]] },
+    ]);
+    expect(result).toBe("Given: a state\n| x | y |");
+  });
+});
+
+// ─── exportToMarkdown — data table ───────────────────────────────────────────
+
+describe("exportToMarkdown — data table", () => {
+  it("emits header row, separator, and data rows", () => {
+    const block = {
+      type: "data_table" as const,
+      rows: [["name", "age"], ["Alice", "30"]],
+    };
+    expect(exportToMarkdown([block])).toBe(
+      "| name  | age |\n| ----- | --- |\n| Alice | 30  |"
+    );
+  });
+
+  it("uses minimum separator width of 3 dashes", () => {
+    const block = {
+      type: "data_table" as const,
+      rows: [["a", "b"], ["c", "d"]],
+    };
+    expect(exportToMarkdown([block])).toBe(
+      "| a   | b   |\n| --- | --- |\n| c   | d   |"
+    );
+  });
+
+  it("includes data table in document order alongside other blocks", () => {
+    const result = exportToMarkdown([
+      { type: "given", text: "a state" },
+      { type: "data_table", rows: [["x", "y"], ["1", "2"]] },
+    ]);
+    expect(result).toBe(
+      "- Given: a state\n| x   | y   |\n| --- | --- |\n| 1   | 2   |"
+    );
+  });
+});
