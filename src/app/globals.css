@@ -247,6 +247,21 @@ kbd {
 .gherkin-editor p[data-gherkin-type="and"]::before { content: "And"; color: #6b7280; }
 .gherkin-editor p[data-gherkin-type="but"]::before { content: "But"; color: #6b7280; }
 
+/* Gherkin hierarchy indentation */
+.gherkin-editor p[data-gherkin-type="rule"],
+.gherkin-editor p[data-gherkin-type="background"],
+.gherkin-editor p[data-gherkin-type="scenario"] {
+  padding-left: 1.5rem;
+}
+
+.gherkin-editor p[data-gherkin-type="given"],
+.gherkin-editor p[data-gherkin-type="when"],
+.gherkin-editor p[data-gherkin-type="then"],
+.gherkin-editor p[data-gherkin-type="and"],
+.gherkin-editor p[data-gherkin-type="but"] {
+  padding-left: 3rem;
+}
+
 /* Separator between consecutive Given-When-Then groups */
 .gherkin-editor p[data-gherkin-type="then"] + p[data-gherkin-type="given"],
 .gherkin-editor p[data-gherkin-type="and"] + p[data-gherkin-type="given"],

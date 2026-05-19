@@ -166,3 +166,19 @@ data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAA...
 **And** `given`, `when`, `then`, `and`, and `but` blocks appear as markdown list items  
 **And** image blocks appear as inline images using `![alt](src)` syntax  
 **And** all blocks appear in document order
+
+---
+
+## 3.10 Block indentation
+
+**Given** the editor contains a `feature` block  
+**Then** it is rendered flush with the editor left margin
+
+**Given** the editor contains a `rule`, `background`, or `scenario` block  
+**Then** it is visually indented one level from the `feature` block
+
+**Given** the editor contains a `given`, `when`, `then`, `and`, or `but` block  
+**Then** it is visually indented two levels from the `feature` block
+
+**And** this indentation is purely visual and does not affect the document
+structure or export output
