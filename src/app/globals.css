@@ -262,6 +262,10 @@ kbd {
   padding-left: 3rem;
 }
 
+.gherkin-editor .gherkin-table-block {
+  padding-left: 3rem;
+}
+
 /* Separator between consecutive Given-When-Then groups */
 .gherkin-editor p[data-gherkin-type="then"] + p[data-gherkin-type="given"],
 .gherkin-editor p[data-gherkin-type="and"] + p[data-gherkin-type="given"],
