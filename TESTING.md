@@ -133,3 +133,25 @@ npx playwright test e2e/data-table.spec.ts
 ```bash
 npx playwright test e2e/data-table.spec.ts --ui
 ```
+
+#### Import
+```bash
+npx playwright test e2e/import.spec.ts
+```
+```bash
+npx playwright test e2e/import.spec.ts --ui
+```
+
+#### LLM review
+```bash
+npx playwright test e2e/llm-review.spec.ts
+```
+```bash
+npx playwright test e2e/llm-review.spec.ts --ui
+```
+
+Covers spec §8: session page controls (button and model dropdown visibility),
+triggering a review, Markdown rendering of results, loading state, all three
+modal-dismiss gestures (✕ button, Escape, click-outside), error handling, and
+prompt editing (open, save, cancel, persist). OpenRouter is never called —
+all `/api/llm-review` requests are intercepted with `page.route()`.
