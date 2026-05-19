@@ -8,8 +8,8 @@
 
 import { WebSocketServer } from "ws";
 import * as Y from "yjs";
-import * as syncProtocol from "y-protocols/dist/sync.cjs";
-import * as awarenessProtocol from "y-protocols/dist/awareness.cjs";
+import * as syncProtocol from "y-protocols/sync";
+import * as awarenessProtocol from "y-protocols/awareness";
 import * as encoding from "lib0/encoding";
 import * as decoding from "lib0/decoding";
 
