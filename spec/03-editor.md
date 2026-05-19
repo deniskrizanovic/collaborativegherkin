@@ -154,3 +154,15 @@ When the user enters valid credentials
 Then the user is redirected to the dashboard
 data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAA...
 ```
+
+---
+
+## 3.9 Markdown exporting
+
+**Given** a user is in a session editor  
+**When** the user clicks the Export MD button  
+**Then** a markdown file `gherkin.md` is downloaded  
+**And** `feature`, `rule`, `background`, and `scenario` blocks appear as markdown headers  
+**And** `given`, `when`, `then`, `and`, and `but` blocks appear as markdown list items  
+**And** image blocks appear as inline images using `![alt](src)` syntax  
+**And** all blocks appear in document order

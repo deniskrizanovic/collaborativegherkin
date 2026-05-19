@@ -3,6 +3,7 @@ import {
   canFollow,
   NEXT_BLOCK_ON_ENTER,
   exportToText,
+  exportToMarkdown,
   GHERKIN_BLOCK_TYPES,
 } from "@/lib/gherkin";
 import type { GherkinBlockType } from "@/lib/gherkin";
@@ -196,5 +197,56 @@ describe("exportToText", () => {
     expect(exportToText([{ type: "given", text: "  spaced  " }])).toBe(
       "Given:   spaced  "
     );
+  });
+});
+
+// ─── exportToMarkdown ─────────────────────────────────────────────────────────
+
+describe("exportToMarkdown", () => {
+  it("formats a feature block as a level-1 header", () => {
+    expect(exportToMarkdown([{ type: "feature", text: "User login" }])).toBe(
+      "# Feature: User login"
+    );
+  });
+
+  it("formats rule, background, and scenario as level-2 headers", () => {
+    expect(exportToMarkdown([{ type: "rule", text: "Auth" }])).toBe("## Rule: Auth");
+    expect(exportToMarkdown([{ type: "background", text: "Setup" }])).toBe("## Background: Setup");
+    expect(exportToMarkdown([{ type: "scenario", text: "Happy path" }])).toBe("## Scenario: Happy path");
+  });
+
+  it("formats step keywords as markdown list items", () => {
+    expect(exportToMarkdown([{ type: "given", text: "a state" }])).toBe("- Given: a state");
+    expect(exportToMarkdown([{ type: "when", text: "an action" }])).toBe("- When: an action");
+    expect(exportToMarkdown([{ type: "then", text: "an outcome" }])).toBe("- Then: an outcome");
+    expect(exportToMarkdown([{ type: "and", text: "also this" }])).toBe("- And: also this");
+    expect(exportToMarkdown([{ type: "but", text: "not that" }])).toBe("- But: not that");
+  });
+
+  it("formats an image block as inline markdown image syntax", () => {
+    expect(exportToMarkdown([{ type: "image", src: "data:image/png;base64,abc", alt: "screenshot" }])).toBe(
+      "![screenshot](data:image/png;base64,abc)"
+    );
+  });
+
+  it("produces a full document in order", () => {
+    const result = exportToMarkdown([
+      { type: "feature",  text: "User login" },
+      { type: "scenario", text: "Successful login" },
+      { type: "given",    text: "the user is on the login page" },
+      { type: "image",    src: "data:image/png;base64,xyz", alt: "screenshot" },
+    ]);
+    expect(result).toBe(
+      [
+        "# Feature: User login",
+        "## Scenario: Successful login",
+        "- Given: the user is on the login page",
+        "![screenshot](data:image/png;base64,xyz)",
+      ].join("\n")
+    );
+  });
+
+  it("returns an empty string for an empty block list", () => {
+    expect(exportToMarkdown([])).toBe("");
   });
 });

@@ -200,6 +200,21 @@ kbd {
   background: #4f46e5;
 }
 
+.gherkin-export-md-btn {
+  padding: 0.25rem 0.75rem;
+  font-size: 0.8rem;
+  font-weight: 600;
+  border: 1px solid #6366f1;
+  border-radius: 4px;
+  background: #6366f1;
+  color: #fff;
+  cursor: pointer;
+}
+
+.gherkin-export-md-btn:hover {
+  background: #4f46e5;
+}
+
 .gherkin-editor {
   min-height: 400px;
   padding: 1rem 1.25rem;

@@ -81,3 +81,38 @@ test.describe("export", () => {
     expect(lines[2]).toMatch(/^Given:/);
   });
 });
+
+// spec §3.9
+test.describe("markdown export", () => {
+  test("Export MD button downloads a markdown file with correct content", async ({ page }) => {
+    await openSession(page);
+
+    await page.locator(".gherkin-toolbar-btn", { hasText: "Feature" }).click();
+    await page.locator('[data-gherkin-type="feature"]').click();
+    await page.keyboard.type("User login");
+
+    await page.keyboard.press("Enter");
+    await page.locator('[data-gherkin-type="scenario"]').last().click();
+    await page.keyboard.type("Successful login");
+
+    await page.keyboard.press("Enter");
+    await page.locator('[data-gherkin-type="given"]').last().click();
+    await page.keyboard.type("the user is on the login page");
+
+    const downloadPromise = page.waitForEvent("download");
+    await page.locator(".gherkin-export-md-btn").click();
+    const download = await downloadPromise;
+
+    expect(download.suggestedFilename()).toBe("gherkin.md");
+
+    const tmpPath = path.join(os.tmpdir(), `gherkin-md-test-${Date.now()}.md`);
+    await download.saveAs(tmpPath);
+    const content = fs.readFileSync(tmpPath, "utf-8");
+    fs.unlinkSync(tmpPath);
+
+    const lines = content.split("\n");
+    expect(lines[0]).toBe("# Feature: User login");
+    expect(lines[1]).toBe("## Scenario: Successful login");
+    expect(lines[2]).toBe("- Given: the user is on the login page");
+  });
+});

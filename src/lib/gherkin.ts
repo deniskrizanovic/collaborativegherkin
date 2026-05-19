@@ -80,3 +80,16 @@ export function exportToText(blocks: DocumentBlock[]): string {
     })
     .join("\n");
 }
+
+export function exportToMarkdown(blocks: DocumentBlock[]): string {
+  return blocks
+    .map((b) => {
+      if (b.type === "image") return `![${b.alt}](${b.src})`;
+      if (b.type === "feature") return `# Feature: ${b.text}`;
+      if (b.type === "rule") return `## Rule: ${b.text}`;
+      if (b.type === "background") return `## Background: ${b.text}`;
+      if (b.type === "scenario") return `## Scenario: ${b.text}`;
+      return `- ${GHERKIN_LABELS[b.type]}: ${b.text}`;
+    })
+    .join("\n");
+}

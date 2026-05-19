@@ -15,6 +15,7 @@ import {
   canFollow,
   NEXT_BLOCK_ON_ENTER,
   exportToText,
+  exportToMarkdown,
   GherkinBlock,
   DocumentBlock,
 } from "@/lib/gherkin";
@@ -432,6 +433,19 @@ export default function GherkinEditor({
     URL.revokeObjectURL(url);
   }, [editor]);
 
+  const handleExportMarkdown = useCallback(() => {
+    if (!editor) return;
+    const blocks = getAllBlocks(editor.state);
+    const text = exportToMarkdown(blocks);
+    const blob = new Blob([text], { type: "text/markdown" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "gherkin.md";
+    a.click();
+    URL.revokeObjectURL(url);
+  }, [editor]);
+
   const prevBlockType = editor
     ? getCurrentBlockType(editor.state) ?? getPreviousBlockType(editor.state)
     : null;
@@ -483,7 +497,10 @@ export default function GherkinEditor({
           Image
         </button>
         <button className="gherkin-export-btn" onClick={handleExport}>
-          Export
+          Export TXT
+        </button>
+        <button className="gherkin-export-md-btn" onClick={handleExportMarkdown}>
+          Export MD
         </button>
       </div>
 
