@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useCallback, useEffect, useRef, useState } from "react";
+import React, { forwardRef, useCallback, useEffect, useImperativeHandle, useRef, useState } from "react";
 import { useEditor, EditorContent } from "@tiptap/react";
 import { Node, mergeAttributes } from "@tiptap/core";
 import { TextSelection } from "@tiptap/pm/state";
@@ -494,15 +494,20 @@ function BlockPicker({ anchor, options, selectedIndex, onSelect, onClose }: Bloc
   );
 }
 
+export interface GherkinEditorHandle {
+  getContent: () => string;
+}
+
 interface GherkinEditorProps {
   sessionId: string;
   wsUrl?: string;
 }
 
-export default function GherkinEditor({
+const GherkinEditor = forwardRef<GherkinEditorHandle, GherkinEditorProps>(
+function GherkinEditor({
   sessionId,
   wsUrl = "ws://localhost:1234",
-}: GherkinEditorProps) {
+}, ref) {
   // Create ydoc and provider synchronously so they're ready before useEditor runs
   const ydocRef = useRef<Y.Doc | null>(null);
   const providerRef = useRef<WebsocketProvider | null>(null);
@@ -714,6 +719,13 @@ export default function GherkinEditor({
     [insertBlock, closePicker, pickerState.replace]
   );
 
+  useImperativeHandle(ref, () => ({
+    getContent: () => {
+      if (!editor) return "";
+      return exportToText(getAllBlocks(editor.state));
+    },
+  }), [editor]);
+
   const handleExport = useCallback(() => {
     if (!editor) return;
     const blocks = getAllBlocks(editor.state);
@@ -892,4 +904,8 @@ export default function GherkinEditor({
       )}
     </div>
   );
-}
+});
+
+GherkinEditor.displayName = "GherkinEditor";
+
+export default GherkinEditor;

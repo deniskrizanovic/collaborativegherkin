@@ -24,3 +24,9 @@ model Session {
   createdBy User     @relation(fields: [userId], references: [id])
   userId    String
 }
+
+model AppSetting {
+  key       String   @id
+  value     String
+  updatedAt DateTime @updatedAt
+}
