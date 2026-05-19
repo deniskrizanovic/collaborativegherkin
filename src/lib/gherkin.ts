@@ -96,6 +96,42 @@ export function exportToText(blocks: DocumentBlock[]): string {
     .join("\n");
 }
 
+export function parseGherkin(text: string): DocumentBlock[] {
+  const blocks: DocumentBlock[] = [];
+  // Handles plain text, markdown headings (# / ##), and markdown list items (- )
+  const kwRe = /^(?:#{1,3}\s+|-\s+)?(Feature|Rule|Background|Scenario|Given|When|Then|And|But):?\s+(.*)/i;
+  const tableRe = /^\|(.+)\|$/;
+  const tableSepRe = /^\|[\s|:-]+\|$/;
+
+  for (const rawLine of text.split("\n")) {
+    const line = rawLine.trim();
+    if (!line) continue;
+
+    const tableMatch = line.match(tableRe);
+    if (tableMatch) {
+      if (tableSepRe.test(line)) continue;
+      const cells = tableMatch[1].split("|").map((c) => c.trim());
+      const last = blocks[blocks.length - 1];
+      if (last?.type === "data_table") {
+        (last as DataTableBlock).rows.push(cells);
+      } else {
+        blocks.push({ type: "data_table", rows: [cells] });
+      }
+      continue;
+    }
+
+    const kwMatch = line.match(kwRe);
+    if (kwMatch) {
+      blocks.push({
+        type: kwMatch[1].toLowerCase() as GherkinBlockType,
+        text: kwMatch[2].trim(),
+      });
+    }
+  }
+
+  return blocks;
+}
+
 export function exportToMarkdown(blocks: DocumentBlock[]): string {
   return blocks
     .map((b) => {

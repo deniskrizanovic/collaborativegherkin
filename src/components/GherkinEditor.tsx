@@ -17,6 +17,7 @@ import {
   NEXT_BLOCK_ON_ENTER,
   exportToText,
   exportToMarkdown,
+  parseGherkin,
   DocumentBlock,
   DataTableBlock,
 } from "@/lib/gherkin";
@@ -400,6 +401,20 @@ function getValidNextTypes(previous: GherkinBlockType | null): InsertableType[] 
   return types;
 }
 
+function blocksToContent(blocks: DocumentBlock[]) {
+  return blocks.map((b) => {
+    if (b.type === "data_table")
+      return { type: "gherkin_data_table", attrs: { rows: JSON.stringify(b.rows) } };
+    if (b.type === "image")
+      return { type: "gherkin_image", attrs: { src: b.src, alt: b.alt } };
+    return {
+      type: "paragraph",
+      attrs: { "data-gherkin-type": b.type },
+      content: b.text ? [{ type: "text", text: b.text }] : [],
+    };
+  });
+}
+
 // Atom nodes (selectable:false) must be inserted via a single raw transaction
 // so y-prosemirror never snapshots a NodeSelection it can't restore.
 function insertAtomNode(
@@ -522,6 +537,9 @@ export default function GherkinEditor({
     selectedIndex: number;
     replace: boolean;
   }>({ show: false, anchor: null, options: [], selectedIndex: 0, replace: false });
+
+  const [importOpen, setImportOpen] = useState(false);
+  const [importText, setImportText] = useState("");
 
   const pickerStateRef = useRef(pickerState);
   useEffect(() => { pickerStateRef.current = pickerState; }, [pickerState]);
@@ -722,6 +740,38 @@ export default function GherkinEditor({
     URL.revokeObjectURL(url);
   }, [editor]);
 
+  function handleImportConfirm() {
+    if (!editor) return;
+    const blocks = parseGherkin(importText);
+    if (blocks.length === 0) {
+      setImportOpen(false);
+      setImportText("");
+      return;
+    }
+
+    const { schema, state, view } = editor;
+    const tr = state.tr;
+    let pos = state.selection.$from.after();
+
+    for (const b of blocks) {
+      let node: import("@tiptap/pm/model").Node;
+      if (b.type === "data_table") {
+        node = schema.nodes.gherkin_data_table.create({ rows: JSON.stringify((b as DataTableBlock).rows) });
+      } else if (b.type === "image") {
+        node = schema.nodes.gherkin_image.create({ src: (b as { type: "image"; src: string; alt: string }).src, alt: (b as { type: "image"; src: string; alt: string }).alt });
+      } else {
+        const textContent = b.text ? [schema.text(b.text)] : [];
+        node = schema.nodes.paragraph.create({ "data-gherkin-type": b.type }, textContent);
+      }
+      tr.insert(pos, node);
+      pos += node.nodeSize;
+    }
+
+    view.dispatch(tr);
+    setImportOpen(false);
+    setImportText("");
+  }
+
   const prevBlockType = editor
     ? getCurrentBlockType(editor.state) ?? getPreviousBlockType(editor.state)
     : null;
@@ -791,6 +841,12 @@ export default function GherkinEditor({
         <button className="gherkin-export-md-btn" onClick={handleExportMarkdown}>
           Export MD
         </button>
+        <button
+          className="gherkin-import-btn"
+          onMouseDown={(e) => { e.preventDefault(); setImportOpen(true); }}
+        >
+          Import
+        </button>
       </div>
 
       <input
@@ -802,6 +858,28 @@ export default function GherkinEditor({
       />
 
       <EditorContent editor={editor} />
+
+      {importOpen && (
+        <div className="gherkin-import-modal">
+          <div className="gherkin-import-modal-inner">
+            <textarea
+              className="gherkin-import-textarea"
+              value={importText}
+              onChange={(e) => setImportText(e.target.value)}
+              placeholder={"Feature: My feature\nScenario: My scenario\nGiven some context\nWhen I do something\nThen I see the result"}
+              rows={12}
+            />
+            <div className="gherkin-import-actions">
+              <button className="gherkin-import-confirm" onClick={handleImportConfirm}>
+                Insert
+              </button>
+              <button className="gherkin-import-cancel" onClick={() => { setImportOpen(false); setImportText(""); }}>
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {pickerState.show && pickerState.anchor && (
         <BlockPicker
