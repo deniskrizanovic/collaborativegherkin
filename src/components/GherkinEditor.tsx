@@ -113,6 +113,9 @@ const GherkinDataTable = Node.create({
         });
       }
 
+      let focusedRow = 0;
+      let focusedCol = 0;
+
       function buildTable() {
         tbody.innerHTML = "";
         rows.forEach((row, ri) => {
@@ -124,6 +127,11 @@ const GherkinDataTable = Node.create({
             td.textContent = cell;
             td.style.cssText =
               "border:1px solid #d1d5db;padding:4px 8px;min-width:60px;outline:none;";
+
+            td.addEventListener("focus", () => {
+              focusedRow = ri;
+              focusedCol = ci;
+            });
 
             td.addEventListener("input", () => {
               rows[ri][ci] = td.textContent ?? "";
@@ -151,40 +159,134 @@ const GherkinDataTable = Node.create({
         });
       }
 
+      function makeBtn(action: string, title: string, svgPath: string): HTMLButtonElement {
+        const btn = document.createElement("button");
+        btn.className = "gherkin-table-toolbar-btn";
+        btn.setAttribute("data-action", action);
+        btn.title = title;
+        btn.innerHTML = `<svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">${svgPath}</svg>`;
+        return btn;
+      }
+
+      function makeSep(): HTMLDivElement {
+        const sep = document.createElement("div");
+        sep.className = "gherkin-table-toolbar-sep";
+        return sep;
+      }
+
+      const toolbar = document.createElement("div");
+      toolbar.className = "gherkin-table-toolbar";
+
+      const insertRowAboveBtn = makeBtn(
+        "insert-row-above",
+        "Insert row above",
+        '<line x1="3" y1="8" x2="13" y2="8"/><polyline points="6,5 8,3 10,5"/>'
+      );
+      const insertRowBelowBtn = makeBtn(
+        "insert-row-below",
+        "Insert row below",
+        '<line x1="3" y1="8" x2="13" y2="8"/><polyline points="6,11 8,13 10,11"/>'
+      );
+      const deleteRowBtn = makeBtn(
+        "delete-row",
+        "Delete row",
+        '<line x1="3" y1="8" x2="13" y2="8"/><line x1="6" y1="5" x2="10" y2="5"/>'
+      );
+
+      toolbar.appendChild(insertRowAboveBtn);
+      toolbar.appendChild(insertRowBelowBtn);
+      toolbar.appendChild(deleteRowBtn);
+      toolbar.appendChild(makeSep());
+
+      const insertColBeforeBtn = makeBtn(
+        "insert-col-before",
+        "Insert column before",
+        '<line x1="8" y1="3" x2="8" y2="13"/><polyline points="5,6 3,8 5,10"/>'
+      );
+      const insertColAfterBtn = makeBtn(
+        "insert-col-after",
+        "Insert column after",
+        '<line x1="8" y1="3" x2="8" y2="13"/><polyline points="11,6 13,8 11,10"/>'
+      );
+      const deleteColBtn = makeBtn(
+        "delete-col",
+        "Delete column",
+        '<line x1="8" y1="3" x2="8" y2="13"/><line x1="11" y1="5" x2="11" y2="11"/>'
+      );
+
+      toolbar.appendChild(insertColBeforeBtn);
+      toolbar.appendChild(insertColAfterBtn);
+      toolbar.appendChild(deleteColBtn);
+      toolbar.appendChild(makeSep());
+
+      const deleteTableBtn = makeBtn(
+        "delete-table",
+        "Delete table",
+        '<polyline points="3,4 13,4"/><path d="M5,4V3h6v1"/><rect x="4" y="5" width="8" height="8" rx="1"/><line x1="7" y1="7" x2="7" y2="11"/><line x1="9" y1="7" x2="9" y2="11"/>'
+      );
+      toolbar.appendChild(deleteTableBtn);
+
+      insertRowAboveBtn.addEventListener("mousedown", (e) => {
+        e.preventDefault();
+        rows.splice(focusedRow, 0, Array(rows[0].length).fill(""));
+        buildTable();
+        commitRows();
+      });
+
+      insertRowBelowBtn.addEventListener("mousedown", (e) => {
+        e.preventDefault();
+        rows.splice(focusedRow + 1, 0, Array(rows[0].length).fill(""));
+        buildTable();
+        commitRows();
+      });
+
+      deleteRowBtn.addEventListener("mousedown", (e) => {
+        e.preventDefault();
+        if (rows.length <= 1) return;
+        rows.splice(focusedRow, 1);
+        focusedRow = Math.min(focusedRow, rows.length - 1);
+        buildTable();
+        commitRows();
+      });
+
+      insertColBeforeBtn.addEventListener("mousedown", (e) => {
+        e.preventDefault();
+        rows = rows.map((r) => { r.splice(focusedCol, 0, ""); return r; });
+        buildTable();
+        commitRows();
+      });
+
+      insertColAfterBtn.addEventListener("mousedown", (e) => {
+        e.preventDefault();
+        rows = rows.map((r) => { r.splice(focusedCol + 1, 0, ""); return r; });
+        buildTable();
+        commitRows();
+      });
+
+      deleteColBtn.addEventListener("mousedown", (e) => {
+        e.preventDefault();
+        const cols = rows[0].length;
+        if (cols <= 1) return;
+        rows = rows.map((r) => r.filter((_, i) => i !== focusedCol));
+        focusedCol = Math.min(focusedCol, cols - 2);
+        buildTable();
+        commitRows();
+      });
+
+      deleteTableBtn.addEventListener("mousedown", (e) => {
+        e.preventDefault();
+        if (typeof getPos !== "function") return;
+        const pos = getPos();
+        nodeEditor.commands.command(({ tr }) => {
+          tr.delete(pos, pos + nodeEditor.state.doc.nodeAt(pos)!.nodeSize);
+          return true;
+        });
+      });
+
       buildTable();
       table.appendChild(tbody);
+      dom.appendChild(toolbar);
       dom.appendChild(table);
-
-      const controls = document.createElement("div");
-      controls.style.cssText = "margin-top:4px;display:flex;gap:6px;";
-
-      const addRowBtn = document.createElement("button");
-      addRowBtn.textContent = "Add row";
-      addRowBtn.className = "gherkin-table-add-row";
-      addRowBtn.style.cssText =
-        "font-size:12px;padding:2px 8px;border:1px solid #d1d5db;border-radius:4px;cursor:pointer;background:#f9fafb;";
-      addRowBtn.addEventListener("mousedown", (e) => {
-        e.preventDefault();
-        rows.push(Array(rows[0].length).fill(""));
-        buildTable();
-        commitRows();
-      });
-
-      const addColBtn = document.createElement("button");
-      addColBtn.textContent = "Add column";
-      addColBtn.className = "gherkin-table-add-col";
-      addColBtn.style.cssText =
-        "font-size:12px;padding:2px 8px;border:1px solid #d1d5db;border-radius:4px;cursor:pointer;background:#f9fafb;";
-      addColBtn.addEventListener("mousedown", (e) => {
-        e.preventDefault();
-        rows = rows.map((r) => [...r, ""]);
-        buildTable();
-        commitRows();
-      });
-
-      controls.appendChild(addRowBtn);
-      controls.appendChild(addColBtn);
-      dom.appendChild(controls);
 
       return {
         dom,

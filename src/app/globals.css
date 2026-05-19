@@ -215,6 +215,55 @@ kbd {
   background: #4f46e5;
 }
 
+.gherkin-table-block {
+  position: relative;
+  padding-top: 36px;
+}
+
+.gherkin-table-toolbar {
+  position: absolute;
+  top: 0;
+  left: 0;
+  display: flex;
+  gap: 2px;
+  padding: 3px 4px;
+  background: #f9fafb;
+  border: 1px solid #e5e7eb;
+  border-radius: 4px;
+}
+
+.gherkin-table-toolbar-sep {
+  width: 1px;
+  background: #e5e7eb;
+  margin: 2px 3px;
+}
+
+.gherkin-table-toolbar-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  padding: 0;
+  border: 1px solid transparent;
+  border-radius: 3px;
+  background: none;
+  cursor: pointer;
+  color: #374151;
+}
+
+.gherkin-table-toolbar-btn:hover {
+  background: #ede9fe;
+  border-color: #a5b4fc;
+  color: #4f46e5;
+}
+
+.gherkin-table-toolbar-btn[data-action="delete-table"]:hover {
+  background: #fee2e2;
+  border-color: #fca5a5;
+  color: #dc2626;
+}
+
 .gherkin-editor {
   min-height: 400px;
   padding: 1rem 1.25rem;
@@ -263,7 +312,7 @@ kbd {
 }
 
 .gherkin-editor .gherkin-table-block {
-  padding-left: 3rem;
+  margin-left: calc(3rem + 100px + 0.25rem);
 }
 
 /* Separator between consecutive Given-When-Then groups */

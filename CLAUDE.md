@@ -76,6 +76,8 @@ logs/             # Written at runtime — never commit
 After every planning session, save the plan to `plans/YYYY-MM-DD-HH:MM-<short-description>.md`
 in the project root before exiting plan mode.
 
+When in plan mode, do not ask for approval via text. Write the plan, then call ExitPlanMode directly — let the UI handle approval.
+
 ## Planning UI changes
 Before finalising a plan that adds or changes a UI element, grep `e2e/` for
 every selector or class name the element will use. Read each matching spec and

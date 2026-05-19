@@ -42,7 +42,7 @@ test.describe("data table insertion", () => {
     await expect(page.locator("[data-gherkin-table]")).toBeVisible();
   });
 
-  test("inserted table has add-row and add-column controls", async ({ page }) => {
+  test("inserted table has management toolbar with row and column controls", async ({ page }) => {
     await openSession(page);
 
     await page.locator(".gherkin-toolbar-btn", { hasText: "Feature" }).click();
@@ -53,8 +53,9 @@ test.describe("data table insertion", () => {
 
     await page.locator(".gherkin-toolbar-btn", { hasText: "Table" }).click();
 
-    await expect(page.locator(".gherkin-table-add-row")).toBeVisible();
-    await expect(page.locator(".gherkin-table-add-col")).toBeVisible();
+    await expect(page.locator(".gherkin-table-toolbar")).toBeVisible();
+    await expect(page.locator('.gherkin-table-toolbar-btn[data-action="insert-row-below"]')).toBeVisible();
+    await expect(page.locator('.gherkin-table-toolbar-btn[data-action="insert-col-after"]')).toBeVisible();
   });
 });
 
