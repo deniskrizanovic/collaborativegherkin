@@ -434,6 +434,7 @@ export default function GherkinEditor({
   }, []);
 
   const editor = useEditor({
+    immediatelyRender: false,
     extensions: [
       StarterKit.configure({
         history: false,
