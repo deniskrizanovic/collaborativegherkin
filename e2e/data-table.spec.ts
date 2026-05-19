@@ -53,6 +53,9 @@ test.describe("data table insertion", () => {
 
     await page.locator(".gherkin-toolbar-btn", { hasText: "Table" }).click();
 
+    // Click into a cell to trigger focus-within, which shows the toolbar
+    await page.locator("[data-gherkin-table] td").first().click();
+
     await expect(page.locator(".gherkin-table-toolbar")).toBeVisible();
     await expect(page.locator('.gherkin-table-toolbar-btn[data-action="insert-row-below"]')).toBeVisible();
     await expect(page.locator('.gherkin-table-toolbar-btn[data-action="insert-col-after"]')).toBeVisible();
@@ -77,12 +80,12 @@ test.describe("data table export", () => {
 
     await page.locator(".gherkin-toolbar-btn", { hasText: "Table" }).click();
 
-    // Type into the first cell of the table
-    const firstCell = page.locator("[data-gherkin-table] td[data-cell='0-0']");
+    // Type into the first cell of the table (row 0 renders as <th>)
+    const firstCell = page.locator("[data-gherkin-table] [data-cell='0-0']");
     await firstCell.click();
     await firstCell.fill("name");
 
-    const secondCell = page.locator("[data-gherkin-table] td[data-cell='0-1']");
+    const secondCell = page.locator("[data-gherkin-table] [data-cell='0-1']");
     await secondCell.click();
     await secondCell.fill("age");
 
@@ -119,7 +122,7 @@ test.describe("data table export", () => {
 
     await page.locator(".gherkin-toolbar-btn", { hasText: "Table" }).click();
 
-    const firstCell = page.locator("[data-gherkin-table] td[data-cell='0-0']");
+    const firstCell = page.locator("[data-gherkin-table] [data-cell='0-0']");
     await firstCell.click();
     await firstCell.fill("col");
 

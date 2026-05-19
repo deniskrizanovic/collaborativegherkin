@@ -285,7 +285,7 @@ describe("exportToMarkdown — data table", () => {
       rows: [["name", "age"], ["Alice", "30"]],
     };
     expect(exportToMarkdown([block])).toBe(
-      "| name  | age |\n| ----- | --- |\n| Alice | 30  |"
+      "\n| name  | age |\n| ----- | --- |\n| Alice | 30  |\n"
     );
   });
 
@@ -295,7 +295,7 @@ describe("exportToMarkdown — data table", () => {
       rows: [["a", "b"], ["c", "d"]],
     };
     expect(exportToMarkdown([block])).toBe(
-      "| a   | b   |\n| --- | --- |\n| c   | d   |"
+      "\n| a   | b   |\n| --- | --- |\n| c   | d   |\n"
     );
   });
 
@@ -305,7 +305,21 @@ describe("exportToMarkdown — data table", () => {
       { type: "data_table", rows: [["x", "y"], ["1", "2"]] },
     ]);
     expect(result).toBe(
-      "- Given: a state\n| x   | y   |\n| --- | --- |\n| 1   | 2   |"
+      "- Given: a state\n\n| x   | y   |\n| --- | --- |\n| 1   | 2   |\n"
+    );
+  });
+
+  it("wraps table with blank lines so Markdown renderers treat it as a block element", () => {
+    // A table must be preceded and followed by a blank line to render correctly
+    // in CommonMark-compliant renderers (e.g. GitHub, Jira). The \n prefix and
+    // suffix, combined with the \n from join(), produce that blank line.
+    const result = exportToMarkdown([
+      { type: "scenario", text: "Example" },
+      { type: "data_table", rows: [["col"], ["val"]] },
+      { type: "then", text: "it works" },
+    ]);
+    expect(result).toBe(
+      "## Scenario: Example\n\n| col |\n| --- |\n| val |\n\n- Then: it works"
     );
   });
 });

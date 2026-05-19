@@ -43,10 +43,10 @@ test.describe("block picker", () => {
     const picker = page.locator('[style*="position: fixed"]');
     await expect(picker).toBeVisible();
     const firstBtn = picker.locator("button").first();
-    await expect(firstBtn).toHaveCSS("background", /rgb\(243, 244, 246\)/);
+    await expect(firstBtn).toHaveCSS("background", /rgba\(245, 158, 11, 0\.06\)/);
     await page.keyboard.press("ArrowDown");
     const secondBtn = picker.locator("button").nth(1);
-    await expect(secondBtn).toHaveCSS("background", /rgb\(243, 244, 246\)/);
+    await expect(secondBtn).toHaveCSS("background", /rgba\(245, 158, 11, 0\.06\)/);
   });
 
   test("up arrow wraps selection to last item", async ({ page }) => {
@@ -62,7 +62,7 @@ test.describe("block picker", () => {
     const buttons = picker.locator("button");
     const count = await buttons.count();
     await page.keyboard.press("ArrowUp");
-    await expect(buttons.nth(count - 1)).toHaveCSS("background", /rgb\(243, 244, 246\)/);
+    await expect(buttons.nth(count - 1)).toHaveCSS("background", /rgba\(245, 158, 11, 0\.06\)/);
   });
 
   test("Enter on focused item replaces block type and closes picker", async ({ page }) => {
