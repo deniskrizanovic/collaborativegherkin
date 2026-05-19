@@ -39,6 +39,7 @@ Open [http://localhost:3000](http://localhost:3000).
 
 ## Project docs
 
+- [docs/overview.md](./docs/overview.md) — visual overview with screenshots
 - [SPEC.md](./SPEC.md) — what the app does and who uses it
 - [DECISIONS.md](./DECISIONS.md) — why the stack was chosen
 - [TESTING.md](./TESTING.md) — testing strategy and layer 3 plan
