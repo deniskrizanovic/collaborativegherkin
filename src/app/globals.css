@@ -296,6 +296,7 @@ kbd {
 /* Gherkin block type labels */
 .gherkin-editor p[data-gherkin-type]::before {
   display: inline-block;
+
   min-width: 100px;
   font-weight: 700;
   margin-right: 0.25rem;

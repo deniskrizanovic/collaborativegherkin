@@ -104,7 +104,8 @@ export function exportToMarkdown(blocks: DocumentBlock[]): string {
         const widths = tableColWidths(b.rows, 3);
         const fmt = (row: string[]) => formatTableRow(row, widths);
         const sep = "| " + widths.map((w) => "-".repeat(w)).join(" | ") + " |";
-        return [fmt(b.rows[0]), sep, ...b.rows.slice(1).map(fmt)].join("\n");
+        const table = [fmt(b.rows[0]), sep, ...b.rows.slice(1).map(fmt)].join("\n");
+        return `\n${table}\n`;
       }
       if (b.type === "feature") return `# Feature: ${b.text}`;
       if (b.type === "rule") return `## Rule: ${b.text}`;
