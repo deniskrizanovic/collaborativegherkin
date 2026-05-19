@@ -21,8 +21,8 @@ export default function SessionView({ sessionId, title }: Props) {
   return (
     <div className="container">
       <div className="session-header">
-        <h1>{title}</h1>
-        <button className="copy-link-btn" onClick={copyLink}>
+        <h1 className="session-title">{title}</h1>
+        <button className={`copy-link-btn${copied ? " copied" : ""}`} onClick={copyLink}>
           {copied ? "Copied!" : "Copy invite link"}
         </button>
       </div>

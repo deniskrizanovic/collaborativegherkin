@@ -48,32 +48,37 @@ export default function HomeClient({ sessions: initialSessions }: Props) {
 
   return (
     <div className="container">
-      <h1>Collaborative Gherkin</h1>
-      <p>Write Gherkin acceptance criteria together, in real time.</p>
+      <header className="home-header">
+        <p className="home-eyebrow">Collaborative Gherkin</p>
+        <h1>Acceptance criteria,<br />written together.</h1>
+        <p className="home-tagline">
+          Real-time collaborative editing for Gherkin specs. Share a link, start writing, export anywhere.
+        </p>
+      </header>
 
       <form className="create-form" onSubmit={handleCreate}>
         <input
           className="create-input"
           type="text"
-          placeholder="Session title (e.g. Login feature)"
+          placeholder="Session title — e.g. Login feature"
           value={title}
           onChange={(e) => setTitle(e.target.value)}
           maxLength={200}
         />
         <button className="create-btn" type="submit" disabled={creating || !title.trim()}>
-          {creating ? "Creating…" : "Create session"}
+          {creating ? "Creating…" : "New session"}
         </button>
       </form>
       {error && <p className="form-error">{error}</p>}
 
       {sessions.length > 0 && (
         <section className="sessions-list">
-          <h2>Recent sessions</h2>
+          <p className="sessions-list-heading">Recent sessions</p>
           <ul>
             {sessions.map((s) => (
               <li key={s.id}>
                 <a href={`/sessions/${s.id}`} className="session-link">
-                  {s.title}
+                  <span className="session-name">{s.title}</span>
                   <span className="session-date">
                     {new Date(s.createdAt).toLocaleDateString("en-GB")}
                   </span>

@@ -127,7 +127,7 @@ const GherkinDataTable = Node.create({
             td.contentEditable = "true";
             td.textContent = cell;
             td.style.cssText =
-              "border:1px solid #d1d5db;padding:4px 8px;min-width:60px;outline:none;";
+              "border:1px solid #242836;padding:4px 10px;min-width:60px;outline:none;background:transparent;color:#e8eaf0;font-family:'IBM Plex Mono',monospace;font-size:0.82rem;";
 
             td.addEventListener("focus", () => {
               focusedRow = ri;
@@ -445,14 +445,11 @@ function BlockPicker({ anchor, options, selectedIndex, onSelect, onClose }: Bloc
   return (
     <div
       ref={ref}
+      className="block-picker"
       style={{
         position: "fixed",
         top: anchor.bottom + 4,
         left: anchor.left,
-        background: "#fff",
-        border: "1px solid #e5e7eb",
-        borderRadius: 6,
-        boxShadow: "0 4px 12px rgba(0,0,0,0.12)",
         zIndex: 1000,
         minWidth: 160,
       }}
@@ -464,21 +461,18 @@ function BlockPicker({ anchor, options, selectedIndex, onSelect, onClose }: Bloc
             e.preventDefault();
             onSelect(type);
           }}
+          className={`block-picker-item${i === selectedIndex ? " block-picker-item--active" : ""}`}
           style={{
             display: "block",
             width: "100%",
             padding: "8px 14px",
             textAlign: "left",
-            background: i === selectedIndex ? "#f3f4f6" : "none",
             border: "none",
             cursor: "pointer",
-            fontSize: 14,
-            color: "#111827",
+            background: "none",
           }}
-          onMouseEnter={(e) => (e.currentTarget.style.background = "#f3f4f6")}
-          onMouseLeave={(e) => (e.currentTarget.style.background = i === selectedIndex ? "#f3f4f6" : "none")}
         >
-          <span style={{ fontWeight: 600 }}>{INSERTABLE_LABELS[type]}</span>
+          {INSERTABLE_LABELS[type]}
         </button>
       ))}
     </div>
