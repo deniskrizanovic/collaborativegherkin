@@ -44,14 +44,13 @@ test.describe("LLM review — triggering a review", () => {
     await expect(page.locator(".session-review-modal-body")).toContainText("Feedback");
   });
 
-  test("result modal header shows the selected model name", async ({ page }) => {
+  test("result modal header shows the name of the selected model", async ({ page }) => {
     await openSession(page);
     await interceptReview(page);
 
+    const selectedModel = await page.locator(".session-model-select").inputValue();
     await page.locator(".session-review-btn").click();
-    await expect(page.locator(".session-review-modal-header")).toContainText(
-      "meta-llama/llama-3.2-3b-instruct:free"
-    );
+    await expect(page.locator(".session-review-modal-header")).toContainText(selectedModel);
   });
 
   test("result is rendered as Markdown — heading and list items", async ({ page }) => {
