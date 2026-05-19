@@ -97,7 +97,7 @@ const GherkinDataTable = Node.create({
       const tbody = document.createElement("tbody");
 
       function getCells(): HTMLElement[] {
-        return Array.from(dom.querySelectorAll("td[data-cell]")) as HTMLElement[];
+        return Array.from(dom.querySelectorAll("[data-cell]")) as HTMLElement[];
       }
 
       let committedRows = node.attrs.rows as string;
@@ -120,8 +120,9 @@ const GherkinDataTable = Node.create({
         tbody.innerHTML = "";
         rows.forEach((row, ri) => {
           const tr = document.createElement("tr");
+          if (ri === 0) tr.className = "gherkin-table-header-row";
           row.forEach((cell, ci) => {
-            const td = document.createElement("td");
+            const td = document.createElement(ri === 0 ? "th" : "td");
             td.setAttribute("data-cell", `${ri}-${ci}`);
             td.contentEditable = "true";
             td.textContent = cell;

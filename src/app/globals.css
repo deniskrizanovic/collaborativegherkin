@@ -217,6 +217,10 @@ kbd {
 
 .gherkin-table-block {
   position: relative;
+  padding-top: 4px;
+}
+
+.gherkin-table-block:focus-within {
   padding-top: 36px;
 }
 
@@ -224,12 +228,16 @@ kbd {
   position: absolute;
   top: 0;
   left: 0;
-  display: flex;
+  display: none;
   gap: 2px;
   padding: 3px 4px;
   background: #f9fafb;
   border: 1px solid #e5e7eb;
   border-radius: 4px;
+}
+
+.gherkin-table-block:focus-within .gherkin-table-toolbar {
+  display: flex;
 }
 
 .gherkin-table-toolbar-sep {
@@ -262,6 +270,14 @@ kbd {
   background: #fee2e2;
   border-color: #fca5a5;
   color: #dc2626;
+}
+
+.gherkin-table-header-row th {
+  background: #ede9fe;
+  color: #3730a3;
+  font-weight: 700;
+  text-align: left;
+  letter-spacing: 0.02em;
 }
 
 .gherkin-editor {
