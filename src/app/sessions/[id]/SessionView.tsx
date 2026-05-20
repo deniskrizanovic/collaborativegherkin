@@ -115,45 +115,47 @@ export default function SessionView({ sessionId, title }: Props) {
   return (
     <div className="container">
       <div className="session-header">
-        <h1 className="session-title">{title}</h1>
-        <div className="session-actions">
+        <div className="session-header-top">
+          <h1 className="session-title">{title}</h1>
           <button className={`copy-link-btn${copied ? " copied" : ""}`} onClick={copyLink}>
             {copied ? "Copied!" : "Copy invite link"}
           </button>
-          <button className="session-edit-prompt-btn" onClick={handleOpenPrompt}>
-            Edit prompt
-          </button>
-          <select
-            className="session-model-select"
-            value={selectedModel}
-            onChange={(e) => handleModelChange(e.target.value)}
-            disabled={reviewing}
-          >
-            {availableModels.map((m) => (
-              <option key={m} value={m}>{m}</option>
-            ))}
-          </select>
-          <button
-            className={`session-review-btn${reviewing ? " reviewing" : ""}`}
-            onClick={handleReview}
-            disabled={reviewing || !selectedModel}
-          >
-            {reviewing ? "Reviewing…" : "Get AI Coaching"}
-          </button>
-          {lastReviewResult !== null && (
-            <button
-              className="session-view-last-review-btn"
-              onClick={() => setReviewOpen(true)}
-            >
-              View last review
-            </button>
-          )}
         </div>
       </div>
       <p className="session-hint">
         Share the link above so others can edit this session with you.
         Press <kbd>/</kbd> to pick a block type, or use the toolbar below.
       </p>
+      <div className="session-actions">
+        <button className="session-edit-prompt-btn" onClick={handleOpenPrompt}>
+          Edit prompt
+        </button>
+        <select
+          className="session-model-select"
+          value={selectedModel}
+          onChange={(e) => handleModelChange(e.target.value)}
+          disabled={reviewing}
+        >
+          {availableModels.map((m) => (
+            <option key={m} value={m}>{m}</option>
+          ))}
+        </select>
+        <button
+          className={`session-review-btn${reviewing ? " reviewing" : ""}`}
+          onClick={handleReview}
+          disabled={reviewing || !selectedModel}
+        >
+          {reviewing ? "Reviewing…" : "Get AI Coaching"}
+        </button>
+        {lastReviewResult !== null && (
+          <button
+            className="session-view-last-review-btn"
+            onClick={() => setReviewOpen(true)}
+          >
+            View last review
+          </button>
+        )}
+      </div>
       <GherkinEditor ref={editorRef} sessionId={sessionId} />
 
       {reviewOpen && lastReviewResult !== null && (

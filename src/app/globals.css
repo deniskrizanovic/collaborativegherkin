@@ -132,11 +132,15 @@ h1 {
 /* ── Session page ─────────────────────────────────────────────────── */
 .session-header {
   display: flex;
-  align-items: center;
-  justify-content: space-between;
-  flex-wrap: wrap;
-  gap: 1rem;
+  flex-direction: column;
+  gap: 0.5rem;
   margin-bottom: 0.5rem;
+}
+
+.session-header-top {
+  display: flex;
+  align-items: baseline;
+  gap: 1rem;
 }
 
 .session-title {
@@ -147,10 +151,25 @@ h1 {
   color: var(--text);
 }
 
+.copy-link-btn {
+  padding: 0.45rem 0;
+  font-family: var(--font-body);
+  font-size: 0.8rem;
+  font-weight: 500;
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: color 0.15s;
+}
+
+.copy-link-btn:hover {
+  color: var(--text);
+}
+
 .copy-link-btn.copied {
-  border-color: #008a07 !important;
-  color: #008a07 !important;
-  background: rgba(0, 138, 7, 0.06) !important;
+  color: #008a07;
+  font-weight: 600;
 }
 
 .session-hint {
@@ -739,18 +758,16 @@ kbd {
   font-size: 0.72rem;
   font-weight: 500;
   letter-spacing: 0.03em;
-  border: 1px solid var(--border);
+  border: 1px solid #002664;
   border-radius: 3px;
-  background: transparent;
-  color: var(--text-muted);
+  background: rgba(0, 38, 100, 0.06);
+  color: #002664;
   cursor: pointer;
-  transition: background 0.12s, border-color 0.12s, color 0.12s;
+  transition: background 0.12s, border-color 0.12s;
 }
 
 .gherkin-import-btn:hover {
-  background: #f2f2f2;
-  border-color: #002664;
-  color: #002664;
+  background: rgba(0, 38, 100, 0.12);
 }
 
 .gherkin-import-modal {
