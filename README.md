@@ -116,7 +116,10 @@ Two export buttons are always visible in the toolbar:
 
 ## Real-time collaboration
 
-Share the session URL with teammates. Every editor connected to the same session sees changes live. Y.js CRDTs handle concurrent edits without conflicts. Collaborators' cursors appear with coloured labels so you can see where everyone is working.
+Share the session URL with teammates. Every editor connected to the same session sees changes live. Y.js CRDTs handle concurrent edits without conflicts. 
+Collaborators' cursors appear with coloured labels so you can see where everyone is working.
+
+Just like Google Docs, edits are real-time replicated between users.
 
 To invite someone, click **Copy invite link** next to the session title — it copies the session URL to the clipboard.
 
