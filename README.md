@@ -8,6 +8,7 @@ An AI Coach performs the hard work of checking things, and improving the quality
 Acceptance Criteria are a critical mechanism to transfer the context of a business domain to the minds of the builders.
 Acceptance Criteria allow the system users to deepen their own understanding of the information system they are building.
 The collaborative wrestling with the acceptance criteria by the users, the builders and the testers helps ensure the system is built correctly.
+
 ---
 # What problem does this solve?
 Creating Acceptance Criteria in tools like jira, or confluence is difficult, because they offer only text editors, not anything specialised for this Domain Specific Language.
