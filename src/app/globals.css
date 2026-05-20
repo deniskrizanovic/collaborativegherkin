@@ -705,6 +705,25 @@ kbd {
   opacity: 0.5;
   cursor: not-allowed;
 }
+.session-review-btn.reviewing {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+.session-review-btn.reviewing::before {
+  content: "";
+  display: inline-block;
+  width: 0.7rem;
+  height: 0.7rem;
+  border: 2px solid var(--amber-dim);
+  border-top-color: var(--amber);
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+  flex-shrink: 0;
+}
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
 
 /* ── AI Review modal ────────────────────────────────────────────────── */
 .session-review-modal {

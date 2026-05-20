@@ -134,7 +134,7 @@ export default function SessionView({ sessionId, title }: Props) {
             ))}
           </select>
           <button
-            className="session-review-btn"
+            className={`session-review-btn${reviewing ? " reviewing" : ""}`}
             onClick={handleReview}
             disabled={reviewing || !selectedModel}
           >
