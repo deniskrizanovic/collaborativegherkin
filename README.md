@@ -1,9 +1,25 @@
 # Collaborative Gherkin
 
-A real-time collaborative editor for writing Gherkin acceptance criteria. Multiple people share a URL and edit the same document simultaneously. Sessions are ephemeral workspaces — the end product is exported Gherkin text or Markdown for tools like Jira, not a permanent record.
+A real-time collaborative editor for writing Gherkin acceptance criteria. 
+Multiple people share a URL and edit the same document simultaneously. 
+Sessions are ephemeral workspaces — the end product is exported Gherkin text or Markdown for tools like Jira, not a permanent record.
+An AI Coach performs the hard work of checking things, and improving the quality of the Acceptance Criteria.
+
+Acceptance Criteria are a critical mechanism to transfer the context of a business domain to the minds of the builders.
+Acceptance Criteria allow the system users to deepen their own understanding of the information system they are building.
+The collaborative wrestling with the acceptance criteria by the users, the builders and the testers helps ensure the system is built correctly.
+---
+# What problem does this solve?
+Creating Acceptance Criteria in tools like jira, or confluence is difficult, because they offer only text editors, not anything specialised for this Domain Specific Language.
+Adding remote working to this equation, creates friction, as those not typing, are watching someone else type slowly, make typos, and not capture the true intent of the statement.
+
+Quality of Acceptance Criteria tends to be mediocre, as coaching/skill-improvement of writers is marginalised, and skills in this arena are unequally distributed.
+Remote meeting fatigue also impacts the quality of outcome, as these sessions can become long and tedious, and reviewing the outcome becomes too hard.
+
+What follows is a screenshot overview of a tool that tries to fix these problems.
 
 ---
-
+# Screenshot Overview
 ## Home page
 
 The home page lists recent sessions and provides a form to create a new one.
