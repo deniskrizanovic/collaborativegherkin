@@ -7,9 +7,9 @@ The LLM review feature allows users to send the current session's Gherkin conten
 ## 8.1 Triggering a review
 
 **Given** a user is on a session page  
-**When** the user clicks "Review with AI"  
+**When** the user clicks "Get AI Coaching"  
 **Then** the current Gherkin content is sent to the selected model via the OpenRouter gateway  
-**And** the "Review with AI" button is disabled and shows "Reviewing…" while the request is in flight  
+**And** the "Get AI Coaching" button is disabled and shows "Reviewing…" while the request is in flight  
 **And** the model dropdown is disabled while the request is in flight
 
 **Given** the LLM returns a response  
@@ -45,7 +45,7 @@ The LLM review feature allows users to send the current session's Gherkin conten
 
 **Given** a user is on a session page  
 **When** the page loads  
-**Then** a model dropdown is shown alongside the "Review with AI" button  
+**Then** a model dropdown is shown alongside the "Get AI Coaching" button  
 **And** the dropdown is pre-selected to the currently persisted model
 
 **Given** the user changes the selected model in the dropdown  
@@ -163,3 +163,27 @@ The set of available models is:
 **Given** an unexpected error occurs  
 **When** a POST request is made to `/api/llm-review`  
 **Then** a 500 response is returned
+
+---
+
+## 8.8 Cached review result
+
+**Given** a review has completed and the result modal has been closed  
+**When** the user looks at the session header  
+**Then** a "View last review" button is visible
+
+**Given** the "View last review" button is visible  
+**When** the user clicks it  
+**Then** the result modal reopens showing the same result without a new API call
+
+**Given** no review has been run yet  
+**When** the user looks at the session header  
+**Then** the "View last review" button is not visible
+
+**Given** a review result is cached and a new review is triggered  
+**When** the new review is in flight  
+**Then** the cached result remains available via "View last review"
+
+**Given** a new review completes  
+**When** the result arrives  
+**Then** the cached result is replaced with the new result

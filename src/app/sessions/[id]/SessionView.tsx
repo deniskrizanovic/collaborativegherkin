@@ -19,7 +19,8 @@ export default function SessionView({ sessionId, title }: Props) {
 
   // Review modal
   const [reviewing, setReviewing] = useState(false);
-  const [reviewResult, setReviewResult] = useState<string | null>(null);
+  const [lastReviewResult, setLastReviewResult] = useState<string | null>(null);
+  const [reviewOpen, setReviewOpen] = useState(false);
 
   // Prompt edit modal
   const [promptOpen, setPromptOpen] = useState(false);
@@ -39,11 +40,11 @@ export default function SessionView({ sessionId, title }: Props) {
 
   // Close review modal on Escape
   useEffect(() => {
-    if (!reviewResult) return;
-    const handler = (e: KeyboardEvent) => { if (e.key === "Escape") setReviewResult(null); };
+    if (!reviewOpen) return;
+    const handler = (e: KeyboardEvent) => { if (e.key === "Escape") setReviewOpen(false); };
     document.addEventListener("keydown", handler);
     return () => document.removeEventListener("keydown", handler);
-  }, [reviewResult]);
+  }, [reviewOpen]);
 
   // Close prompt modal on Escape
   useEffect(() => {
@@ -80,9 +81,11 @@ export default function SessionView({ sessionId, title }: Props) {
         body: JSON.stringify({ content, model: selectedModel }),
       });
       const data = await res.json() as { result?: string; error?: string };
-      setReviewResult(data.result ?? data.error ?? "No response received.");
+      setLastReviewResult(data.result ?? data.error ?? "No response received.");
+      setReviewOpen(true);
     } catch {
-      setReviewResult("Failed to reach the review service. Please try again.");
+      setLastReviewResult("Failed to reach the review service. Please try again.");
+      setReviewOpen(true);
     } finally {
       setReviewing(false);
     }
@@ -135,8 +138,16 @@ export default function SessionView({ sessionId, title }: Props) {
             onClick={handleReview}
             disabled={reviewing || !selectedModel}
           >
-            {reviewing ? "Reviewing…" : "Review with AI"}
+            {reviewing ? "Reviewing…" : "Get AI Coaching"}
           </button>
+          {lastReviewResult !== null && (
+            <button
+              className="session-view-last-review-btn"
+              onClick={() => setReviewOpen(true)}
+            >
+              View last review
+            </button>
+          )}
         </div>
       </div>
       <p className="session-hint">
@@ -145,17 +156,17 @@ export default function SessionView({ sessionId, title }: Props) {
       </p>
       <GherkinEditor ref={editorRef} sessionId={sessionId} />
 
-      {reviewResult !== null && (
-        <div className="session-review-modal" onMouseDown={() => setReviewResult(null)}>
+      {reviewOpen && lastReviewResult !== null && (
+        <div className="session-review-modal" onMouseDown={() => setReviewOpen(false)}>
           <div className="session-review-modal-inner" onMouseDown={(e) => e.stopPropagation()}>
             <div className="session-review-modal-header">
               <span className="session-review-modal-title">AI Review — {selectedModel}</span>
-              <button className="session-review-modal-close" onClick={() => setReviewResult(null)}>
+              <button className="session-review-modal-close" onClick={() => setReviewOpen(false)}>
                 ✕
               </button>
             </div>
             <div className="session-review-modal-body">
-              <ReactMarkdown>{reviewResult}</ReactMarkdown>
+              <ReactMarkdown>{lastReviewResult}</ReactMarkdown>
             </div>
           </div>
         </div>

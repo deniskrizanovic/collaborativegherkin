@@ -12,7 +12,7 @@ async function interceptReview(page: Parameters<typeof openSession>[0], response
 }
 
 test.describe("LLM review — session page controls", () => {
-  test("Review with AI button and model dropdown are visible on session page", async ({ page }) => {
+  test("Get AI Coaching button and model dropdown are visible on session page", async ({ page }) => {
     await openSession(page);
     await expect(page.locator(".session-review-btn")).toBeVisible();
     await expect(page.locator(".session-model-select")).toBeVisible();
@@ -35,7 +35,7 @@ test.describe("LLM review — session page controls", () => {
 });
 
 test.describe("LLM review — triggering a review", () => {
-  test("clicking Review with AI sends content and opens result modal", async ({ page }) => {
+  test("clicking Get AI Coaching sends content and opens result modal", async ({ page }) => {
     await openSession(page);
     await interceptReview(page);
 
@@ -114,6 +114,76 @@ test.describe("LLM review — dismissing the result modal", () => {
     // Click the overlay itself (not the inner panel)
     await page.locator(".session-review-modal").click({ position: { x: 5, y: 5 } });
     await expect(page.locator(".session-review-modal")).not.toBeVisible();
+  });
+});
+
+test.describe("LLM review — cached result", () => {
+  test("View last review button is absent before any review has been run", async ({ page }) => {
+    await openSession(page);
+    await expect(page.locator(".session-view-last-review-btn")).not.toBeVisible();
+  });
+
+  test("after closing the modal, View last review button appears", async ({ page }) => {
+    await openSession(page);
+    await interceptReview(page);
+
+    await page.locator(".session-review-btn").click();
+    await expect(page.locator(".session-review-modal")).toBeVisible();
+    await page.locator(".session-review-modal-close").click();
+    await expect(page.locator(".session-review-modal")).not.toBeVisible();
+    await expect(page.locator(".session-view-last-review-btn")).toBeVisible();
+  });
+
+  test("clicking View last review reopens the modal with the same content", async ({ page }) => {
+    await openSession(page);
+    await interceptReview(page);
+
+    await page.locator(".session-review-btn").click();
+    await expect(page.locator(".session-review-modal-body")).toContainText("Feedback");
+    await page.locator(".session-review-modal-close").click();
+    await expect(page.locator(".session-review-modal")).not.toBeVisible();
+
+    await page.locator(".session-view-last-review-btn").click();
+    await expect(page.locator(".session-review-modal")).toBeVisible();
+    await expect(page.locator(".session-review-modal-body")).toContainText("Feedback");
+  });
+
+  test("cached result remains visible via View last review while a new review is in flight", async ({ page }) => {
+    await openSession(page);
+    await interceptReview(page);
+
+    // Complete first review and close modal
+    await page.locator(".session-review-btn").click();
+    await expect(page.locator(".session-review-modal")).toBeVisible();
+    await page.locator(".session-review-modal-close").click();
+
+    // Hold the second request open
+    let resolveRoute!: () => void;
+    const held = new Promise<void>((res) => { resolveRoute = res; });
+    await page.route("/api/llm-review", async (route) => {
+      await held;
+      await route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ result: "New result" }) });
+    });
+
+    await page.locator(".session-review-btn").click();
+    // Old result still accessible while in flight
+    await expect(page.locator(".session-view-last-review-btn")).toBeVisible();
+
+    resolveRoute();
+    await expect(page.locator(".session-review-modal")).toBeVisible();
+  });
+
+  test("running a new review replaces the cached result when response arrives", async ({ page }) => {
+    await openSession(page);
+    await interceptReview(page, "First result content");
+
+    await page.locator(".session-review-btn").click();
+    await expect(page.locator(".session-review-modal-body")).toContainText("First result content");
+    await page.locator(".session-review-modal-close").click();
+
+    await interceptReview(page, "Second result content");
+    await page.locator(".session-review-btn").click();
+    await expect(page.locator(".session-review-modal-body")).toContainText("Second result content");
   });
 });
 
