@@ -57,15 +57,17 @@ export default function HomeClient({ sessions: initialSessions }: Props) {
       </header>
 
       <form className="create-form" onSubmit={handleCreate}>
-        <input
-          className="create-input"
-          type="text"
-          placeholder="Session title — e.g. Login feature"
-          value={title}
-          onChange={(e) => setTitle(e.target.value)}
-          maxLength={200}
-        />
-        <button className="create-btn" type="submit" disabled={creating || !title.trim()}>
+        <div className="nsw-form__group">
+          <input
+            className="nsw-form__input"
+            type="text"
+            placeholder="Session title — e.g. Login feature"
+            value={title}
+            onChange={(e) => setTitle(e.target.value)}
+            maxLength={200}
+          />
+        </div>
+        <button className="nsw-button nsw-button--dark" type="submit" disabled={creating || !title.trim()}>
           {creating ? "Creating…" : "New session"}
         </button>
       </form>
@@ -74,9 +76,9 @@ export default function HomeClient({ sessions: initialSessions }: Props) {
       {sessions.length > 0 && (
         <section className="sessions-list">
           <p className="sessions-list-heading">Recent sessions</p>
-          <ul>
+          <ul className="nsw-link-list">
             {sessions.map((s) => (
-              <li key={s.id}>
+              <li key={s.id} className="nsw-link-list__item">
                 <a href={`/sessions/${s.id}`} className="session-link">
                   <span className="session-name">{s.title}</span>
                   <span className="session-date">

@@ -127,8 +127,9 @@ const GherkinDataTable = Node.create({
             td.setAttribute("data-cell", `${ri}-${ci}`);
             td.contentEditable = "true";
             td.textContent = cell;
+            const isHeader = ri === 0;
             td.style.cssText =
-              "border:1px solid #242836;padding:4px 10px;min-width:60px;outline:none;background:transparent;color:#e8eaf0;font-family:'IBM Plex Mono',monospace;font-size:0.82rem;";
+              `border:1px solid #cdd3d6;padding:4px 10px;min-width:60px;outline:none;font-family:'IBM Plex Mono',monospace;font-size:0.82rem;color:${isHeader ? "#002664" : "#22272b"};background:${isHeader ? "rgba(0,38,100,0.06)" : "#ffffff"};font-weight:${isHeader ? "600" : "400"};`;
 
             td.addEventListener("focus", () => {
               focusedRow = ri;

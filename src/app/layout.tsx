@@ -1,19 +1,8 @@
 import type { Metadata } from "next";
-import { Syne, IBM_Plex_Sans } from "next/font/google";
+import Script from "next/script";
+import "@fontsource/public-sans";
+import "nsw-design-system/dist/css/main.css";
 import "./globals.css";
-
-const syne = Syne({
-  subsets: ["latin"],
-  variable: "--font-syne",
-  display: "swap",
-});
-
-const ibmPlexSans = IBM_Plex_Sans({
-  subsets: ["latin"],
-  variable: "--font-ibm",
-  weight: ["400", "500", "600"],
-  display: "swap",
-});
 
 export const metadata: Metadata = {
   title: "Collaborative Gherkin",
@@ -26,8 +15,19 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" className={`${syne.variable} ${ibmPlexSans.variable}`}>
-      <body>{children}</body>
+    <html lang="en">
+      <head>
+        <link
+          rel="stylesheet"
+          href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&display=swap"
+        />
+      </head>
+      <body>
+        {children}
+        <Script strategy="afterInteractive">
+          {`if (window.NSW) window.NSW.initSite();`}
+        </Script>
+      </body>
     </html>
   );
 }
