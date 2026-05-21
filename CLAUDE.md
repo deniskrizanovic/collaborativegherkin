@@ -73,8 +73,8 @@ logs/             # Written at runtime — never commit
 - Do not add validation client-side only — validate with Zod on the server too.
 
 ## Planning sessions
-After every planning session, save the plan to `plans/YYYY-MM-DD-HH:MM-<short-description>.md`
-in the project root before exiting plan mode. The HH:MM is to be the created datetime
+After every planning session, save the plan to `docs/plans/YYYY-MM-DD-HH:MM-<short-description>.md`
+before exiting plan mode. The HH:MM is to be the created datetime
 
 When in plan mode, do not ask for approval via text. Write the plan, then call ExitPlanMode directly — let the UI handle approval.
 
