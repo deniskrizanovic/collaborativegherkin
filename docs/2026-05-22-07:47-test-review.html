@@ -1,0 +1,702 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Test Coverage Review — 2026-05-22</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #0f1117;
+      --surface: #181c27;
+      --surface2: #1e2233;
+      --border: #2a2f45;
+      --text: #c9d1e0;
+      --text-dim: #6b7694;
+      --accent: #5b8ef0;
+      --accent-dim: #1e2d50;
+
+      --covered: #22c55e;
+      --covered-bg: #0d2b1a;
+      --partial: #f59e0b;
+      --partial-bg: #2b1f09;
+      --gap: #f87171;
+      --gap-bg: #2b1010;
+      --none: #f87171;
+      --none-bg: #2b1010;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.65;
+      padding: 2rem 1rem 4rem;
+    }
+
+    .page {
+      max-width: 960px;
+      margin: 0 auto;
+    }
+
+    /* ── Header ── */
+    header {
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 1.5rem;
+      margin-bottom: 2rem;
+    }
+
+    .eyebrow {
+      font-size: 0.75rem;
+      font-weight: 600;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin-bottom: 0.5rem;
+    }
+
+    h1 {
+      font-size: 1.75rem;
+      font-weight: 700;
+      color: #e8ecf5;
+      margin-bottom: 0.75rem;
+    }
+
+    .subtitle {
+      color: var(--text-dim);
+      font-size: 0.95rem;
+      max-width: 640px;
+    }
+
+    /* ── Coverage policy callout ── */
+    .policy {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-left: 3px solid var(--accent);
+      border-radius: 8px;
+      padding: 1.25rem 1.5rem;
+      margin-bottom: 2.5rem;
+      font-size: 0.9rem;
+    }
+
+    .policy h3 {
+      font-size: 0.8rem;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin-bottom: 0.75rem;
+    }
+
+    .policy p + p { margin-top: 0.6rem; }
+
+    /* ── Summary bar ── */
+    .summary-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+      gap: 1rem;
+      margin-bottom: 2.5rem;
+    }
+
+    .stat {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 1.1rem 1.25rem;
+    }
+
+    .stat-value {
+      font-size: 2rem;
+      font-weight: 700;
+      line-height: 1;
+      margin-bottom: 0.3rem;
+    }
+
+    .stat-label {
+      font-size: 0.78rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.07em;
+      color: var(--text-dim);
+    }
+
+    .stat.covered .stat-value { color: var(--covered); }
+    .stat.partial  .stat-value { color: var(--partial); }
+    .stat.gap      .stat-value { color: var(--gap); }
+    .stat.none     .stat-value { color: var(--none); }
+
+    /* ── Top gaps ── */
+    .gaps-section {
+      margin-bottom: 2.5rem;
+    }
+
+    .gaps-section h2 {
+      font-size: 1rem;
+      font-weight: 700;
+      color: #e8ecf5;
+      margin-bottom: 1rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .gaps-section h2::before {
+      content: "";
+      display: inline-block;
+      width: 3px;
+      height: 1em;
+      background: var(--gap);
+      border-radius: 2px;
+    }
+
+    .gap-list {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+
+    .gap-list li {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 0.75rem 1rem;
+      font-size: 0.9rem;
+      display: flex;
+      gap: 0.75rem;
+      align-items: flex-start;
+    }
+
+    .gap-num {
+      background: var(--gap-bg);
+      color: var(--gap);
+      font-weight: 700;
+      font-size: 0.75rem;
+      border-radius: 4px;
+      padding: 0.1rem 0.45rem;
+      flex-shrink: 0;
+      margin-top: 0.1rem;
+    }
+
+    /* ── Spec sections ── */
+    .spec-section {
+      margin-bottom: 2rem;
+    }
+
+    .spec-header {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      margin-bottom: 1rem;
+    }
+
+    .spec-badge {
+      background: var(--accent-dim);
+      color: var(--accent);
+      font-size: 0.72rem;
+      font-weight: 700;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      padding: 0.2rem 0.6rem;
+      border-radius: 4px;
+      flex-shrink: 0;
+    }
+
+    .spec-header h2 {
+      font-size: 1.05rem;
+      font-weight: 600;
+      color: #e8ecf5;
+    }
+
+    .prose {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 1rem 1.25rem;
+      font-size: 0.9rem;
+      color: var(--text);
+    }
+
+    .prose p + p { margin-top: 0.5rem; }
+
+    .prose.all-covered {
+      border-left: 3px solid var(--covered);
+    }
+
+    .prose.all-gap {
+      border-left: 3px solid var(--gap);
+    }
+
+    /* ── Coverage table ── */
+    .cov-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.875rem;
+      background: var(--surface);
+      border-radius: 10px;
+      overflow: hidden;
+      border: 1px solid var(--border);
+    }
+
+    .cov-table th {
+      text-align: left;
+      padding: 0.65rem 1rem;
+      font-size: 0.72rem;
+      font-weight: 700;
+      letter-spacing: 0.07em;
+      text-transform: uppercase;
+      color: var(--text-dim);
+      background: var(--surface2);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .cov-table td {
+      padding: 0.7rem 1rem;
+      border-bottom: 1px solid var(--border);
+      vertical-align: top;
+    }
+
+    .cov-table tr:last-child td { border-bottom: none; }
+
+    .cov-table tr:hover td { background: rgba(255,255,255,0.02); }
+
+    .cov-table td:first-child {
+      color: var(--text);
+      width: 60%;
+    }
+
+    .cov-table td:last-child {
+      width: 40%;
+    }
+
+    /* ── Status pills ── */
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      font-size: 0.75rem;
+      font-weight: 600;
+      padding: 0.2rem 0.6rem;
+      border-radius: 20px;
+      white-space: nowrap;
+    }
+
+    .pill::before {
+      content: "";
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+
+    .pill.covered  { background: var(--covered-bg); color: var(--covered);  }
+    .pill.covered::before  { background: var(--covered); }
+    .pill.partial  { background: var(--partial-bg); color: var(--partial);  }
+    .pill.partial::before  { background: var(--partial); }
+    .pill.gap      { background: var(--gap-bg);     color: var(--gap);      }
+    .pill.gap::before      { background: var(--gap); }
+    .pill.none     { background: var(--none-bg);    color: var(--none);     }
+    .pill.none::before     { background: var(--none); }
+
+    .coverage-detail {
+      margin-top: 0.3rem;
+      font-size: 0.8rem;
+      color: var(--text-dim);
+      line-height: 1.5;
+    }
+
+    code {
+      font-family: "SF Mono", "Fira Code", "Cascadia Code", monospace;
+      font-size: 0.82em;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 3px;
+      padding: 0.05em 0.35em;
+      color: #a5b4fc;
+    }
+
+    strong { color: #e8ecf5; }
+  </style>
+</head>
+<body>
+<div class="page">
+
+  <!-- Header -->
+  <header>
+    <div class="eyebrow">Collaborative Gherkin</div>
+    <h1>Test Coverage Review</h1>
+    <p class="subtitle">Analysis of whether every acceptance criterion in <code>spec/</code> maps to a test. Generated 2026-05-22.</p>
+  </header>
+
+  <!-- Coverage policy -->
+  <div class="policy">
+    <h3>What counts as adequate coverage?</h3>
+    <p>Unit tests are <strong>adequate</strong> when the spec criterion <em>is</em> the behaviour of a pure function — e.g. <code>canFollow()</code> returning true/false, or <code>exportToText()</code> producing a specific string. Testing the function directly exercises the criterion exactly.</p>
+    <p>Unit tests are <strong>not adequate</strong> when the spec criterion is written in terms of an HTTP interaction (status code, response body, Zod validation at the route layer) or a UI interaction (button state, redirect, clipboard). A unit test on the underlying module confirms business logic in isolation but leaves the route handler, middleware, and integration untested. Those are marked as gaps even when a unit test exists.</p>
+  </div>
+
+  <!-- Summary stats -->
+  <div class="summary-grid">
+    <div class="stat covered">
+      <div class="stat-value">23</div>
+      <div class="stat-label">Covered</div>
+    </div>
+    <div class="stat partial">
+      <div class="stat-value">3</div>
+      <div class="stat-label">Partial</div>
+    </div>
+    <div class="stat gap">
+      <div class="stat-value">6</div>
+      <div class="stat-label">Unit-only gaps</div>
+    </div>
+    <div class="stat none">
+      <div class="stat-value">22</div>
+      <div class="stat-label">No tests</div>
+    </div>
+  </div>
+
+  <!-- Top gaps summary -->
+  <div class="gaps-section">
+    <h2>Biggest gaps</h2>
+    <ul class="gap-list">
+      <li><span class="gap-num">1</span><span><strong>Home page</strong> (§1.1, §1.2) — zero e2e tests for the entire home page flow: session list, empty state, create form validation, redirect.</span></li>
+      <li><span class="gap-num">2</span><span><strong>Copy invite link</strong> (§1.4) — clipboard write and "Copied!" label revert have no test at all.</span></li>
+      <li><span class="gap-num">3</span><span><strong>API HTTP contracts</strong> (§4, §8.5–8.7) — business logic is unit-tested but none of the route handlers are integration-tested for status codes, response shapes, or Zod validation rejection.</span></li>
+      <li><span class="gap-num">4</span><span><strong>Image feature</strong> (§3.3, §3.4, §3.6, §3.8) — insertion UI, TXT export as base64 URI, drag-and-drop, inline display, and "always includes Image" assertions in picker/toolbar.</span></li>
+      <li><span class="gap-num">5</span><span><strong>Block indentation</strong> (§3.10) — purely visual spec, zero tests at any level.</span></li>
+      <li><span class="gap-num">6</span><span><strong>Data table keyboard nav</strong> (§3.11) — Tab / Shift+Tab cell navigation not covered.</span></li>
+      <li><span class="gap-num">7</span><span><strong>Import edge cases</strong> (§7.1) — case-insensitivity, optional colons, and skipping unrecognised lines have no tests.</span></li>
+    </ul>
+  </div>
+
+  <!-- Spec 01 -->
+  <div class="spec-section">
+    <div class="spec-header">
+      <span class="spec-badge">Spec 01</span>
+      <h2>Session Management</h2>
+    </div>
+    <table class="cov-table">
+      <thead><tr><th>Criterion</th><th>Coverage</th></tr></thead>
+      <tbody>
+        <tr>
+          <td>1.1 Home page session list (ordered, timestamps, link to editor)</td>
+          <td><span class="pill none">None</span><div class="coverage-detail">No e2e test for the home page UI</div></td>
+        </tr>
+        <tr>
+          <td>1.1 Empty state (only creation form shown)</td>
+          <td><span class="pill none">None</span></td>
+        </tr>
+        <tr>
+          <td>1.2 Create form: redirect after success</td>
+          <td><span class="pill none">None</span><div class="coverage-detail">Helpers create sessions via API directly, bypassing the form</div></td>
+        </tr>
+        <tr>
+          <td>1.2 Create form: empty title → validation error, button disabled</td>
+          <td><span class="pill none">None</span></td>
+        </tr>
+        <tr>
+          <td>1.2 Create form: title &gt; 200 chars → validation error</td>
+          <td><span class="pill none">None</span></td>
+        </tr>
+        <tr>
+          <td>1.2 Create form: server error → error message, stay on home page</td>
+          <td><span class="pill none">None</span></td>
+        </tr>
+        <tr>
+          <td>1.3 Session title shown in header</td>
+          <td><span class="pill none">None</span><div class="coverage-detail">e2e tests load sessions but never assert the header title</div></td>
+        </tr>
+        <tr>
+          <td>1.3 404 for non-existent session id</td>
+          <td><span class="pill gap">Gap</span><div class="coverage-detail">Unit test confirms <code>SessionNotFoundError</code> is thrown, but the HTTP 404 response from the route handler is untested</div></td>
+        </tr>
+        <tr>
+          <td>1.4 "Copy invite link" — clipboard write, "Copied!" 2 s label revert</td>
+          <td><span class="pill none">None</span></td>
+        </tr>
+        <tr>
+          <td>1.5 DELETE returns 204 No Content</td>
+          <td><span class="pill gap">Gap</span><div class="coverage-detail">Unit test confirms <code>Session.delete</code> resolves, but the HTTP 204 response from the route handler is untested</div></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Spec 02 -->
+  <div class="spec-section">
+    <div class="spec-header">
+      <span class="spec-badge">Spec 02</span>
+      <h2>Gherkin Document Model</h2>
+    </div>
+    <div class="prose all-covered">
+      <p>All <code>canFollow()</code> rules are <strong>fully covered</strong> in <code>src/lib/gherkin.test.ts</code>. The spec criteria are the return values of a pure function, so unit tests are adequate here.</p>
+      <p>Image blocks and data table blocks being exempt from <code>canFollow()</code> are not explicitly unit-tested, but this is a non-issue — <code>canFollow()</code> only operates on <code>GherkinBlockType</code> and the test suite exhaustively exercises every type transition.</p>
+    </div>
+  </div>
+
+  <!-- Spec 03 -->
+  <div class="spec-section">
+    <div class="spec-header">
+      <span class="spec-badge">Spec 03</span>
+      <h2>The Editor</h2>
+    </div>
+    <table class="cov-table">
+      <thead><tr><th>Criterion</th><th>Coverage</th></tr></thead>
+      <tbody>
+        <tr>
+          <td>3.1 WebSocket connection established, Y.js syncs</td>
+          <td><span class="pill none">None</span></td>
+        </tr>
+        <tr>
+          <td>3.1 Seed applied exactly once (second user doesn't re-seed)</td>
+          <td><span class="pill partial">Partial</span><div class="coverage-detail">Collaboration test only checks change propagation, not seeding idempotency</div></td>
+        </tr>
+        <tr>
+          <td>3.2 All 9 Enter-progression rows</td>
+          <td><span class="pill covered">Covered</span><div class="coverage-detail"><code>e2e/enter-progression.spec.ts</code></div></td>
+        </tr>
+        <tr>
+          <td>3.2 Enter on image block uses prevType context</td>
+          <td><span class="pill covered">Covered</span><div class="coverage-detail"><code>e2e/enter-progression.spec.ts</code></div></td>
+        </tr>
+        <tr>
+          <td>3.3 Picker lists only valid next blocks</td>
+          <td><span class="pill covered">Covered</span><div class="coverage-detail"><code>e2e/block-picker.spec.ts</code></div></td>
+        </tr>
+        <tr>
+          <td>3.3 Picker <strong>always includes Image</strong> as final option</td>
+          <td><span class="pill none">None</span><div class="coverage-detail"><code>block-picker.spec.ts</code> never checks for Image in the list</div></td>
+        </tr>
+        <tr>
+          <td>3.3 Arrow key navigation, Enter/click/Escape/outside close</td>
+          <td><span class="pill covered">Covered</span><div class="coverage-detail"><code>e2e/block-picker.spec.ts</code></div></td>
+        </tr>
+        <tr>
+          <td>3.4 Toolbar shows valid next blocks</td>
+          <td><span class="pill covered">Covered</span><div class="coverage-detail"><code>e2e/toolbar.spec.ts</code></div></td>
+        </tr>
+        <tr>
+          <td>3.4 Toolbar <strong>always shows Image button</strong></td>
+          <td><span class="pill none">None</span><div class="coverage-detail">Never asserted in any test</div></td>
+        </tr>
+        <tr>
+          <td>3.5 Real-time collaboration (changes propagate)</td>
+          <td><span class="pill covered">Covered</span><div class="coverage-detail"><code>e2e/collaboration.spec.ts</code></div></td>
+        </tr>
+        <tr>
+          <td>3.5 Remote cursor visible in distinct colour</td>
+          <td><span class="pill covered">Covered</span><div class="coverage-detail"><code>e2e/collaboration.spec.ts</code></div></td>
+        </tr>
+        <tr>
+          <td>3.6 TXT export — correct format, document order</td>
+          <td><span class="pill covered">Covered</span><div class="coverage-detail"><code>e2e/export.spec.ts</code>, <code>gherkin.test.ts</code></div></td>
+        </tr>
+        <tr>
+          <td>3.6 TXT export — image block as base64 URI line</td>
+          <td><span class="pill none">None</span><div class="coverage-detail">No unit or e2e test covers image blocks in <code>exportToText</code></div></td>
+        </tr>
+        <tr>
+          <td>3.7 Visual separation (given/scenario after then/and/but)</td>
+          <td><span class="pill covered">Covered</span><div class="coverage-detail"><code>e2e/visual-separation.spec.ts</code></div></td>
+        </tr>
+        <tr>
+          <td>3.8 Image insertion via toolbar file picker</td>
+          <td><span class="pill partial">Partial</span><div class="coverage-detail">Only incidentally exercised as setup in <code>enter-progression.spec.ts</code>; the UI flow itself is not asserted</div></td>
+        </tr>
+        <tr>
+          <td>3.8 Image insertion via <code>/</code> → Image from block picker</td>
+          <td><span class="pill none">None</span></td>
+        </tr>
+        <tr>
+          <td>3.8 Drag-and-drop image onto editor</td>
+          <td><span class="pill none">None</span></td>
+        </tr>
+        <tr>
+          <td>3.8 Image displayed inline at full available width</td>
+          <td><span class="pill none">None</span></td>
+        </tr>
+        <tr>
+          <td>3.9 Markdown export</td>
+          <td><span class="pill covered">Covered</span><div class="coverage-detail"><code>e2e/export.spec.ts</code>, <code>gherkin.test.ts</code></div></td>
+        </tr>
+        <tr>
+          <td>3.10 Block indentation (feature flush, rule/scenario one level, steps two levels)</td>
+          <td><span class="pill none">None</span></td>
+        </tr>
+        <tr>
+          <td>3.11 "Table" button appears on step blocks, absent on others</td>
+          <td><span class="pill covered">Covered</span><div class="coverage-detail"><code>e2e/data-table.spec.ts</code></div></td>
+        </tr>
+        <tr>
+          <td>3.11 Table button inserts 2×2 stub, cursor in first cell</td>
+          <td><span class="pill partial">Partial</span><div class="coverage-detail">Insertion tested; cursor position not asserted</div></td>
+        </tr>
+        <tr>
+          <td>3.11 "Table" option in slash-command picker</td>
+          <td><span class="pill none">None</span></td>
+        </tr>
+        <tr>
+          <td>3.11 Tab / Shift+Tab navigation within table cells</td>
+          <td><span class="pill none">None</span></td>
+        </tr>
+        <tr>
+          <td>3.11 Add row / Add column controls visible</td>
+          <td><span class="pill covered">Covered</span><div class="coverage-detail"><code>e2e/data-table.spec.ts</code></div></td>
+        </tr>
+        <tr>
+          <td>3.11 TXT export of data table (pipe-delimited, padded)</td>
+          <td><span class="pill covered">Covered</span><div class="coverage-detail"><code>e2e/data-table.spec.ts</code>, <code>gherkin.test.ts</code></div></td>
+        </tr>
+        <tr>
+          <td>3.11 MD export of data table (header row, separator, data rows)</td>
+          <td><span class="pill covered">Covered</span><div class="coverage-detail"><code>e2e/data-table.spec.ts</code>, <code>gherkin.test.ts</code></div></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Spec 04 -->
+  <div class="spec-section">
+    <div class="spec-header">
+      <span class="spec-badge">Spec 04</span>
+      <h2>API Behaviour</h2>
+    </div>
+    <div class="prose all-gap">
+      <p><strong>No HTTP-level API contract tests at all.</strong> The session routes (<code>GET/POST /api/sessions</code>, <code>GET/DELETE /api/sessions/[id]</code>) have zero coverage — only the <code>Session</code> module unit tests exist.</p>
+      <p>Missing for every route: correct 2xx status codes and response shapes; 4xx validation rejection (Zod errors surfaced correctly); 5xx error responses with the specified message strings.</p>
+    </div>
+  </div>
+
+  <!-- Spec 05 -->
+  <div class="spec-section">
+    <div class="spec-header">
+      <span class="spec-badge">Spec 05</span>
+      <h2>Data Model Constraints</h2>
+    </div>
+    <div class="prose all-gap">
+      <p><strong>No tests at all.</strong> CUID id, title length enforcement, <code>createdAt</code>/<code>updatedAt</code> auto-set, <code>userId</code> FK, and unique email constraint are all untested.</p>
+    </div>
+  </div>
+
+  <!-- Spec 07 -->
+  <div class="spec-section">
+    <div class="spec-header">
+      <span class="spec-badge">Spec 07</span>
+      <h2>Import</h2>
+    </div>
+    <table class="cov-table">
+      <thead><tr><th>Criterion</th><th>Coverage</th></tr></thead>
+      <tbody>
+        <tr>
+          <td>Import button always visible</td>
+          <td><span class="pill covered">Covered</span><div class="coverage-detail"><code>e2e/import.spec.ts</code></div></td>
+        </tr>
+        <tr>
+          <td>Modal opens with correct elements</td>
+          <td><span class="pill covered">Covered</span><div class="coverage-detail"><code>e2e/import.spec.ts</code></div></td>
+        </tr>
+        <tr>
+          <td>Valid Gherkin inserted as typed blocks</td>
+          <td><span class="pill covered">Covered</span><div class="coverage-detail"><code>e2e/import.spec.ts</code></div></td>
+        </tr>
+        <tr>
+          <td>Pipe-delimited rows produce DataTable blocks</td>
+          <td><span class="pill covered">Covered</span><div class="coverage-detail"><code>e2e/import.spec.ts</code></div></td>
+        </tr>
+        <tr>
+          <td>Out-of-order sequence inserted leniently</td>
+          <td><span class="pill covered">Covered</span><div class="coverage-detail"><code>e2e/import.spec.ts</code></div></td>
+        </tr>
+        <tr>
+          <td>Cancel closes without inserting</td>
+          <td><span class="pill covered">Covered</span><div class="coverage-detail"><code>e2e/import.spec.ts</code></div></td>
+        </tr>
+        <tr>
+          <td>Textarea cleared after Insert</td>
+          <td><span class="pill covered">Covered</span><div class="coverage-detail"><code>e2e/import.spec.ts</code></div></td>
+        </tr>
+        <tr>
+          <td>Markdown-prefixed Gherkin parsed correctly</td>
+          <td><span class="pill covered">Covered</span><div class="coverage-detail"><code>e2e/import.spec.ts</code></div></td>
+        </tr>
+        <tr>
+          <td>Lines not matching any keyword are skipped</td>
+          <td><span class="pill none">None</span></td>
+        </tr>
+        <tr>
+          <td>Keyword matching is case-insensitive</td>
+          <td><span class="pill none">None</span></td>
+        </tr>
+        <tr>
+          <td>Colons after keywords are optional</td>
+          <td><span class="pill none">None</span></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Spec 08 -->
+  <div class="spec-section">
+    <div class="spec-header">
+      <span class="spec-badge">Spec 08</span>
+      <h2>LLM Review</h2>
+    </div>
+    <table class="cov-table">
+      <thead><tr><th>Criterion</th><th>Coverage</th></tr></thead>
+      <tbody>
+        <tr>
+          <td>8.1 Trigger review, button disabled/"Reviewing…", dropdown disabled</td>
+          <td><span class="pill covered">Covered</span><div class="coverage-detail"><code>e2e/llm-review.spec.ts</code></div></td>
+        </tr>
+        <tr>
+          <td>8.1 Result in modal, rendered as Markdown, header shows model name</td>
+          <td><span class="pill covered">Covered</span><div class="coverage-detail"><code>e2e/llm-review.spec.ts</code></div></td>
+        </tr>
+        <tr>
+          <td>8.1 Error displayed in modal on failure</td>
+          <td><span class="pill covered">Covered</span><div class="coverage-detail"><code>e2e/llm-review.spec.ts</code></div></td>
+        </tr>
+        <tr>
+          <td>8.2 Dismiss via Escape / click outside / ✕ button</td>
+          <td><span class="pill covered">Covered</span><div class="coverage-detail"><code>e2e/llm-review.spec.ts</code></div></td>
+        </tr>
+        <tr>
+          <td>8.3 Model dropdown visible, pre-selected</td>
+          <td><span class="pill covered">Covered</span><div class="coverage-detail"><code>e2e/llm-review.spec.ts</code></div></td>
+        </tr>
+        <tr>
+          <td>8.3 Changing model persists to DB immediately</td>
+          <td><span class="pill none">None</span><div class="coverage-detail">e2e checks dropdown exists but never verifies DB persistence</div></td>
+        </tr>
+        <tr>
+          <td>8.3 Defaults to <code>llama-3.2-3b-instruct:free</code> when no DB setting</td>
+          <td><span class="pill gap">Gap</span><div class="coverage-detail">Unit test confirms <code>Coaching.getSettings()</code> returns the default, but the dropdown showing the correct pre-selected value in the UI is untested</div></td>
+        </tr>
+        <tr>
+          <td>8.4 Edit prompt modal — pre-filled textarea</td>
+          <td><span class="pill covered">Covered</span><div class="coverage-detail"><code>e2e/llm-review.spec.ts</code></div></td>
+        </tr>
+        <tr>
+          <td>8.4 Save persists; Cancel/Escape/outside dismisses</td>
+          <td><span class="pill covered">Covered</span><div class="coverage-detail"><code>e2e/llm-review.spec.ts</code></div></td>
+        </tr>
+        <tr>
+          <td>8.4 Save disabled when &lt; 10 chars</td>
+          <td><span class="pill covered">Covered</span><div class="coverage-detail"><code>e2e/llm-review.spec.ts</code></div></td>
+        </tr>
+        <tr>
+          <td>8.5–8.7 HTTP API contracts (<code>/api/llm-settings</code>, <code>/api/llm-review</code>)</td>
+          <td><span class="pill gap">Gap</span><div class="coverage-detail"><code>coaching.test.ts</code> unit-tests the service layer, but status codes, Zod validation rejection, and error body shapes at the route handler level are untested</div></td>
+        </tr>
+        <tr>
+          <td>8.8 Cached result / "View last review" button</td>
+          <td><span class="pill covered">Covered</span><div class="coverage-detail"><code>e2e/llm-review.spec.ts</code></div></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+</div>
+</body>
+</html>
