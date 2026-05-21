@@ -12,7 +12,6 @@ test.describe("enter-key auto-progression", () => {
 
   test("feature → scenario", async ({ page }) => {
     await openSession(page);
-    await page.locator(".gherkin-toolbar-btn", { hasText: "Feature" }).click();
     await page.locator('[data-gherkin-type="feature"]').click();
     await page.keyboard.press("End");
     await page.keyboard.press("Enter");
@@ -24,78 +23,69 @@ test.describe("enter-key auto-progression", () => {
 
   test("scenario → given", async ({ page }) => {
     await openSession(page);
-    await page.locator(".gherkin-toolbar-btn", { hasText: "Feature" }).click();
     await page.locator('[data-gherkin-type="feature"]').click();
-    await page.keyboard.press("Enter"); // feature → scenario
-    await page.locator('[data-gherkin-type="scenario"]').click();
+    await page.keyboard.press("Enter"); // feature → scenario (new one inserted after seed's scenario)
+    await page.locator('[data-gherkin-type="scenario"]').last().click();
     await page.keyboard.press("End");
     await page.keyboard.press("Enter");
     const types = await page.locator(".gherkin-editor [data-gherkin-type]").evaluateAll(
       (els) => els.map((el) => el.getAttribute("data-gherkin-type"))
     );
-    expect(types[2]).toBe("given");
+    const lastScenarioIdx = types.lastIndexOf("scenario");
+    expect(types[lastScenarioIdx + 1]).toBe("given");
   });
 
   test("given → when", async ({ page }) => {
     await openSession(page);
-    await page.locator(".gherkin-toolbar-btn", { hasText: "Feature" }).click();
     await page.locator('[data-gherkin-type="feature"]').click();
     await page.keyboard.press("Enter"); // feature → scenario
-    await page.locator('[data-gherkin-type="scenario"]').click();
+    await page.locator('[data-gherkin-type="scenario"]').last().click();
     await page.keyboard.press("Enter"); // scenario → given
-    await page.locator('[data-gherkin-type="given"]').click();
+    await page.locator('[data-gherkin-type="given"]').last().click();
     await page.keyboard.press("End");
     await page.keyboard.press("Enter");
     const types = await page.locator(".gherkin-editor [data-gherkin-type]").evaluateAll(
       (els) => els.map((el) => el.getAttribute("data-gherkin-type"))
     );
-    const givenIdx = types.indexOf("given");
+    const givenIdx = types.lastIndexOf("given");
     expect(types[givenIdx + 1]).toBe("when");
   });
 
   test("when → then", async ({ page }) => {
     await openSession(page);
-    await page.locator(".gherkin-toolbar-btn", { hasText: "Feature" }).click();
     await page.locator('[data-gherkin-type="feature"]').click();
     await page.keyboard.press("Enter"); // → scenario
-    await page.locator('[data-gherkin-type="scenario"]').click();
+    await page.locator('[data-gherkin-type="scenario"]').last().click();
     await page.keyboard.press("Enter"); // → given
-    await page.locator('[data-gherkin-type="given"]').click();
+    await page.locator('[data-gherkin-type="given"]').last().click();
     await page.keyboard.press("Enter"); // → when
-    await page.locator('[data-gherkin-type="when"]').click();
+    await page.locator('[data-gherkin-type="when"]').last().click();
     await page.keyboard.press("End");
     await page.keyboard.press("Enter");
     const types = await page.locator(".gherkin-editor [data-gherkin-type]").evaluateAll(
       (els) => els.map((el) => el.getAttribute("data-gherkin-type"))
     );
-    const whenIdx = types.indexOf("when");
+    const whenIdx = types.lastIndexOf("when");
     expect(types[whenIdx + 1]).toBe("then");
   });
 
   test("then → and", async ({ page }) => {
     await openSession(page);
-    await page.locator(".gherkin-toolbar-btn", { hasText: "Feature" }).click();
-    await page.locator('[data-gherkin-type="feature"]').click();
-    await page.keyboard.press("Enter"); // → scenario
-    await page.locator('[data-gherkin-type="scenario"]').click();
-    await page.keyboard.press("Enter"); // → given
-    await page.locator('[data-gherkin-type="given"]').click();
-    await page.keyboard.press("Enter"); // → when
-    await page.locator('[data-gherkin-type="when"]').click();
-    await page.keyboard.press("Enter"); // → then
-    await page.locator('[data-gherkin-type="then"]').click();
-    await page.keyboard.press("End");
-    await page.keyboard.press("Enter");
+    await pressEnterAndWait(page, "scenario");
+    await pressEnterAndWait(page, "given");
+    await pressEnterAndWait(page, "when");
+    await pressEnterAndWait(page, "then");
+    await pressEnterAndWait(page, "and");
     const types = await page.locator(".gherkin-editor [data-gherkin-type]").evaluateAll(
       (els) => els.map((el) => el.getAttribute("data-gherkin-type"))
     );
-    const thenIdx = types.indexOf("then");
-    expect(types[thenIdx + 1]).toBe("and");
+    // Find a "then" immediately followed by "and"
+    const thenFollowedByAnd = types.some((t, i) => t === "then" && types[i + 1] === "and");
+    expect(thenFollowedByAnd).toBe(true);
   });
 
   test("and → and", async ({ page }) => {
     await openSession(page);
-    await page.locator(".gherkin-toolbar-btn", { hasText: "Feature" }).click();
     await pressEnterAndWait(page, "scenario");
     await pressEnterAndWait(page, "given");
     // Insert an 'and' block via toolbar
@@ -115,7 +105,6 @@ test.describe("enter-key auto-progression", () => {
 
   test("but → and", async ({ page }) => {
     await openSession(page);
-    await page.locator(".gherkin-toolbar-btn", { hasText: "Feature" }).click();
     await pressEnterAndWait(page, "scenario");
     await pressEnterAndWait(page, "given");
     await page.locator(".gherkin-toolbar-btn", { hasText: "But" }).click();
@@ -134,7 +123,7 @@ test.describe("enter-key auto-progression", () => {
 
   test("background → given", async ({ page }) => {
     await openSession(page);
-    await page.locator(".gherkin-toolbar-btn", { hasText: "Feature" }).click();
+    await page.locator('[data-gherkin-type="feature"]').click();
     await page.locator(".gherkin-toolbar-btn", { hasText: "Background" }).click();
     await page.locator('[data-gherkin-type="background"]').click();
     await page.keyboard.press("End");
@@ -148,7 +137,7 @@ test.describe("enter-key auto-progression", () => {
 
   test("rule → scenario", async ({ page }) => {
     await openSession(page);
-    await page.locator(".gherkin-toolbar-btn", { hasText: "Feature" }).click();
+    await page.locator('[data-gherkin-type="feature"]').click();
     await page.locator(".gherkin-toolbar-btn", { hasText: "Rule" }).click();
     await page.locator('[data-gherkin-type="rule"]').click();
     await page.keyboard.press("End");
@@ -165,7 +154,6 @@ test.describe("enter-key auto-progression", () => {
     await openSession(page);
 
     // Build: feature → scenario → given → when → then
-    await page.locator(".gherkin-toolbar-btn", { hasText: "Feature" }).click();
     await pressEnterAndWait(page, "scenario");
     await pressEnterAndWait(page, "given");
     await pressEnterAndWait(page, "when");

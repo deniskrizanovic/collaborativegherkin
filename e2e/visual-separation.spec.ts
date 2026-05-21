@@ -15,7 +15,6 @@ test.describe("visual separation", () => {
 
     // Build: Feature → Scenario → Given → When → Then → (then→scenario via Enter,
     // then insert a second Given after the then manually via toolbar)
-    await page.locator(".gherkin-toolbar-btn", { hasText: "Feature" }).click();
     await pressEnterAndWait(page, "scenario");
     await pressEnterAndWait(page, "given");
     await pressEnterAndWait(page, "when");
@@ -38,7 +37,6 @@ test.describe("visual separation", () => {
   test("given after and has a top border", async ({ page }) => {
     await openSession(page);
 
-    await page.locator(".gherkin-toolbar-btn", { hasText: "Feature" }).click();
     await pressEnterAndWait(page, "scenario");
     await pressEnterAndWait(page, "given");
     await pressEnterAndWait(page, "when");
@@ -60,7 +58,6 @@ test.describe("visual separation", () => {
   test("given after but has a top border", async ({ page }) => {
     await openSession(page);
 
-    await page.locator(".gherkin-toolbar-btn", { hasText: "Feature" }).click();
     await pressEnterAndWait(page, "scenario");
     await pressEnterAndWait(page, "given");
     await pressEnterAndWait(page, "when");
@@ -80,7 +77,6 @@ test.describe("visual separation", () => {
   test("scenario after then has a top border (start of new step group)", async ({ page }) => {
     await openSession(page);
 
-    await page.locator(".gherkin-toolbar-btn", { hasText: "Feature" }).click();
     await pressEnterAndWait(page, "scenario");
     await pressEnterAndWait(page, "given");
     await pressEnterAndWait(page, "when");
@@ -102,7 +98,6 @@ test.describe("visual separation", () => {
   test("scenario after and has a top border", async ({ page }) => {
     await openSession(page);
 
-    await page.locator(".gherkin-toolbar-btn", { hasText: "Feature" }).click();
     await pressEnterAndWait(page, "scenario");
     await pressEnterAndWait(page, "given");
     await pressEnterAndWait(page, "when");
@@ -122,7 +117,6 @@ test.describe("visual separation", () => {
   test("scenario after but has a top border", async ({ page }) => {
     await openSession(page);
 
-    await page.locator(".gherkin-toolbar-btn", { hasText: "Feature" }).click();
     await pressEnterAndWait(page, "scenario");
     await pressEnterAndWait(page, "given");
     await pressEnterAndWait(page, "when");
@@ -142,7 +136,6 @@ test.describe("visual separation", () => {
   test("first given after scenario does not have a separator border", async ({ page }) => {
     await openSession(page);
 
-    await page.locator(".gherkin-toolbar-btn", { hasText: "Feature" }).click();
     await pressEnterAndWait(page, "scenario");
     await pressEnterAndWait(page, "given");
 
@@ -157,7 +150,7 @@ test.describe("visual separation", () => {
   test("separator does not appear in the exported file", async ({ page }) => {
     await openSession(page);
 
-    await page.locator(".gherkin-toolbar-btn", { hasText: "Feature" }).click();
+    await page.locator('[data-gherkin-type="feature"]').first().click();
     await page.keyboard.type("F");
     await pressEnterAndWait(page, "scenario");
     await page.keyboard.type("S");

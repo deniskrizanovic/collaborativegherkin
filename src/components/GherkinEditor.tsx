@@ -626,6 +626,45 @@ function GherkinEditor({
     },
   });
 
+  const seededRef = useRef(false);
+
+  useEffect(() => {
+    if (!editor) return;
+    const provider = providerRef.current;
+    if (!provider) return;
+
+    const handleSynced = () => {
+      if (seededRef.current) return;
+      seededRef.current = true;
+      if (getAllBlocks(editor.state).length === 0) {
+        editor.commands.setContent({
+          type: "doc",
+          content: [
+            { type: "paragraph", attrs: { "data-gherkin-type": "feature" }, content: [] },
+            { type: "paragraph", attrs: { "data-gherkin-type": "scenario" }, content: [] },
+            { type: "paragraph", attrs: { "data-gherkin-type": "given" }, content: [] },
+            { type: "paragraph", attrs: { "data-gherkin-type": "when" }, content: [] },
+            { type: "paragraph", attrs: { "data-gherkin-type": "then" }, content: [] },
+          ],
+        });
+        editor.commands.setTextSelection(1);
+      }
+    };
+
+    const typedProvider = provider as unknown as {
+      synced?: boolean;
+      on(event: string, handler: () => void): void;
+      off(event: string, handler: () => void): void;
+    };
+    if (typedProvider.synced) {
+      handleSynced();
+    } else {
+      typedProvider.on("synced", handleSynced);
+    }
+
+    return () => { typedProvider.off("synced", handleSynced); };
+  }, [editor]);
+
   const insertBlock = useCallback(
     (type: InsertableType, deleteSlash = false, replace = false) => {
       if (!editor) return;

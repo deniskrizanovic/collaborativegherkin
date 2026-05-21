@@ -10,25 +10,20 @@ test.describe("export", () => {
   test("Export button downloads a plain-text file with correct content", async ({ page, context }) => {
     await openSession(page);
 
-    // Build a small document: Feature → Scenario → Given → When → Then
-    await page.locator(".gherkin-toolbar-btn", { hasText: "Feature" }).click();
-    await page.locator('[data-gherkin-type="feature"]').click();
+    // Type into each scaffold block directly
+    await page.locator('[data-gherkin-type="feature"]').first().click();
     await page.keyboard.type("User login");
 
-    await page.keyboard.press("Enter"); // → scenario
-    await page.locator('[data-gherkin-type="scenario"]').last().click();
+    await page.locator('[data-gherkin-type="scenario"]').first().click();
     await page.keyboard.type("Successful login");
 
-    await page.keyboard.press("Enter"); // → given
-    await page.locator('[data-gherkin-type="given"]').last().click();
+    await page.locator('[data-gherkin-type="given"]').first().click();
     await page.keyboard.type("the user is on the login page");
 
-    await page.keyboard.press("Enter"); // → when
-    await page.locator('[data-gherkin-type="when"]').last().click();
+    await page.locator('[data-gherkin-type="when"]').first().click();
     await page.keyboard.type("the user enters valid credentials");
 
-    await page.keyboard.press("Enter"); // → then
-    await page.locator('[data-gherkin-type="then"]').last().click();
+    await page.locator('[data-gherkin-type="then"]').first().click();
     await page.keyboard.type("the user is redirected to the dashboard");
 
     // Set up download listener before clicking Export
@@ -55,16 +50,13 @@ test.describe("export", () => {
   test("exported file contains blocks in document order", async ({ page }) => {
     await openSession(page);
 
-    await page.locator(".gherkin-toolbar-btn", { hasText: "Feature" }).click();
-    await page.locator('[data-gherkin-type="feature"]').click();
+    await page.locator('[data-gherkin-type="feature"]').first().click();
     await page.keyboard.type("Ordering");
 
-    await page.keyboard.press("Enter");
-    await page.locator('[data-gherkin-type="scenario"]').last().click();
+    await page.locator('[data-gherkin-type="scenario"]').first().click();
     await page.keyboard.type("First scenario");
 
-    await page.keyboard.press("Enter");
-    await page.locator('[data-gherkin-type="given"]').last().click();
+    await page.locator('[data-gherkin-type="given"]').first().click();
     await page.keyboard.type("a starting state");
 
     const downloadPromise = page.waitForEvent("download");
@@ -87,16 +79,13 @@ test.describe("markdown export", () => {
   test("Export MD button downloads a markdown file with correct content", async ({ page }) => {
     await openSession(page);
 
-    await page.locator(".gherkin-toolbar-btn", { hasText: "Feature" }).click();
-    await page.locator('[data-gherkin-type="feature"]').click();
+    await page.locator('[data-gherkin-type="feature"]').first().click();
     await page.keyboard.type("User login");
 
-    await page.keyboard.press("Enter");
-    await page.locator('[data-gherkin-type="scenario"]').last().click();
+    await page.locator('[data-gherkin-type="scenario"]').first().click();
     await page.keyboard.type("Successful login");
 
-    await page.keyboard.press("Enter");
-    await page.locator('[data-gherkin-type="given"]').last().click();
+    await page.locator('[data-gherkin-type="given"]').first().click();
     await page.keyboard.type("the user is on the login page");
 
     const downloadPromise = page.waitForEvent("download");

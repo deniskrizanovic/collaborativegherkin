@@ -24,8 +24,8 @@ export async function createSession(page: Page, title: string): Promise<string> 
 export async function openSession(page: Page, title = "Test session"): Promise<string> {
   const id = await createSession(page, title);
   await page.goto(`/sessions/${id}`);
-  await page.waitForSelector(".gherkin-editor");
-  await page.locator(".gherkin-editor").click();
+  await page.waitForSelector('[data-gherkin-type="feature"]');
+  await page.locator('[data-gherkin-type="feature"]').click();
   return id;
 }
 

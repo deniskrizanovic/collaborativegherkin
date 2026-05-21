@@ -24,7 +24,7 @@ test.describe("Gherkin text import", () => {
     await page.locator(".gherkin-import-textarea").fill("Feature: Should not appear");
     await page.locator(".gherkin-import-cancel").click();
     await expect(page.locator(".gherkin-import-modal")).not.toBeVisible();
-    await expect(page.locator('[data-gherkin-type="feature"]')).toHaveCount(0);
+    await expect(page.locator('[data-gherkin-type="feature"]')).toHaveCount(1);
   });
 
   test("inserting a valid Gherkin sequence creates the right blocks", async ({ page }) => {
@@ -40,11 +40,11 @@ test.describe("Gherkin text import", () => {
     await page.locator(".gherkin-import-textarea").fill(gherkin);
     await page.locator(".gherkin-import-confirm").click();
     await expect(page.locator(".gherkin-import-modal")).not.toBeVisible();
-    await expect(page.locator('[data-gherkin-type="feature"]')).toHaveCount(1);
-    await expect(page.locator('[data-gherkin-type="scenario"]')).toHaveCount(1);
-    await expect(page.locator('[data-gherkin-type="given"]')).toHaveCount(1);
-    await expect(page.locator('[data-gherkin-type="when"]')).toHaveCount(1);
-    await expect(page.locator('[data-gherkin-type="then"]')).toHaveCount(1);
+    await expect(page.locator('[data-gherkin-type="feature"]')).toHaveCount(2);
+    await expect(page.locator('[data-gherkin-type="scenario"]')).toHaveCount(2);
+    await expect(page.locator('[data-gherkin-type="given"]')).toHaveCount(2);
+    await expect(page.locator('[data-gherkin-type="when"]')).toHaveCount(2);
+    await expect(page.locator('[data-gherkin-type="then"]')).toHaveCount(2);
   });
 
   test("out-of-order sequence is inserted leniently (Scenario without Feature)", async ({ page }) => {
@@ -52,8 +52,8 @@ test.describe("Gherkin text import", () => {
     await page.locator(".gherkin-import-btn").click();
     await page.locator(".gherkin-import-textarea").fill("Scenario: Orphan\nGiven context");
     await page.locator(".gherkin-import-confirm").click();
-    await expect(page.locator('[data-gherkin-type="scenario"]')).toHaveCount(1);
-    await expect(page.locator('[data-gherkin-type="given"]')).toHaveCount(1);
+    await expect(page.locator('[data-gherkin-type="scenario"]')).toHaveCount(2);
+    await expect(page.locator('[data-gherkin-type="given"]')).toHaveCount(2);
   });
 
   test("modal textarea is cleared after Insert", async ({ page }) => {
@@ -79,11 +79,11 @@ test.describe("Gherkin text import", () => {
     await page.locator(".gherkin-import-textarea").fill(gherkin);
     await page.locator(".gherkin-import-confirm").click();
     await expect(page.locator(".gherkin-import-modal")).not.toBeVisible();
-    await expect(page.locator('[data-gherkin-type="feature"]')).toHaveCount(1);
-    await expect(page.locator('[data-gherkin-type="scenario"]')).toHaveCount(1);
-    await expect(page.locator('[data-gherkin-type="given"]')).toHaveCount(1);
-    await expect(page.locator('[data-gherkin-type="when"]')).toHaveCount(1);
-    await expect(page.locator('[data-gherkin-type="then"]')).toHaveCount(1);
+    await expect(page.locator('[data-gherkin-type="feature"]')).toHaveCount(2);
+    await expect(page.locator('[data-gherkin-type="scenario"]')).toHaveCount(2);
+    await expect(page.locator('[data-gherkin-type="given"]')).toHaveCount(2);
+    await expect(page.locator('[data-gherkin-type="when"]')).toHaveCount(2);
+    await expect(page.locator('[data-gherkin-type="then"]')).toHaveCount(2);
   });
 
   test("pipe-delimited rows in import text produce a data table block", async ({ page }) => {
@@ -100,8 +100,8 @@ test.describe("Gherkin text import", () => {
     await page.locator(".gherkin-import-textarea").fill(gherkin);
     await page.locator(".gherkin-import-confirm").click();
     await expect(page.locator(".gherkin-import-modal")).not.toBeVisible();
-    await expect(page.locator('[data-gherkin-type="scenario"]')).toHaveCount(1);
-    await expect(page.locator('[data-gherkin-type="given"]')).toHaveCount(1);
+    await expect(page.locator('[data-gherkin-type="scenario"]')).toHaveCount(2);
+    await expect(page.locator('[data-gherkin-type="given"]')).toHaveCount(2);
     await expect(page.locator("[data-gherkin-table]")).toHaveCount(1);
   });
 });

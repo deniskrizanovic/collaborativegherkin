@@ -10,11 +10,7 @@ test.describe("data table insertion", () => {
   test("Table button appears in toolbar after inserting a Given block", async ({ page }) => {
     await openSession(page);
 
-    await page.locator(".gherkin-toolbar-btn", { hasText: "Feature" }).click();
-    await clickEditor(page);
-    await page.keyboard.press("Enter"); // → scenario
-    await clickEditor(page);
-    await page.keyboard.press("Enter"); // → given
+    await page.locator('[data-gherkin-type="given"]').first().click();
 
     await expect(page.locator(".gherkin-toolbar-btn", { hasText: "Table" })).toBeVisible();
   });
@@ -22,7 +18,6 @@ test.describe("data table insertion", () => {
   test("Table button is absent when cursor is on a Feature block", async ({ page }) => {
     await openSession(page);
 
-    await page.locator(".gherkin-toolbar-btn", { hasText: "Feature" }).click();
     await page.locator('[data-gherkin-type="feature"]').click();
 
     await expect(page.locator(".gherkin-toolbar-btn", { hasText: "Table" })).not.toBeVisible();
@@ -31,11 +26,7 @@ test.describe("data table insertion", () => {
   test("clicking Table button inserts a data_table node", async ({ page }) => {
     await openSession(page);
 
-    await page.locator(".gherkin-toolbar-btn", { hasText: "Feature" }).click();
-    await clickEditor(page);
-    await page.keyboard.press("Enter"); // → scenario
-    await clickEditor(page);
-    await page.keyboard.press("Enter"); // → given
+    await page.locator('[data-gherkin-type="given"]').first().click();
 
     await page.locator(".gherkin-toolbar-btn", { hasText: "Table" }).click();
 
@@ -45,11 +36,7 @@ test.describe("data table insertion", () => {
   test("inserted table has management toolbar with row and column controls", async ({ page }) => {
     await openSession(page);
 
-    await page.locator(".gherkin-toolbar-btn", { hasText: "Feature" }).click();
-    await clickEditor(page);
-    await page.keyboard.press("Enter");
-    await clickEditor(page);
-    await page.keyboard.press("Enter");
+    await page.locator('[data-gherkin-type="given"]').first().click();
 
     await page.locator(".gherkin-toolbar-btn", { hasText: "Table" }).click();
 
@@ -66,16 +53,13 @@ test.describe("data table export", () => {
   test("Export TXT includes pipe-delimited rows for a data table", async ({ page, context }) => {
     await openSession(page);
 
-    await page.locator(".gherkin-toolbar-btn", { hasText: "Feature" }).click();
-    await page.locator('[data-gherkin-type="feature"]').click();
+    await page.locator('[data-gherkin-type="feature"]').first().click();
     await page.keyboard.type("Login");
 
-    await page.keyboard.press("Enter"); // → scenario
-    await page.locator('[data-gherkin-type="scenario"]').last().click();
+    await page.locator('[data-gherkin-type="scenario"]').first().click();
     await page.keyboard.type("Table test");
 
-    await page.keyboard.press("Enter"); // → given
-    await page.locator('[data-gherkin-type="given"]').last().click();
+    await page.locator('[data-gherkin-type="given"]').first().click();
     await page.keyboard.type("a step with data");
 
     await page.locator(".gherkin-toolbar-btn", { hasText: "Table" }).click();
@@ -108,16 +92,13 @@ test.describe("data table export", () => {
   test("Export MD includes pipe table with separator for a data table", async ({ page }) => {
     await openSession(page);
 
-    await page.locator(".gherkin-toolbar-btn", { hasText: "Feature" }).click();
-    await page.locator('[data-gherkin-type="feature"]').click();
+    await page.locator('[data-gherkin-type="feature"]').first().click();
     await page.keyboard.type("MD Table");
 
-    await page.keyboard.press("Enter");
-    await page.locator('[data-gherkin-type="scenario"]').last().click();
+    await page.locator('[data-gherkin-type="scenario"]').first().click();
     await page.keyboard.type("export scenario");
 
-    await page.keyboard.press("Enter");
-    await page.locator('[data-gherkin-type="given"]').last().click();
+    await page.locator('[data-gherkin-type="given"]').first().click();
     await page.keyboard.type("a step");
 
     await page.locator(".gherkin-toolbar-btn", { hasText: "Table" }).click();

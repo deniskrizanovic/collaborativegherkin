@@ -37,11 +37,11 @@ Enter a session title and click **New session** to create a workspace. Each sess
 
 Opening a session lands you in the Gherkin editor. The toolbar across the top surfaces the block types that are valid to insert at the current cursor position. Export and Import buttons sit on the right side of the toolbar.
 
-![Empty session editor](docs/screenshots/session-empty.png)
+![Session editor with initial scaffold](docs/screenshots/session-populated.png)
 
-The toolbar always constrains choices to what is structurally valid. In an empty document the only option is **Feature** — inserting anything else would produce invalid Gherkin.
+The toolbar always constrains choices to what is structurally valid. The cursor starts on the **Feature** block, so the toolbar offers the next valid options — Rule, Background, and Scenario.
 
-![Toolbar on empty editor — only Feature is offered](docs/screenshots/toolbar-empty.png)
+![Toolbar after opening a session — cursor on Feature block](docs/screenshots/toolbar-populated.png)
 
 ---
 
@@ -120,7 +120,7 @@ Share the session URL with teammates. Every editor connected to the same session
 Collaborators' cursors appear with coloured labels so you can see where everyone is working.
 
 Just like Google Docs, edits are real-time replicated between users.
-
+/
 To invite someone, click **Copy invite link** next to the session title — it copies the session URL to the clipboard.
 
 ![Copy invite link next to the session title](docs/screenshots/invite-link.png)

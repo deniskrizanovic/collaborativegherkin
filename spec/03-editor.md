@@ -8,6 +8,13 @@
 **And** the Y.js document state is synchronised with the server and any other connected peers  
 **And** the editor becomes interactive once the connection is established
 
+**Given** the Y.js document is empty after synchronisation  
+**When** the first user's editor finishes syncing  
+**Then** the editor is seeded with 5 empty scaffold blocks in this order: Feature, Scenario, Given, When, Then  
+**And** each scaffold block contains no text — only the keyword label is displayed  
+**And** the cursor is placed at the start of the Feature block  
+**And** the seed is applied exactly once per document lifetime — subsequent users joining the session receive the document content via Y.js sync and do not trigger re-seeding
+
 ---
 
 ## 3.2 Enter-key auto-progression

@@ -11,15 +11,14 @@ test.describe("real-time collaboration", () => {
 
     // Open first context (already have `page`)
     await page.goto(url);
-    await page.waitForSelector(".gherkin-editor");
+    await page.waitForSelector('[data-gherkin-type="feature"]');
 
     // Open second context
     const page2 = await context.newPage();
     await page2.goto(url);
-    await page2.waitForSelector(".gherkin-editor");
+    await page2.waitForSelector('[data-gherkin-type="feature"]');
 
-    // Insert a Feature block in page1
-    await page.locator(".gherkin-toolbar-btn", { hasText: "Feature" }).click();
+    // Type into the seeded Feature block in page1
     await page.locator('[data-gherkin-type="feature"]').click();
     await page.keyboard.type("Shared feature");
 
@@ -34,18 +33,17 @@ test.describe("real-time collaboration", () => {
     const url = `/sessions/${sessionId}`;
 
     await page.goto(url);
-    await page.waitForSelector(".gherkin-editor");
+    await page.waitForSelector('[data-gherkin-type="feature"]');
 
-    // Insert a block so there's content to position a cursor in
-    await page.locator(".gherkin-toolbar-btn", { hasText: "Feature" }).click();
+    // Type into the seeded Feature block to position cursor
     await page.locator('[data-gherkin-type="feature"]').click();
     await page.keyboard.type("A feature");
 
     // Second user joins and clicks into the editor
     const page2 = await context.newPage();
     await page2.goto(url);
-    await page2.waitForSelector(".gherkin-editor");
-    await page2.locator(".gherkin-editor").click();
+    await page2.waitForSelector('[data-gherkin-type="feature"]');
+    await page2.locator('[data-gherkin-type="feature"]').click();
 
     // Wait for the collaboration cursor element to appear in page1's DOM
     // CollaborationCursor renders .collaboration-cursor__caret elements

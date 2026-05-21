@@ -43,43 +43,37 @@ async function createSession(baseURL: string, title: string): Promise<string> {
   await page.screenshot({ path: path.join(OUT, "create-session.png"), fullPage: false });
   console.log("✓ create-session");
 
-  // ── 3. Empty session / editor ─────────────────────────────────────────────
+  // ── 3. Session with initial scaffold ─────────────────────────────────────
   const id1 = await createSession(BASE, "Screenshot Session A");
   await page.goto(`${BASE}/sessions/${id1}`);
-  await page.waitForSelector(".gherkin-editor");
-  await page.screenshot({ path: path.join(OUT, "session-empty.png"), fullPage: false });
-  console.log("✓ session-empty");
+  await page.waitForSelector('[data-gherkin-type="feature"]');
+  await page.screenshot({ path: path.join(OUT, "session-populated.png"), fullPage: false });
+  console.log("✓ session-populated");
 
-  // ── 4. Toolbar — feature only (empty state) ───────────────────────────────
-  await page.locator(".gherkin-editor").click();
-  // Toolbar should already be visible; screenshot the toolbar area
-  await page.screenshot({ path: path.join(OUT, "toolbar-empty.png"), fullPage: false });
-  console.log("✓ toolbar-empty");
+  // ── 4. Toolbar — cursor on Feature (scaffold state) ───────────────────────
+  await page.locator('[data-gherkin-type="feature"]').click();
+  // Toolbar shows valid next blocks for Feature; screenshot
+  await page.screenshot({ path: path.join(OUT, "toolbar-populated.png"), fullPage: false });
+  console.log("✓ toolbar-populated");
 
-  // ── 5. Insert Feature → Scenario → Given → When → Then ───────────────────
+  // ── 5. Fill scaffold blocks with content ─────────────────────────────────
   const id2 = await createSession(BASE, "Screenshot Session B");
   await page.goto(`${BASE}/sessions/${id2}`);
-  await page.waitForSelector(".gherkin-editor");
-  await page.locator(".gherkin-editor").click();
+  await page.waitForSelector('[data-gherkin-type="feature"]');
 
-  await page.locator(".gherkin-toolbar-btn", { hasText: "Feature" }).click();
-  await page.locator('[data-gherkin-type="feature"]').click();
+  await page.locator('[data-gherkin-type="feature"]').first().click();
   await page.keyboard.type("User Authentication");
 
-  await page.keyboard.press("Enter"); // → scenario
-  await page.locator('[data-gherkin-type="scenario"]').last().click();
+  await page.locator('[data-gherkin-type="scenario"]').first().click();
   await page.keyboard.type("Successful login");
 
-  await page.keyboard.press("Enter"); // → given
-  await page.locator('[data-gherkin-type="given"]').last().click();
+  await page.locator('[data-gherkin-type="given"]').first().click();
   await page.keyboard.type("the user is on the login page");
 
-  await page.keyboard.press("Enter"); // → when
-  await page.locator('[data-gherkin-type="when"]').last().click();
+  await page.locator('[data-gherkin-type="when"]').first().click();
   await page.keyboard.type("the user enters valid credentials");
 
-  await page.keyboard.press("Enter"); // → then
-  await page.locator('[data-gherkin-type="then"]').last().click();
+  await page.locator('[data-gherkin-type="then"]').first().click();
   await page.keyboard.type("the user is redirected to the dashboard");
 
   await page.screenshot({ path: path.join(OUT, "editor-full.png"), fullPage: false });
@@ -108,27 +102,21 @@ async function createSession(baseURL: string, title: string): Promise<string> {
   // ── 9. Multiple scenarios / visual separation ────────────────────────────
   const id3 = await createSession(BASE, "Screenshot Session C");
   await page.goto(`${BASE}/sessions/${id3}`);
-  await page.waitForSelector(".gherkin-editor");
-  await page.locator(".gherkin-editor").click();
+  await page.waitForSelector('[data-gherkin-type="feature"]');
 
-  await page.locator(".gherkin-toolbar-btn", { hasText: "Feature" }).click();
-  await page.locator('[data-gherkin-type="feature"]').click();
+  await page.locator('[data-gherkin-type="feature"]').first().click();
   await page.keyboard.type("Shopping Cart");
 
-  await page.keyboard.press("Enter"); // → scenario
-  await page.locator('[data-gherkin-type="scenario"]').last().click();
+  await page.locator('[data-gherkin-type="scenario"]').first().click();
   await page.keyboard.type("Add item to cart");
 
-  await page.keyboard.press("Enter"); // → given
-  await page.locator('[data-gherkin-type="given"]').last().click();
+  await page.locator('[data-gherkin-type="given"]').first().click();
   await page.keyboard.type("the catalogue page is open");
 
-  await page.keyboard.press("Enter"); // → when
-  await page.locator('[data-gherkin-type="when"]').last().click();
+  await page.locator('[data-gherkin-type="when"]').first().click();
   await page.keyboard.type("the user clicks Add to Cart");
 
-  await page.keyboard.press("Enter"); // → then
-  await page.locator('[data-gherkin-type="then"]').last().click();
+  await page.locator('[data-gherkin-type="then"]').first().click();
   await page.keyboard.type("the cart badge shows 1");
 
   // Add second scenario via toolbar
@@ -154,19 +142,15 @@ async function createSession(baseURL: string, title: string): Promise<string> {
   // ── 10. Data table ────────────────────────────────────────────────────────
   const id4 = await createSession(BASE, "Screenshot Session D");
   await page.goto(`${BASE}/sessions/${id4}`);
-  await page.waitForSelector(".gherkin-editor");
-  await page.locator(".gherkin-editor").click();
+  await page.waitForSelector('[data-gherkin-type="feature"]');
 
-  await page.locator(".gherkin-toolbar-btn", { hasText: "Feature" }).click();
-  await page.locator('[data-gherkin-type="feature"]').click();
+  await page.locator('[data-gherkin-type="feature"]').first().click();
   await page.keyboard.type("Data-driven tests");
 
-  await page.keyboard.press("Enter"); // → scenario
-  await page.locator('[data-gherkin-type="scenario"]').last().click();
+  await page.locator('[data-gherkin-type="scenario"]').first().click();
   await page.keyboard.type("Multiple users");
 
-  await page.keyboard.press("Enter"); // → given
-  await page.locator('[data-gherkin-type="given"]').last().click();
+  await page.locator('[data-gherkin-type="given"]').first().click();
   await page.keyboard.type("the following registered users:");
 
   await page.locator(".gherkin-toolbar-btn", { hasText: "Table" }).click();
@@ -197,7 +181,7 @@ async function createSession(baseURL: string, title: string): Promise<string> {
   // ── 11. Import modal ──────────────────────────────────────────────────────
   const id5 = await createSession(BASE, "Screenshot Session E");
   await page.goto(`${BASE}/sessions/${id5}`);
-  await page.waitForSelector(".gherkin-editor");
+  await page.waitForSelector('[data-gherkin-type="feature"]');
 
   await page.locator(".gherkin-import-btn").click();
   await page.waitForSelector(".gherkin-import-modal");
