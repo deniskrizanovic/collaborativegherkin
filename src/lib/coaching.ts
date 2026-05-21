@@ -45,6 +45,7 @@ export class Coaching {
         },
         body: JSON.stringify({
           model,
+          provider: { allow_fallbacks: true },
           messages: [
             { role: "system", content: prompt },
             { role: "user", content },

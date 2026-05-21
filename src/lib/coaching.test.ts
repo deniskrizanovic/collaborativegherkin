@@ -72,6 +72,26 @@ describe("Coaching", () => {
       expect(body.messages[0].content).toBe(DEFAULT_PROMPT);
     });
 
+    it("sends allow_fallbacks: true in the provider field", async () => {
+      fakeAppSetting.findUnique.mockResolvedValue(null);
+      fakeFetch.mockResolvedValue(
+        makeResponse(true, 200, {
+          choices: [{ message: { content: "ok" } }],
+        })
+      );
+
+      const coaching = new Coaching({
+        appSetting: fakeAppSetting as any,
+        fetch: fakeFetch,
+        apiKey: "key",
+      });
+
+      await coaching.reviewGherkin("content", AVAILABLE_MODELS[0]);
+
+      const body = JSON.parse(fakeFetch.mock.calls[0][1].body as string);
+      expect(body.provider).toEqual({ allow_fallbacks: true });
+    });
+
     it("throws CoachingConfigError when apiKey is undefined", async () => {
       const coaching = new Coaching({
         appSetting: fakeAppSetting as any,
