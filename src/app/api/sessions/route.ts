@@ -2,18 +2,18 @@ import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { db } from "@/lib/db";
 import logger from "@/lib/logger";
+import { Session } from "@/lib/session";
 
 const CreateSessionSchema = z.object({
   title: z.string().min(1).max(200),
   userId: z.string().cuid(),
 });
 
+const session = new Session({ session: db.session });
+
 export async function GET() {
   try {
-    const sessions = await db.session.findMany({
-      orderBy: { createdAt: "desc" },
-      select: { id: true, title: true, createdAt: true, userId: true },
-    });
+    const sessions = await session.list();
     return NextResponse.json(sessions);
   } catch (err) {
     logger.error({ err }, "Failed to list sessions");
@@ -29,12 +29,10 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: parsed.error.flatten() }, { status: 400 });
     }
 
-    const session = await db.session.create({
-      data: { title: parsed.data.title, userId: parsed.data.userId },
-    });
+    const created = await session.create(parsed.data);
 
-    logger.info({ sessionId: session.id }, "Session created");
-    return NextResponse.json(session, { status: 201 });
+    logger.info({ sessionId: created.id }, "Session created");
+    return NextResponse.json(created, { status: 201 });
   } catch (err) {
     logger.error({ err }, "Failed to create session");
     return NextResponse.json({ error: "Failed to create session" }, { status: 500 });

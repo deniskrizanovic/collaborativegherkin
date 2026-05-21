@@ -64,6 +64,24 @@
       font-size: 14px;
       color: #dc2626;
     }
+    .done-banner {
+      background: #f0fdf4;
+      border-top: 1px solid #bbf7d0;
+      padding: 6px 32px;
+      font-size: 11px;
+      font-weight: 600;
+      color: #16a34a;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    article.is-done {
+      opacity: 0.6;
+    }
+    article.is-done h2 {
+      text-decoration: line-through;
+      text-decoration-color: #94a3b8;
+    }
   </style>
 </head>
 <body class="bg-stone-50 text-slate-900 font-sans">
@@ -96,7 +114,8 @@
       <!-- ═══════════════════════════════════════════════════════
            CANDIDATE 1: LLM Review route
            ═══════════════════════════════════════════════════════ -->
-      <article id="c1" class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+      <article id="c1" class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden is-done">
+        <div class="done-banner">&#10003; Done — commit 96afdc3 · Extract Coaching module behind dependency injection seam</div>
         <div class="px-8 pt-7 pb-6">
           <div class="flex items-start justify-between mb-4">
             <h2 class="text-xl font-serif font-bold text-slate-900">Deepen the LLM review module</h2>
@@ -171,7 +190,8 @@ flowchart TD
       <!-- ═══════════════════════════════════════════════════════
            CANDIDATE 2: GherkinEditor god component
            ═══════════════════════════════════════════════════════ -->
-      <article id="c2" class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+      <article id="c2" class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden is-done">
+        <div class="done-banner">&#10003; Done — commit c934587 · Decompose GherkinEditor shell into focused modules</div>
         <div class="px-8 pt-7 pb-6">
           <div class="flex items-start justify-between mb-4">
             <h2 class="text-xl font-serif font-bold text-slate-900">Decompose the editor shell</h2>
@@ -228,7 +248,8 @@ flowchart TD
       <!-- ═══════════════════════════════════════════════════════
            CANDIDATE 3: Session API routes
            ═══════════════════════════════════════════════════════ -->
-      <article id="c3" class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+      <article id="c3" class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden is-done">
+        <div class="done-banner">&#10003; Done — Extract Session module behind dependency injection seam</div>
         <div class="px-8 pt-7 pb-6">
           <div class="flex items-start justify-between mb-4">
             <h2 class="text-xl font-serif font-bold text-slate-900">Deepen the session module</h2>
