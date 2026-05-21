@@ -2,7 +2,13 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { db } from "@/lib/db";
 import logger from "@/lib/logger";
-import { AVAILABLE_MODELS, DEFAULT_PROMPT } from "@/lib/llm-constants";
+import { AVAILABLE_MODELS } from "@/lib/llm-constants";
+import {
+  Coaching,
+  CoachingConfigError,
+  CoachingRequestError,
+  RateLimitError,
+} from "@/lib/coaching";
 
 const PostSchema = z.object({
   content: z.string().min(1),
@@ -18,58 +24,29 @@ export async function POST(request: Request) {
     }
     const { content, model } = parsed.data;
 
-    const promptRow = await db.appSetting.findUnique({ where: { key: "llm_review_prompt" } });
-    const prompt = promptRow?.value ?? DEFAULT_PROMPT;
+    const coaching = new Coaching({
+      appSetting: db.appSetting,
+      fetch: globalThis.fetch,
+      apiKey: process.env.OPENROUTER_API_KEY,
+    });
 
-    const apiKey = process.env.OPENROUTER_API_KEY;
-    if (!apiKey) {
+    const result = await coaching.reviewGherkin(content, model);
+    return NextResponse.json({ result });
+  } catch (err) {
+    if (err instanceof RateLimitError) {
+      const message = err.retryAfterSeconds
+        ? `This model is rate-limited. Please try again in ${Math.ceil(err.retryAfterSeconds)} seconds, or select a different model.`
+        : "This model is rate-limited. Please try again shortly, or select a different model.";
+      return NextResponse.json({ error: message }, { status: 429 });
+    }
+    if (err instanceof CoachingConfigError) {
       logger.error("OPENROUTER_API_KEY is not set");
       return NextResponse.json({ error: "LLM service not configured" }, { status: 500 });
     }
-
-    const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${apiKey}`,
-      },
-      body: JSON.stringify({
-        model,
-        messages: [
-          { role: "system", content: prompt },
-          { role: "user", content },
-        ],
-      }),
-    });
-
-    if (!response.ok) {
-      const text = await response.text();
-      logger.error({ status: response.status, body: text }, "OpenRouter request failed");
-
-      if (response.status === 429) {
-        let retryAfter: number | null = null;
-        try {
-          const parsed = JSON.parse(text) as {
-            error?: { metadata?: { retry_after_seconds?: number } };
-          };
-          retryAfter = parsed.error?.metadata?.retry_after_seconds ?? null;
-        } catch { /* ignore parse failures */ }
-
-        const message = retryAfter
-          ? `This model is rate-limited. Please try again in ${Math.ceil(retryAfter)} seconds, or select a different model.`
-          : "This model is rate-limited. Please try again shortly, or select a different model.";
-        return NextResponse.json({ error: message }, { status: 429 });
-      }
-
+    if (err instanceof CoachingRequestError) {
+      logger.error({ err }, "OpenRouter request failed");
       return NextResponse.json({ error: "LLM request failed" }, { status: 502 });
     }
-
-    const data = await response.json() as {
-      choices?: { message?: { content?: string } }[];
-    };
-    const result = data.choices?.[0]?.message?.content ?? "";
-    return NextResponse.json({ result });
-  } catch (err) {
     logger.error({ err }, "Unexpected error in llm-review");
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
