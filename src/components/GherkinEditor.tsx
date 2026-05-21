@@ -3,24 +3,14 @@
 import React, { forwardRef, useCallback, useEffect, useImperativeHandle, useRef, useState } from "react";
 import { useEditor, EditorContent } from "@tiptap/react";
 import { Node, mergeAttributes } from "@tiptap/core";
-import { TextSelection } from "@tiptap/pm/state";
 import StarterKit from "@tiptap/starter-kit";
 import Collaboration from "@tiptap/extension-collaboration";
 import CollaborationCursor from "@tiptap/extension-collaboration-cursor";
-import * as Y from "yjs";
-import { WebsocketProvider } from "y-websocket";
-import {
-  GherkinBlockType,
-  GHERKIN_LABELS,
-  GHERKIN_BLOCK_TYPES,
-  canFollow,
-  NEXT_BLOCK_ON_ENTER,
-  exportToText,
-  exportToMarkdown,
-  parseGherkin,
-  DocumentBlock,
-  DataTableBlock,
-} from "@/lib/gherkin";
+import { GherkinBlockType, GHERKIN_LABELS, exportToMarkdown, parseGherkin, DataTableBlock } from "@/lib/gherkin";
+import { GherkinDataTable } from "./GherkinDataTable";
+import { BlockPicker, getValidNextTypes } from "./BlockPicker";
+import { useCollabProvider } from "./useCollabProvider";
+import { useGherkinKeyboard, getAllBlocks, getCurrentBlockType, getPreviousBlockType } from "./useGherkinKeyboard";
 
 const GherkinImage = Node.create({
   name: "gherkin_image",
@@ -58,260 +48,6 @@ const GherkinImage = Node.create({
   },
 });
 
-const STEP_TYPES: GherkinBlockType[] = ["given", "when", "then", "and", "but"];
-
-const GherkinDataTable = Node.create({
-  name: "gherkin_data_table",
-  group: "block",
-  atom: true,
-  selectable: false,
-  draggable: true,
-
-  addAttributes() {
-    return {
-      // JSON string: Y.js attribute equality is reference-based, so arrays always
-      // trigger setAttribute; a string only writes when the content actually changes.
-      rows: { default: JSON.stringify([["", ""], ["", ""]]) },
-    };
-  },
-
-  parseHTML() {
-    return [{ tag: "div[data-gherkin-table]" }];
-  },
-
-  renderHTML({ HTMLAttributes }) {
-    return ["div", mergeAttributes(HTMLAttributes, { "data-gherkin-table": "" })];
-  },
-
-  addNodeView() {
-    return ({ node, getPos, editor: nodeEditor }) => {
-      let rows: string[][] = JSON.parse(node.attrs.rows as string);
-
-      const dom = document.createElement("div");
-      dom.className = "gherkin-table-block";
-      dom.setAttribute("data-gherkin-table", "");
-      dom.contentEditable = "false";
-
-      const table = document.createElement("table");
-      table.style.borderCollapse = "collapse";
-
-      const tbody = document.createElement("tbody");
-
-      function getCells(): HTMLElement[] {
-        return Array.from(dom.querySelectorAll("[data-cell]")) as HTMLElement[];
-      }
-
-      let committedRows = node.attrs.rows as string;
-
-      function commitRows() {
-        if (typeof getPos !== "function") return;
-        const serialized = JSON.stringify(rows);
-        if (serialized === committedRows) return;
-        committedRows = serialized;
-        nodeEditor.commands.command(({ tr }) => {
-          tr.setNodeMarkup(getPos(), undefined, { rows: serialized });
-          return true;
-        });
-      }
-
-      let focusedRow = 0;
-      let focusedCol = 0;
-
-      function buildTable() {
-        tbody.innerHTML = "";
-        rows.forEach((row, ri) => {
-          const tr = document.createElement("tr");
-          if (ri === 0) tr.className = "gherkin-table-header-row";
-          row.forEach((cell, ci) => {
-            const td = document.createElement(ri === 0 ? "th" : "td");
-            td.setAttribute("data-cell", `${ri}-${ci}`);
-            td.contentEditable = "true";
-            td.textContent = cell;
-            const isHeader = ri === 0;
-            td.style.cssText =
-              `border:1px solid #cdd3d6;padding:4px 10px;min-width:60px;outline:none;font-family:'IBM Plex Mono',monospace;font-size:0.82rem;color:${isHeader ? "#002664" : "#22272b"};background:${isHeader ? "rgba(0,38,100,0.06)" : "#ffffff"};font-weight:${isHeader ? "600" : "400"};`;
-
-            td.addEventListener("focus", () => {
-              focusedRow = ri;
-              focusedCol = ci;
-            });
-
-            td.addEventListener("input", () => {
-              rows[ri][ci] = td.textContent ?? "";
-            });
-
-            td.addEventListener("blur", () => {
-              rows[ri][ci] = td.textContent ?? "";
-              commitRows();
-            });
-
-            td.addEventListener("keydown", (e) => {
-              if (e.key === "Tab") {
-                e.preventDefault();
-                e.stopPropagation();
-                const cells = getCells();
-                const idx = cells.indexOf(td);
-                const next = e.shiftKey ? cells[idx - 1] : cells[idx + 1];
-                if (next) (next as HTMLElement).focus();
-              }
-            });
-
-            tr.appendChild(td);
-          });
-          tbody.appendChild(tr);
-        });
-      }
-
-      function makeBtn(action: string, title: string, svgPath: string): HTMLButtonElement {
-        const btn = document.createElement("button");
-        btn.className = "gherkin-table-toolbar-btn";
-        btn.setAttribute("data-action", action);
-        btn.title = title;
-        btn.innerHTML = `<svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">${svgPath}</svg>`;
-        return btn;
-      }
-
-      function makeSep(): HTMLDivElement {
-        const sep = document.createElement("div");
-        sep.className = "gherkin-table-toolbar-sep";
-        return sep;
-      }
-
-      const toolbar = document.createElement("div");
-      toolbar.className = "gherkin-table-toolbar";
-
-      const insertRowAboveBtn = makeBtn(
-        "insert-row-above",
-        "Insert row above",
-        '<line x1="3" y1="8" x2="13" y2="8"/><polyline points="6,5 8,3 10,5"/>'
-      );
-      const insertRowBelowBtn = makeBtn(
-        "insert-row-below",
-        "Insert row below",
-        '<line x1="3" y1="8" x2="13" y2="8"/><polyline points="6,11 8,13 10,11"/>'
-      );
-      const deleteRowBtn = makeBtn(
-        "delete-row",
-        "Delete row",
-        '<line x1="3" y1="8" x2="13" y2="8"/><line x1="6" y1="5" x2="10" y2="5"/>'
-      );
-
-      toolbar.appendChild(insertRowAboveBtn);
-      toolbar.appendChild(insertRowBelowBtn);
-      toolbar.appendChild(deleteRowBtn);
-      toolbar.appendChild(makeSep());
-
-      const insertColBeforeBtn = makeBtn(
-        "insert-col-before",
-        "Insert column before",
-        '<line x1="8" y1="3" x2="8" y2="13"/><polyline points="5,6 3,8 5,10"/>'
-      );
-      const insertColAfterBtn = makeBtn(
-        "insert-col-after",
-        "Insert column after",
-        '<line x1="8" y1="3" x2="8" y2="13"/><polyline points="11,6 13,8 11,10"/>'
-      );
-      const deleteColBtn = makeBtn(
-        "delete-col",
-        "Delete column",
-        '<line x1="8" y1="3" x2="8" y2="13"/><line x1="11" y1="5" x2="11" y2="11"/>'
-      );
-
-      toolbar.appendChild(insertColBeforeBtn);
-      toolbar.appendChild(insertColAfterBtn);
-      toolbar.appendChild(deleteColBtn);
-      toolbar.appendChild(makeSep());
-
-      const deleteTableBtn = makeBtn(
-        "delete-table",
-        "Delete table",
-        '<polyline points="3,4 13,4"/><path d="M5,4V3h6v1"/><rect x="4" y="5" width="8" height="8" rx="1"/><line x1="7" y1="7" x2="7" y2="11"/><line x1="9" y1="7" x2="9" y2="11"/>'
-      );
-      toolbar.appendChild(deleteTableBtn);
-
-      insertRowAboveBtn.addEventListener("mousedown", (e) => {
-        e.preventDefault();
-        rows.splice(focusedRow, 0, Array(rows[0].length).fill(""));
-        buildTable();
-        commitRows();
-      });
-
-      insertRowBelowBtn.addEventListener("mousedown", (e) => {
-        e.preventDefault();
-        rows.splice(focusedRow + 1, 0, Array(rows[0].length).fill(""));
-        buildTable();
-        commitRows();
-      });
-
-      deleteRowBtn.addEventListener("mousedown", (e) => {
-        e.preventDefault();
-        if (rows.length <= 1) return;
-        rows.splice(focusedRow, 1);
-        focusedRow = Math.min(focusedRow, rows.length - 1);
-        buildTable();
-        commitRows();
-      });
-
-      insertColBeforeBtn.addEventListener("mousedown", (e) => {
-        e.preventDefault();
-        rows = rows.map((r) => { r.splice(focusedCol, 0, ""); return r; });
-        buildTable();
-        commitRows();
-      });
-
-      insertColAfterBtn.addEventListener("mousedown", (e) => {
-        e.preventDefault();
-        rows = rows.map((r) => { r.splice(focusedCol + 1, 0, ""); return r; });
-        buildTable();
-        commitRows();
-      });
-
-      deleteColBtn.addEventListener("mousedown", (e) => {
-        e.preventDefault();
-        const cols = rows[0].length;
-        if (cols <= 1) return;
-        rows = rows.map((r) => r.filter((_, i) => i !== focusedCol));
-        focusedCol = Math.min(focusedCol, cols - 2);
-        buildTable();
-        commitRows();
-      });
-
-      deleteTableBtn.addEventListener("mousedown", (e) => {
-        e.preventDefault();
-        if (typeof getPos !== "function") return;
-        const pos = getPos();
-        nodeEditor.commands.command(({ tr }) => {
-          tr.delete(pos, pos + nodeEditor.state.doc.nodeAt(pos)!.nodeSize);
-          return true;
-        });
-      });
-
-      buildTable();
-      table.appendChild(tbody);
-      dom.appendChild(toolbar);
-      dom.appendChild(table);
-
-      return {
-        dom,
-        update(updatedNode) {
-          if (updatedNode.type.name !== "gherkin_data_table") return false;
-          committedRows = updatedNode.attrs.rows as string;
-          rows = JSON.parse(committedRows);
-          buildTable();
-          return true;
-        },
-        stopEvent() {
-          return true;
-        },
-        ignoreMutation() {
-          return true;
-        },
-      };
-    };
-  },
-});
-
-// Paragraph extension extended to carry data-gherkin-type on every block
 const GherkinParagraph = Node.create({
   name: "paragraph",
   priority: 1000,
@@ -348,153 +84,6 @@ function randomColor() {
   return CURSOR_COLORS[Math.floor(Math.random() * CURSOR_COLORS.length)];
 }
 
-function getPreviousBlockType(state: import("@tiptap/pm/state").EditorState): GherkinBlockType | null {
-  const { selection, doc } = state;
-  let prev: GherkinBlockType | null = null;
-  doc.forEach((node, offset) => {
-    if (offset + node.nodeSize <= selection.from) {
-      const t = node.attrs?.["data-gherkin-type"] as GherkinBlockType | undefined;
-      if (t) prev = t;
-    }
-  });
-  return prev;
-}
-
-function getCurrentBlockType(state: import("@tiptap/pm/state").EditorState): GherkinBlockType | null {
-  const { selection, doc } = state;
-  let current: GherkinBlockType | null = null;
-  doc.forEach((node, offset) => {
-    if (offset < selection.from && offset + node.nodeSize > selection.from) {
-      const t = node.attrs?.["data-gherkin-type"] as GherkinBlockType | undefined;
-      if (t) current = t;
-    }
-  });
-  return current;
-}
-
-function getAllBlocks(state: import("@tiptap/pm/state").EditorState): DocumentBlock[] {
-  const blocks: DocumentBlock[] = [];
-  state.doc.forEach((node) => {
-    if (node.type.name === "gherkin_image") {
-      blocks.push({ type: "image", src: node.attrs.src, alt: node.attrs.alt ?? "" });
-    } else if (node.type.name === "gherkin_data_table") {
-      blocks.push({ type: "data_table", rows: JSON.parse(node.attrs.rows as string) } as DataTableBlock);
-    } else {
-      const type = node.attrs?.["data-gherkin-type"] as GherkinBlockType | undefined;
-      if (type) blocks.push({ type, text: node.textContent });
-    }
-  });
-  return blocks;
-}
-
-type InsertableType = GherkinBlockType | "image" | "data_table";
-
-const INSERTABLE_LABELS: Record<InsertableType, string> = {
-  ...GHERKIN_LABELS,
-  image: "Image",
-  data_table: "Table",
-};
-
-function getValidNextTypes(previous: GherkinBlockType | null): InsertableType[] {
-  const types: InsertableType[] = [...GHERKIN_BLOCK_TYPES.filter((t) => canFollow(previous, t))];
-  if (previous && STEP_TYPES.includes(previous)) types.push("data_table");
-  if (previous !== null) types.push("image");
-  return types;
-}
-
-function blocksToContent(blocks: DocumentBlock[]) {
-  return blocks.map((b) => {
-    if (b.type === "data_table")
-      return { type: "gherkin_data_table", attrs: { rows: JSON.stringify(b.rows) } };
-    if (b.type === "image")
-      return { type: "gherkin_image", attrs: { src: b.src, alt: b.alt } };
-    return {
-      type: "paragraph",
-      attrs: { "data-gherkin-type": b.type },
-      content: b.text ? [{ type: "text", text: b.text }] : [],
-    };
-  });
-}
-
-// Atom nodes (selectable:false) must be inserted via a single raw transaction
-// so y-prosemirror never snapshots a NodeSelection it can't restore.
-function insertAtomNode(
-  editor: import("@tiptap/react").Editor,
-  node: import("@tiptap/pm/model").Node
-) {
-  const { state, view } = editor;
-  const insertPos = state.selection.$from.after();
-  const tr = state.tr.insert(insertPos, node);
-  const afterPos = Math.min(insertPos + node.nodeSize, tr.doc.content.size);
-  tr.setSelection(TextSelection.near(tr.doc.resolve(afterPos)));
-  view.dispatch(tr);
-}
-
-function insertImageFromFile(file: File, editor: import("@tiptap/react").Editor) {
-  const reader = new FileReader();
-  reader.onload = (e) => {
-    const src = e.target?.result as string;
-    insertAtomNode(editor, editor.state.schema.nodes.gherkin_image.create({ src, alt: file.name }));
-  };
-  reader.readAsDataURL(file);
-}
-
-interface BlockPickerProps {
-  anchor: DOMRect;
-  options: InsertableType[];
-  selectedIndex: number;
-  onSelect: (type: InsertableType) => void;
-  onClose: () => void;
-}
-
-function BlockPicker({ anchor, options, selectedIndex, onSelect, onClose }: BlockPickerProps) {
-  const ref = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    const handler = (e: MouseEvent) => {
-      if (ref.current && !ref.current.contains(e.target as globalThis.Node)) onClose();
-    };
-    document.addEventListener("mousedown", handler);
-    return () => document.removeEventListener("mousedown", handler);
-  }, [onClose]);
-
-  return (
-    <div
-      ref={ref}
-      className="block-picker"
-      style={{
-        position: "fixed",
-        top: anchor.bottom + 4,
-        left: anchor.left,
-        zIndex: 1000,
-        minWidth: 160,
-      }}
-    >
-      {options.map((type, i) => (
-        <button
-          key={type}
-          onMouseDown={(e) => {
-            e.preventDefault();
-            onSelect(type);
-          }}
-          className={`block-picker-item${i === selectedIndex ? " block-picker-item--active" : ""}`}
-          style={{
-            display: "block",
-            width: "100%",
-            padding: "8px 14px",
-            textAlign: "left",
-            border: "none",
-            cursor: "pointer",
-            background: "none",
-          }}
-        >
-          {INSERTABLE_LABELS[type]}
-        </button>
-      ))}
-    </div>
-  );
-}
-
 export interface GherkinEditorHandle {
   getContent: () => string;
 }
@@ -505,133 +94,52 @@ interface GherkinEditorProps {
 }
 
 const GherkinEditor = forwardRef<GherkinEditorHandle, GherkinEditorProps>(
-function GherkinEditor({
-  sessionId,
-  wsUrl = "ws://localhost:1234",
-}, ref) {
-  // Create ydoc and provider synchronously so they're ready before useEditor runs
-  const ydocRef = useRef<Y.Doc | null>(null);
-  const providerRef = useRef<WebsocketProvider | null>(null);
-
-  if (!ydocRef.current) {
-    ydocRef.current = new Y.Doc();
-  }
-  if (!providerRef.current) {
-    providerRef.current = new WebsocketProvider(
-      wsUrl,
-      `session-${sessionId}`,
-      ydocRef.current
-    );
-  }
-
-  // Clean up provider when component unmounts
-  useEffect(() => {
-    return () => {
-      providerRef.current?.destroy();
-      providerRef.current = null;
-      ydocRef.current?.destroy();
-      ydocRef.current = null;
-    };
-  }, []);
-
+function GherkinEditor({ sessionId, wsUrl = "ws://localhost:1234" }, ref) {
+  const { ydoc, provider } = useCollabProvider(sessionId, wsUrl);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
-
-  const [pickerState, setPickerState] = useState<{
-    show: boolean;
-    anchor: DOMRect | null;
-    options: InsertableType[];
-    selectedIndex: number;
-    replace: boolean;
-  }>({ show: false, anchor: null, options: [], selectedIndex: 0, replace: false });
 
   const [importOpen, setImportOpen] = useState(false);
   const [importText, setImportText] = useState("");
 
-  const pickerStateRef = useRef(pickerState);
-  useEffect(() => { pickerStateRef.current = pickerState; }, [pickerState]);
+  // editorRef breaks the circular dependency: useGherkinKeyboard reads the
+  // editor via ref so it can be called before useEditor returns.
+  const editorRef = useRef<import("@tiptap/react").Editor | null>(null);
 
-  const closePicker = useCallback(() => {
-    setPickerState({ show: false, anchor: null, options: [], selectedIndex: 0, replace: false });
-  }, []);
+  const { handleKeyDown, pickerState, closePicker, handlePickerSelect, handleToolbarInsert, getContentText, insertImageFromFile } =
+    useGherkinKeyboard(editorRef, () => fileInputRef.current?.click());
 
   const editor = useEditor({
     immediatelyRender: false,
     extensions: [
-      StarterKit.configure({
-        history: false,
-        paragraph: false, // replaced by GherkinParagraph
-      }),
+      StarterKit.configure({ history: false, paragraph: false }),
       GherkinParagraph,
       GherkinImage,
       GherkinDataTable,
-      Collaboration.configure({ document: ydocRef.current }),
+      Collaboration.configure({ document: ydoc }),
       CollaborationCursor.configure({
-        provider: providerRef.current,
+        provider,
         user: { name: "Anonymous", color: randomColor() },
       }),
     ],
     content: "",
     editorProps: {
       attributes: { class: "gherkin-editor" },
-      handleKeyDown(_view, event) {
-        if (!editor) return false;
-
-        if (event.key === "Enter") {
-          event.preventDefault();
-          const { state } = editor;
-          const currentType = getCurrentBlockType(state);
-          const prevType = getPreviousBlockType(state);
-          const contextType = currentType ?? prevType;
-          const nextType = contextType ? NEXT_BLOCK_ON_ENTER[contextType] : null;
-
-          if (nextType && canFollow(currentType ?? prevType, nextType)) {
-            const { $from } = editor.state.selection;
-            const insertPos =
-              $from.depth > 0
-                ? $from.after()
-                : $from.pos + ($from.nodeAfter?.nodeSize ?? 0);
-            editor
-              .chain()
-              .focus()
-              .insertContentAt(insertPos, {
-                type: "paragraph",
-                attrs: { "data-gherkin-type": nextType },
-              })
-              .setTextSelection(insertPos + 1)
-              .run();
-          }
-          return true;
-        }
-
-        if (event.key === "/") {
-          const currentType = getCurrentBlockType(editor.state);
-          const prevType = getPreviousBlockType(editor.state);
-          // On a typed block: replace its type using what precedes it as context.
-          // On an untyped line: insert after using the same prev context.
-          const options = getValidNextTypes(prevType);
-          const replacing = currentType !== null;
-          if (options.length > 0) {
-            const { from } = editor.state.selection;
-            const coords = editor.view.coordsAtPos(from);
-            const rect = new DOMRect(coords.left, coords.top, 0, coords.bottom - coords.top);
-            setTimeout(() => {
-              setPickerState({ show: true, anchor: rect, options, selectedIndex: 0, replace: replacing });
-            }, 0);
-          }
-          return false;
-        }
-
-        return false;
-      },
+      handleKeyDown,
     },
   });
+
+  // Keep editorRef in sync so the keyboard hook always reads the latest editor
+  useEffect(() => { editorRef.current = editor ?? null; }, [editor]);
 
   const seededRef = useRef(false);
 
   useEffect(() => {
     if (!editor) return;
-    const provider = providerRef.current;
-    if (!provider) return;
+    const typedProvider = provider as unknown as {
+      synced?: boolean;
+      on(event: string, handler: () => void): void;
+      off(event: string, handler: () => void): void;
+    };
 
     const handleSynced = () => {
       if (seededRef.current) return;
@@ -651,125 +159,21 @@ function GherkinEditor({
       }
     };
 
-    const typedProvider = provider as unknown as {
-      synced?: boolean;
-      on(event: string, handler: () => void): void;
-      off(event: string, handler: () => void): void;
-    };
     if (typedProvider.synced) {
       handleSynced();
     } else {
       typedProvider.on("synced", handleSynced);
     }
-
     return () => { typedProvider.off("synced", handleSynced); };
-  }, [editor]);
-
-  const insertBlock = useCallback(
-    (type: InsertableType, deleteSlash = false, replace = false) => {
-      if (!editor) return;
-
-      if (type === "data_table") {
-        if (deleteSlash) {
-          const { from } = editor.state.selection;
-          editor.chain().focus().deleteRange({ from: from - 1, to: from }).run();
-        }
-        insertAtomNode(
-          editor,
-          editor.state.schema.nodes.gherkin_data_table.create({
-            rows: JSON.stringify([["", ""], ["", ""]]),
-          })
-        );
-        return;
-      }
-
-      if (type === "image") {
-        if (deleteSlash) {
-          const { from } = editor.state.selection;
-          editor.chain().focus().deleteRange({ from: from - 1, to: from }).run();
-        }
-        fileInputRef.current?.click();
-        return;
-      }
-
-      if (deleteSlash) {
-        const { from } = editor.state.selection;
-        editor.chain().focus().deleteRange({ from: from - 1, to: from }).run();
-      }
-
-      if (replace) {
-        const { $from } = editor.state.selection;
-        const nodeStart = $from.before();
-        editor.chain().focus()
-          .command(({ tr }) => {
-            tr.setNodeMarkup(nodeStart, undefined, { "data-gherkin-type": type });
-            return true;
-          })
-          .run();
-        return;
-      }
-
-      const { $from } = editor.state.selection;
-      const insertPos = $from.after();
-
-      editor.chain().focus()
-        .insertContentAt(insertPos, {
-          type: "paragraph",
-          attrs: { "data-gherkin-type": type },
-        })
-        .setTextSelection(insertPos + 1)
-        .run();
-    },
-    [editor]
-  );
-
-  useEffect(() => {
-    if (!pickerState.show) return;
-    const handler = (e: KeyboardEvent) => {
-      if (e.key === "ArrowDown") {
-        e.preventDefault();
-        e.stopPropagation();
-        setPickerState((s) => ({ ...s, selectedIndex: (s.selectedIndex + 1) % s.options.length }));
-      } else if (e.key === "ArrowUp") {
-        e.preventDefault();
-        e.stopPropagation();
-        setPickerState((s) => ({ ...s, selectedIndex: (s.selectedIndex - 1 + s.options.length) % s.options.length }));
-      } else if (e.key === "Enter") {
-        e.preventDefault();
-        e.stopPropagation();
-        const { options, selectedIndex, replace } = pickerStateRef.current;
-        const type = options[selectedIndex];
-        if (type) insertBlock(type, true, replace);
-        closePicker();
-      } else if (e.key === "Escape") {
-        e.preventDefault();
-        e.stopPropagation();
-        closePicker();
-      }
-    };
-    document.addEventListener("keydown", handler, true);
-    return () => document.removeEventListener("keydown", handler, true);
-  }, [pickerState.show, closePicker, insertBlock]);
-
-  const handlePickerSelect = useCallback(
-    (type: InsertableType) => {
-      insertBlock(type, true, pickerState.replace);
-      closePicker();
-    },
-    [insertBlock, closePicker, pickerState.replace]
-  );
+  }, [editor, provider]);
 
   useImperativeHandle(ref, () => ({
-    getContent: () => {
-      if (!editor) return "";
-      return exportToText(getAllBlocks(editor.state));
-    },
-  }), [editor]);
+    getContent: () => getContentText(),
+  }), [getContentText]);
 
   const handleExport = useCallback(() => {
     if (!editor) return;
-    const blocks = getAllBlocks(editor.state);
-    const text = exportToText(blocks);
+    const text = getContentText();
     const blob = new Blob([text], { type: "text/plain" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
@@ -777,7 +181,7 @@ function GherkinEditor({
     a.download = "gherkin.txt";
     a.click();
     URL.revokeObjectURL(url);
-  }, [editor]);
+  }, [editor, getContentText]);
 
   const handleExportMarkdown = useCallback(() => {
     if (!editor) return;
@@ -832,10 +236,10 @@ function GherkinEditor({
   const handleFileInputChange = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
       const file = e.target.files?.[0];
-      if (file && editor) insertImageFromFile(file, editor);
+      if (file) insertImageFromFile(file);
       e.target.value = "";
     },
-    [editor]
+    [insertImageFromFile]
   );
 
   return (
@@ -845,7 +249,7 @@ function GherkinEditor({
         const file = e.dataTransfer?.files?.[0];
         if (file?.type.startsWith("image/") && editor) {
           e.preventDefault();
-          insertImageFromFile(file, editor);
+          insertImageFromFile(file);
         }
       }}
       onDragOver={(e) => e.preventDefault()}
@@ -859,7 +263,7 @@ function GherkinEditor({
               className="gherkin-toolbar-btn"
               onMouseDown={(e) => {
                 e.preventDefault();
-                insertBlock(type);
+                handleToolbarInsert(type);
               }}
             >
               {GHERKIN_LABELS[type as GherkinBlockType]}
@@ -870,7 +274,7 @@ function GherkinEditor({
             className="gherkin-toolbar-btn"
             onMouseDown={(e) => {
               e.preventDefault();
-              insertBlock("data_table");
+              handleToolbarInsert("data_table");
             }}
           >
             Table
