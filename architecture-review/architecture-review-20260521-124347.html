@@ -1,0 +1,426 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>Architecture review — Collaborative Gherkin</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script type="module">
+    import mermaid from "https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs";
+    mermaid.initialize({ startOnLoad: true, theme: "neutral", securityLevel: "loose" });
+  </script>
+  <style>
+    .seam { stroke-dasharray: 4 4; }
+    .leak { stroke: #dc2626; }
+    .deep { background: linear-gradient(135deg, #0f172a, #1e293b); }
+    .module-box {
+      border: 2px solid #334155;
+      border-radius: 6px;
+      padding: 8px 12px;
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      font-weight: 600;
+      background: #f8fafc;
+    }
+    .module-box-deep {
+      border: 3px solid #0f172a;
+      border-radius: 6px;
+      padding: 8px 12px;
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      font-weight: 700;
+      background: linear-gradient(135deg, #0f172a, #1e293b);
+      color: #e2e8f0;
+    }
+    .module-box-leak {
+      border: 2px solid #dc2626;
+      border-radius: 6px;
+      padding: 8px 12px;
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      font-weight: 600;
+      background: #fef2f2;
+      color: #991b1b;
+    }
+    .module-box-faded {
+      border: 1.5px dashed #94a3b8;
+      border-radius: 6px;
+      padding: 6px 10px;
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      color: #94a3b8;
+      background: #f8fafc;
+    }
+    .arrow {
+      display: inline-block;
+      font-size: 14px;
+      color: #475569;
+    }
+    .arrow-red {
+      display: inline-block;
+      font-size: 14px;
+      color: #dc2626;
+    }
+  </style>
+</head>
+<body class="bg-stone-50 text-slate-900 font-sans">
+  <main class="max-w-5xl mx-auto px-6 py-12 space-y-12">
+
+    <!-- HEADER -->
+    <header class="border-b border-slate-200 pb-6">
+      <h1 class="text-3xl font-serif font-bold text-slate-900 mb-1">Architecture review</h1>
+      <p class="text-slate-500 text-sm mb-4">Collaborative Gherkin &nbsp;·&nbsp; 2026-05-21</p>
+      <!-- Legend -->
+      <div class="flex flex-wrap gap-4 text-xs font-mono text-slate-600">
+        <span class="flex items-center gap-1.5">
+          <span class="inline-block w-5 h-4 border-2 border-slate-500 rounded bg-slate-100"></span> module
+        </span>
+        <span class="flex items-center gap-1.5">
+          <span class="inline-block w-5 h-px border-t-2 border-dashed border-slate-400"></span> seam
+        </span>
+        <span class="flex items-center gap-1.5">
+          <span class="inline-block w-5 h-px border-t-2 border-red-500"></span> leakage
+        </span>
+        <span class="flex items-center gap-1.5">
+          <span class="inline-block w-5 h-4 border-2 border-slate-900 rounded" style="background:linear-gradient(135deg,#0f172a,#1e293b)"></span> deep module
+        </span>
+      </div>
+    </header>
+
+    <!-- CANDIDATES -->
+    <section id="candidates" class="space-y-10">
+
+      <!-- ═══════════════════════════════════════════════════════
+           CANDIDATE 1: LLM Review route
+           ═══════════════════════════════════════════════════════ -->
+      <article id="c1" class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+        <div class="px-8 pt-7 pb-6">
+          <div class="flex items-start justify-between mb-4">
+            <h2 class="text-xl font-serif font-bold text-slate-900">Deepen the LLM review module</h2>
+            <div class="flex gap-2 shrink-0 ml-4">
+              <span class="px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-800">Strong</span>
+              <span class="px-2.5 py-1 rounded-full text-xs font-semibold bg-slate-100 text-slate-700">ports &amp; adapters</span>
+            </div>
+          </div>
+
+          <div class="font-mono text-xs text-slate-500 mb-5 space-y-0.5">
+            <div>src/app/api/llm-review/route.ts</div>
+            <div>src/app/api/llm-settings/route.ts</div>
+            <div>src/app/sessions/[id]/SessionView.tsx</div>
+          </div>
+
+          <!-- Before/After diagrams -->
+          <div class="grid grid-cols-2 gap-6 mb-6">
+            <!-- BEFORE -->
+            <div>
+              <p class="text-xs uppercase tracking-wider text-slate-400 font-semibold mb-3">Before</p>
+              <div class="rounded-lg border border-slate-200 bg-slate-50 p-4 h-56 flex flex-col justify-between">
+                <div class="rounded-lg border border-slate-200 bg-white p-2">
+                  <pre class="mermaid text-xs" style="font-size:11px">
+flowchart TD
+  A[SessionView] -->|fetch /api/llm-review| B[llm-review/route.ts]
+  A -->|fetch /api/llm-settings| C[llm-settings/route.ts]
+  B --> D[(DB: AppSetting)]
+  B -->|OpenRouter HTTP| E[OpenRouter API]
+  C --> D
+  B --> F[Zod validate]
+  B --> G[Parse 429 JSON]
+  classDef leak stroke:#dc2626,stroke-width:2px,fill:#fef2f2
+  classDef route stroke:#334155,fill:#f8fafc
+  class B,C route
+  class E,G leak
+                  </pre>
+                </div>
+              </div>
+            </div>
+            <!-- AFTER -->
+            <div>
+              <p class="text-xs uppercase tracking-wider text-slate-400 font-semibold mb-3">After</p>
+              <div class="rounded-lg border border-slate-200 bg-slate-50 p-4 h-56 flex flex-col justify-between">
+                <div class="rounded-lg border border-slate-200 bg-white p-2">
+                  <pre class="mermaid text-xs" style="font-size:11px">
+flowchart TD
+  A[SessionView] -->|reviewGherkin call| L[LlmReview module]
+  B[llm-review/route.ts] -->|thin adapter| L
+  C[llm-settings/route.ts] -->|thin adapter| L
+  L -.seam.- E[OpenRouter API]
+  L -.seam.- D[(DB: AppSetting)]
+  classDef deep stroke:#0f172a,stroke-width:3px,fill:#1e293b,color:#e2e8f0
+  classDef thin stroke:#94a3b8,stroke-dasharray:4
+  class L deep
+  class B,C thin
+                  </pre>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <p class="text-sm text-slate-700 mb-2"><strong>Problem.</strong> The LLM review module is shallow — route.ts mixes validation, DB lookup, HTTP client, rate-limit parsing, and response formatting. The interface is nearly as complex as the implementation.</p>
+          <p class="text-sm text-slate-700 mb-4"><strong>Solution.</strong> Extract a single <code class="font-mono text-xs bg-slate-100 px-1 py-0.5 rounded">LlmReview</code> module behind a seam; route.ts and SessionView become thin adapters that hand off to it.</p>
+          <ul class="text-sm text-slate-700 space-y-1 list-none">
+            <li>→ <strong>locality:</strong> rate-limit logic, prompt loading, and OpenRouter coupling concentrate in one module</li>
+            <li>→ <strong>leverage:</strong> one interface tested against an in-memory adapter; route.ts needs no tests of its own</li>
+            <li>→ <strong>two adapters justify the seam:</strong> HTTP adapter in prod, in-memory adapter in tests</li>
+          </ul>
+        </div>
+      </article>
+
+      <!-- ═══════════════════════════════════════════════════════
+           CANDIDATE 2: GherkinEditor god component
+           ═══════════════════════════════════════════════════════ -->
+      <article id="c2" class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+        <div class="px-8 pt-7 pb-6">
+          <div class="flex items-start justify-between mb-4">
+            <h2 class="text-xl font-serif font-bold text-slate-900">Decompose the editor shell</h2>
+            <div class="flex gap-2 shrink-0 ml-4">
+              <span class="px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-800">Strong</span>
+              <span class="px-2.5 py-1 rounded-full text-xs font-semibold bg-slate-100 text-slate-700">in-process</span>
+            </div>
+          </div>
+
+          <div class="font-mono text-xs text-slate-500 mb-5 space-y-0.5">
+            <div>src/components/GherkinEditor.tsx (952 lines)</div>
+          </div>
+
+          <!-- Before/After: cross-section / mass diagram -->
+          <div class="grid grid-cols-2 gap-6 mb-6">
+            <!-- BEFORE: stacked band diagram -->
+            <div>
+              <p class="text-xs uppercase tracking-wider text-slate-400 font-semibold mb-3">Before — one shallow shell</p>
+              <div class="rounded-lg border border-slate-200 bg-slate-50 p-4 h-64 flex flex-col justify-start gap-1">
+                <div class="module-box-leak text-center" style="height:36px;line-height:28px;font-size:9.5px">Tiptap + Y.js + WebSocket setup (inline)</div>
+                <div class="module-box-leak text-center" style="height:36px;line-height:28px;font-size:9.5px">Data table node view (inline, 224 lines)</div>
+                <div class="module-box-leak text-center" style="height:36px;line-height:28px;font-size:9.5px">Keyboard handler: Enter + Slash (inline, 50 lines)</div>
+                <div class="module-box-leak text-center" style="height:36px;line-height:28px;font-size:9.5px">Block picker modal (inline)</div>
+                <div class="module-box-leak text-center" style="height:36px;line-height:28px;font-size:9.5px">Import modal + file upload (inline)</div>
+                <div class="module-box text-center" style="height:36px;line-height:28px;font-size:9.5px;color:#475569">Editor JSX render (~80 lines)</div>
+                <p class="text-xs text-slate-400 mt-1 text-center">All 952 lines · one interface · no internal seams</p>
+              </div>
+            </div>
+            <!-- AFTER: deep outer shell + extracted modules -->
+            <div>
+              <p class="text-xs uppercase tracking-wider text-slate-400 font-semibold mb-3">After — deep shell, extracted modules</p>
+              <div class="rounded-lg border border-slate-200 bg-slate-50 p-4 h-64 flex flex-col justify-start gap-1.5">
+                <div class="module-box-deep text-center" style="height:52px;line-height:40px;font-size:10px">GherkinEditor (~150 lines)<br><span style="font-size:9px;opacity:0.6">composes the modules below</span></div>
+                <div class="grid grid-cols-2 gap-1 flex-1">
+                  <div class="module-box text-center" style="font-size:9px;padding:6px 4px">useGherkinKeyboard<br><span style="color:#64748b;font-size:8.5px">Enter / Slash handlers</span></div>
+                  <div class="module-box text-center" style="font-size:9px;padding:6px 4px">DataTableNodeView<br><span style="color:#64748b;font-size:8.5px">own file, own tests</span></div>
+                  <div class="module-box text-center" style="font-size:9px;padding:6px 4px">BlockPicker<br><span style="color:#64748b;font-size:8.5px">pure UI module</span></div>
+                  <div class="module-box text-center" style="font-size:9px;padding:6px 4px">useCollabProvider<br><span style="color:#64748b;font-size:8.5px">Y.js + WS lifecycle</span></div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <p class="text-sm text-slate-700 mb-2"><strong>Problem.</strong> GherkinEditor.tsx is a 952-line shallow shell — its interface (one React component) gives callers almost no leverage over the internals, yet its implementation is nearly impossible to test because every concern is a closure.</p>
+          <p class="text-sm text-slate-700 mb-4"><strong>Solution.</strong> Extract the keyboard handler into <code class="font-mono text-xs bg-slate-100 px-1 py-0.5 rounded">useGherkinKeyboard</code>, the data table node view into its own file, the block picker into a standalone module, and the Y.js provider lifecycle into <code class="font-mono text-xs bg-slate-100 px-1 py-0.5 rounded">useCollabProvider</code>; the editor shell composes them.</p>
+          <ul class="text-sm text-slate-700 space-y-1 list-none">
+            <li>→ <strong>locality:</strong> keyboard logic, table editing, and collaboration setup each live in one place</li>
+            <li>→ <strong>leverage:</strong> <code class="font-mono text-xs bg-slate-100 px-1 py-0.5 rounded">useGherkinKeyboard</code> tested against a minimal editor fake without rendering 952 lines</li>
+            <li>→ <strong>interface shrinks:</strong> shell drops from ~950 lines to ~150; each extracted module has a small, stable interface</li>
+          </ul>
+        </div>
+      </article>
+
+      <!-- ═══════════════════════════════════════════════════════
+           CANDIDATE 3: Session API routes
+           ═══════════════════════════════════════════════════════ -->
+      <article id="c3" class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+        <div class="px-8 pt-7 pb-6">
+          <div class="flex items-start justify-between mb-4">
+            <h2 class="text-xl font-serif font-bold text-slate-900">Deepen the session module</h2>
+            <div class="flex gap-2 shrink-0 ml-4">
+              <span class="px-2.5 py-1 rounded-full text-xs font-semibold bg-amber-100 text-amber-800">Worth exploring</span>
+              <span class="px-2.5 py-1 rounded-full text-xs font-semibold bg-slate-100 text-slate-700">local-substitutable</span>
+            </div>
+          </div>
+
+          <div class="font-mono text-xs text-slate-500 mb-5 space-y-0.5">
+            <div>src/app/api/sessions/route.ts</div>
+            <div>src/app/api/sessions/[id]/route.ts</div>
+            <div>src/app/HomeClient.tsx</div>
+          </div>
+
+          <!-- Before/After: call-graph collapse -->
+          <div class="grid grid-cols-2 gap-6 mb-6">
+            <div>
+              <p class="text-xs uppercase tracking-wider text-slate-400 font-semibold mb-3">Before — DB leaks into every handler</p>
+              <div class="rounded-lg border border-slate-200 bg-white p-4 h-52">
+                <pre class="mermaid" style="font-size:11px">
+flowchart LR
+  A[GET /sessions] --> D[(Prisma DB)]
+  B[POST /sessions] --> D
+  B --> Z[Zod schema]
+  C[DELETE /sessions/id] --> D
+  E[HomeClient] -->|fetch| A
+  classDef leak stroke:#dc2626,stroke-width:2px,fill:#fef2f2
+  class D leak
+                </pre>
+              </div>
+            </div>
+            <div>
+              <p class="text-xs uppercase tracking-wider text-slate-400 font-semibold mb-3">After — handlers delegate to session module</p>
+              <div class="rounded-lg border border-slate-200 bg-white p-4 h-52">
+                <pre class="mermaid" style="font-size:11px">
+flowchart LR
+  A[GET /sessions] -->|thin| S[Session module]
+  B[POST /sessions] -->|thin| S
+  C[DELETE /sessions/id] -->|thin| S
+  E[HomeClient] -->|fetch| A
+  S -.seam.- D[(Prisma DB)]
+  classDef deep stroke:#0f172a,stroke-width:3px,fill:#1e293b,color:#e2e8f0
+  classDef thin stroke:#94a3b8,stroke-dasharray:4
+  class S deep
+  class A,B,C thin
+                </pre>
+              </div>
+            </div>
+          </div>
+
+          <p class="text-sm text-slate-700 mb-2"><strong>Problem.</strong> Each route handler directly constructs Prisma queries — DB coupling leaks across all three callers, and the session creation logic (Zod schema + default scaffold content) cannot be reused without going through HTTP.</p>
+          <p class="text-sm text-slate-700 mb-4"><strong>Solution.</strong> Extract a <code class="font-mono text-xs bg-slate-100 px-1 py-0.5 rounded">Session</code> module that owns list, create, get, and delete; route handlers become thin adapters that parse HTTP and delegate.</p>
+          <ul class="text-sm text-slate-700 space-y-1 list-none">
+            <li>→ <strong>locality:</strong> session validation and scaffold defaults live in one module</li>
+            <li>→ <strong>leverage:</strong> an in-memory adapter at the DB seam makes the existing <code class="font-mono text-xs bg-slate-100 px-1 py-0.5 rounded">sessions-api.test.ts</code> simpler and faster</li>
+            <li>→ <strong>deletion test:</strong> deleting a route today moves its DB code to callers — the module earns its keep</li>
+          </ul>
+        </div>
+      </article>
+
+      <!-- ═══════════════════════════════════════════════════════
+           CANDIDATE 4: Constant duplication / seed coupling
+           ═══════════════════════════════════════════════════════ -->
+      <article id="c4" class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+        <div class="px-8 pt-7 pb-6">
+          <div class="flex items-start justify-between mb-4">
+            <h2 class="text-xl font-serif font-bold text-slate-900">Collapse the LLM-defaults module</h2>
+            <div class="flex gap-2 shrink-0 ml-4">
+              <span class="px-2.5 py-1 rounded-full text-xs font-semibold bg-amber-100 text-amber-800">Worth exploring</span>
+              <span class="px-2.5 py-1 rounded-full text-xs font-semibold bg-slate-100 text-slate-700">in-process</span>
+            </div>
+          </div>
+
+          <div class="font-mono text-xs text-slate-500 mb-5 space-y-0.5">
+            <div>src/lib/llm-constants.ts</div>
+            <div>prisma/seed.ts</div>
+            <div>src/app/api/llm-settings/route.ts</div>
+          </div>
+
+          <!-- Before/After: mass diagram (interface surface vs implementation mass) -->
+          <div class="grid grid-cols-2 gap-6 mb-6">
+            <div>
+              <p class="text-xs uppercase tracking-wider text-slate-400 font-semibold mb-3">Before — duplicated constants, two sources of truth</p>
+              <div class="rounded-lg border border-slate-200 bg-slate-50 p-4 h-52 flex flex-col gap-3 justify-center">
+                <div class="flex gap-3 items-center justify-center">
+                  <div class="module-box text-center" style="font-size:9.5px;padding:8px 10px">llm-constants.ts<br><span style="color:#64748b;font-size:8.5px">DEFAULT_PROMPT<br>DEFAULT_MODEL</span></div>
+                  <div class="text-red-400 text-lg font-bold">≠</div>
+                  <div class="module-box-leak text-center" style="font-size:9.5px;padding:8px 10px">seed.ts<br><span style="font-size:8.5px">DEFAULT_PROMPT (copy)<br>DEFAULT_MODEL (copy)</span></div>
+                </div>
+                <div class="flex justify-center">
+                  <div class="module-box-leak text-center" style="font-size:9.5px;padding:8px 10px">llm-settings/route.ts<br><span style="font-size:8.5px">inline default fallbacks</span></div>
+                </div>
+                <p class="text-xs text-red-400 text-center font-medium">Three places hold the same fact</p>
+              </div>
+            </div>
+            <div>
+              <p class="text-xs uppercase tracking-wider text-slate-400 font-semibold mb-3">After — single authoritative module</p>
+              <div class="rounded-lg border border-slate-200 bg-slate-50 p-4 h-52 flex flex-col gap-3 justify-center items-center">
+                <div class="module-box-deep text-center" style="font-size:9.5px;padding:12px 16px;width:160px">llm-constants.ts<br><span style="font-size:8.5px;opacity:0.7">DEFAULT_PROMPT<br>DEFAULT_MODEL<br>AVAILABLE_MODELS</span></div>
+                <div class="flex gap-6 mt-2">
+                  <div class="module-box-faded text-center" style="font-size:9px;padding:6px 10px">seed.ts<br><span style="font-size:8px">imports ↑</span></div>
+                  <div class="module-box-faded text-center" style="font-size:9px;padding:6px 10px">route.ts<br><span style="font-size:8px">imports ↑</span></div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <p class="text-sm text-slate-700 mb-2"><strong>Problem.</strong> The LLM defaults module is shallow — <code class="font-mono text-xs bg-slate-100 px-1 py-0.5 rounded">llm-constants.ts</code>, <code class="font-mono text-xs bg-slate-100 px-1 py-0.5 rounded">seed.ts</code>, and <code class="font-mono text-xs bg-slate-100 px-1 py-0.5 rounded">llm-settings/route.ts</code> each hold copies of the same default prompt and model; changing a default requires three edits.</p>
+          <p class="text-sm text-slate-700 mb-4"><strong>Solution.</strong> <code class="font-mono text-xs bg-slate-100 px-1 py-0.5 rounded">llm-constants.ts</code> becomes the single authoritative module; <code class="font-mono text-xs bg-slate-100 px-1 py-0.5 rounded">seed.ts</code> and the settings route import from it.</p>
+          <ul class="text-sm text-slate-700 space-y-1 list-none">
+            <li>→ <strong>locality:</strong> changing the default prompt is a one-file edit</li>
+            <li>→ <strong>deletion test:</strong> deleting <code class="font-mono text-xs bg-slate-100 px-1 py-0.5 rounded">llm-constants.ts</code> today forces duplication into callers — it earns its keep by absorbing that</li>
+          </ul>
+        </div>
+      </article>
+
+      <!-- ═══════════════════════════════════════════════════════
+           CANDIDATE 5: SessionView modal state
+           ═══════════════════════════════════════════════════════ -->
+      <article id="c5" class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+        <div class="px-8 pt-7 pb-6">
+          <div class="flex items-start justify-between mb-4">
+            <h2 class="text-xl font-serif font-bold text-slate-900">Extract session-view modal state</h2>
+            <div class="flex gap-2 shrink-0 ml-4">
+              <span class="px-2.5 py-1 rounded-full text-xs font-semibold bg-slate-100 text-slate-700">Speculative</span>
+              <span class="px-2.5 py-1 rounded-full text-xs font-semibold bg-slate-100 text-slate-700">in-process</span>
+            </div>
+          </div>
+
+          <div class="font-mono text-xs text-slate-500 mb-5 space-y-0.5">
+            <div>src/app/sessions/[id]/SessionView.tsx</div>
+          </div>
+
+          <!-- Before/After: hand-built state machine diagram -->
+          <div class="grid grid-cols-2 gap-6 mb-6">
+            <div>
+              <p class="text-xs uppercase tracking-wider text-slate-400 font-semibold mb-3">Before — duplicated escape handlers, tangled state</p>
+              <div class="rounded-lg border border-slate-200 bg-slate-50 p-4 h-52">
+                <div class="flex flex-col gap-2 h-full justify-center">
+                  <div class="module-box-leak text-center" style="font-size:9.5px">Escape listener #1 (lines 42–47)</div>
+                  <div class="module-box-leak text-center" style="font-size:9.5px">Escape listener #2 (lines 50–55)</div>
+                  <div class="module-box text-center" style="font-size:9.5px">reviewOpen state</div>
+                  <div class="module-box text-center" style="font-size:9.5px">promptEditOpen state</div>
+                  <div class="module-box text-center" style="font-size:9.5px">selectedModel / prompt state</div>
+                  <div class="module-box text-center" style="font-size:9.5px">llmSettings fetch</div>
+                  <p class="text-xs text-slate-400 text-center mt-1">6 concerns, 205 lines</p>
+                </div>
+              </div>
+            </div>
+            <div>
+              <p class="text-xs uppercase tracking-wider text-slate-400 font-semibold mb-3">After — one hook, one escape handler</p>
+              <div class="rounded-lg border border-slate-200 bg-slate-50 p-4 h-52">
+                <div class="flex flex-col gap-2 h-full justify-center items-center">
+                  <div class="module-box-deep text-center" style="font-size:9.5px;padding:10px 14px;width:180px">useLlmPanel()<br><span style="font-size:8.5px;opacity:0.7">open/close · model · prompt · fetch · escape</span></div>
+                  <div class="mt-2 flex gap-2">
+                    <div class="module-box-faded text-center" style="font-size:8.5px;padding:5px 8px">ReviewModal</div>
+                    <div class="module-box-faded text-center" style="font-size:8.5px;padding:5px 8px">PromptModal</div>
+                  </div>
+                  <p class="text-xs text-slate-400 text-center mt-1">SessionView: ~60 lines of JSX</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <p class="text-sm text-slate-700 mb-2"><strong>Problem.</strong> SessionView.tsx mixes LLM settings fetching, two modal open/close state machines, and two duplicated Escape key listeners — its interface gives callers no leverage over these concerns individually.</p>
+          <p class="text-sm text-slate-700 mb-4"><strong>Solution.</strong> Extract <code class="font-mono text-xs bg-slate-100 px-1 py-0.5 rounded">useLlmPanel</code> hook to own all LLM panel state, settings fetch, and a single unified Escape handler; SessionView becomes JSX only.</p>
+          <ul class="text-sm text-slate-700 space-y-1 list-none">
+            <li>→ <strong>locality:</strong> LLM panel logic in one place; Escape key duplication gone</li>
+            <li>→ <strong>leverage:</strong> <code class="font-mono text-xs bg-slate-100 px-1 py-0.5 rounded">useLlmPanel</code> testable with <code class="font-mono text-xs bg-slate-100 px-1 py-0.5 rounded">renderHook</code> and a fetch mock, no DOM needed</li>
+            <li>→ speculative because SessionView is small enough that extraction may not justify a new module yet</li>
+          </ul>
+        </div>
+      </article>
+
+    </section>
+
+    <!-- TOP RECOMMENDATION -->
+    <section id="top-recommendation" class="bg-slate-900 text-slate-100 rounded-xl p-8">
+      <p class="text-xs uppercase tracking-wider text-slate-400 font-semibold mb-2">Top recommendation</p>
+      <h2 class="text-2xl font-serif font-bold mb-3">
+        <a href="#c1" class="hover:underline">Deepen the LLM review module</a>
+      </h2>
+      <p class="text-slate-300 text-sm leading-relaxed">
+        It has the highest ratio of hidden complexity to interface — rate-limit parsing, DB-backed prompt loading,
+        and OpenRouter coupling all live inside one route handler with no seam.
+        A single <code class="font-mono text-xs bg-slate-800 px-1 py-0.5 rounded">LlmReview</code> module behind a clean seam would collapse three scattered concerns into one testable place,
+        and the two natural adapters (HTTP in prod, in-memory in tests) justify the seam immediately.
+        Tackle this before the editor decomposition — it's smaller, the seam is well-defined, and the win in locality is immediate.
+      </p>
+    </section>
+
+  </main>
+</body>
+</html>
