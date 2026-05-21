@@ -1,11 +1,7 @@
 import { PrismaClient } from "@prisma/client";
+import { DEFAULT_PROMPT, DEFAULT_MODEL } from "../src/lib/llm-constants";
 
 const db = new PrismaClient();
-
-const DEFAULT_PROMPT =
-  "You are an expert in Behaviour-Driven Development. Review the following Gherkin scenarios and suggest concrete improvements. Focus on: clarity of steps, missing edge cases, ambiguous language, and structural issues. Format your response in Markdown.";
-
-const DEFAULT_MODEL = "meta-llama/llama-3.2-3b-instruct:free";
 
 async function main() {
   await db.user.upsert({
