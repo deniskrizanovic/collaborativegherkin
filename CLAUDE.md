@@ -64,6 +64,10 @@ logs/             # Written at runtime — never commit
 - Wrap all database calls, network calls, and file system operations in
   try/catch and log errors before re-throwing.
 
+## Git commits
+Do not create git commits unless the user explicitly asks. Implement, verify,
+and report — then wait for a commit instruction.
+
 ## Anti-patterns to avoid
 - Do not use `console.log` in server-side code — use the Pino logger.
 - Do not allow Gherkin block sequences that fail `canFollow()` in gherkin.ts.

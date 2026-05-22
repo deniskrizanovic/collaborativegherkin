@@ -21,6 +21,7 @@ test.describe("LLM review — session page controls", () => {
   test("model dropdown lists the expected free models", async ({ page }) => {
     await openSession(page);
     const options = page.locator(".session-model-select option");
+    await options.first().waitFor({ state: "attached" });
     const texts = await options.allTextContents();
     expect(texts).toContain("meta-llama/llama-3.2-3b-instruct:free");
     expect(texts).toContain("deepseek/deepseek-v4-flash:free");
