@@ -7,7 +7,7 @@ import * as os from "os";
 // spec §3.6
 
 test.describe("export", () => {
-  test("Export button downloads a plain-text file with correct content", async ({ page, context }) => {
+  test("Export button downloads a plain-text file with correct content", async ({ page }) => {
     await openSession(page);
 
     // Type into each scaffold block directly

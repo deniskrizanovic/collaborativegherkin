@@ -1,5 +1,5 @@
 import { test, expect } from "@playwright/test";
-import { openSession, clickEditor } from "./helpers";
+import { openSession } from "./helpers";
 
 // spec §3.4
 

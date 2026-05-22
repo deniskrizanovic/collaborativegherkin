@@ -15,7 +15,7 @@ interface Props {
 
 export default function HomeClient({ sessions: initialSessions }: Props) {
   const router = useRouter();
-  const [sessions, setSessions] = useState(initialSessions);
+  const sessions = initialSessions;
   const [title, setTitle] = useState("");
   const [creating, setCreating] = useState(false);
   const [error, setError] = useState("");

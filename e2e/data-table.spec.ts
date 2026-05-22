@@ -1,5 +1,5 @@
 import { test, expect } from "@playwright/test";
-import { openSession, clickEditor, pressEnterAndWait } from "./helpers";
+import { openSession, pressEnterAndWait } from "./helpers";
 import * as path from "path";
 import * as fs from "fs";
 import * as os from "os";
@@ -99,7 +99,7 @@ test.describe("data table insertion", () => {
 });
 
 test.describe("data table export", () => {
-  test("Export TXT includes pipe-delimited rows for a data table", async ({ page, context }) => {
+  test("Export TXT includes pipe-delimited rows for a data table", async ({ page }) => {
     await openSession(page);
 
     await page.locator('[data-gherkin-type="feature"]').first().click();
