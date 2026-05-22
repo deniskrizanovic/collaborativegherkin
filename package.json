@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "next dev",
     "dev:ws": "node y-websocket-server.mjs",
+    "dev:all": "run-p dev dev:ws",
     "build": "next build",
     "start": "next start",
     "lint": "eslint .",
