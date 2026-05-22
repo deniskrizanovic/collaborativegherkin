@@ -1,5 +1,5 @@
 import { test, expect } from "@playwright/test";
-import { openSession, clickEditor } from "./helpers";
+import { openSession, clickEditor, pressEnterAndWait } from "./helpers";
 import * as path from "path";
 import * as fs from "fs";
 import * as os from "os";
@@ -46,6 +46,55 @@ test.describe("data table insertion", () => {
     await expect(page.locator(".gherkin-table-toolbar")).toBeVisible();
     await expect(page.locator('.gherkin-table-toolbar-btn[data-action="insert-row-below"]')).toBeVisible();
     await expect(page.locator('.gherkin-table-toolbar-btn[data-action="insert-col-after"]')).toBeVisible();
+  });
+
+  test("first cell is interactive immediately after inserting a table", async ({ page }) => {
+    await openSession(page);
+    await page.locator('[data-gherkin-type="given"]').first().click();
+    await page.locator(".gherkin-toolbar-btn", { hasText: "Table" }).click();
+    const firstCell = page.locator("[data-gherkin-table] [data-cell='0-0']");
+    await firstCell.click();
+    await expect(firstCell).toBeFocused();
+    await firstCell.fill("header");
+    await expect(firstCell).toHaveText("header");
+  });
+
+  test("Tab moves focus to the next cell", async ({ page }) => {
+    await openSession(page);
+    await page.locator('[data-gherkin-type="given"]').first().click();
+    await page.locator(".gherkin-toolbar-btn", { hasText: "Table" }).click();
+    const firstCell = page.locator("[data-gherkin-table] [data-cell='0-0']");
+    await firstCell.click();
+    await page.keyboard.press("Tab");
+    const secondCell = page.locator("[data-gherkin-table] [data-cell='0-1']");
+    await expect(secondCell).toBeFocused();
+  });
+
+  test("Shift+Tab moves focus to the previous cell", async ({ page }) => {
+    await openSession(page);
+    await page.locator('[data-gherkin-type="given"]').first().click();
+    await page.locator(".gherkin-toolbar-btn", { hasText: "Table" }).click();
+    const secondCell = page.locator("[data-gherkin-table] [data-cell='0-1']");
+    await secondCell.click();
+    await page.keyboard.press("Shift+Tab");
+    const firstCell = page.locator("[data-gherkin-table] [data-cell='0-0']");
+    await expect(firstCell).toBeFocused();
+  });
+
+  test("Table option appears in slash command picker when on a step block", async ({ page }) => {
+    await openSession(page);
+    // Use pressEnterAndWait to reliably navigate to a step block and beyond.
+    // After given, pressing Enter creates a when block (NEXT_BLOCK_ON_ENTER["given"]="when").
+    // On that new when block: prevType=given (a STEP_TYPE) → Table appears in picker.
+    await pressEnterAndWait(page, "scenario");
+    await pressEnterAndWait(page, "given");
+    await pressEnterAndWait(page, "when");
+    // cursor is on new 'when' block; prevType=given → getValidNextTypes("given") includes "data_table"
+    await page.keyboard.type("/");
+    const picker = page.locator('[style*="position: fixed"]');
+    await expect(picker).toBeVisible();
+    await expect(picker.locator("button", { hasText: "Table" })).toBeVisible();
+    await page.keyboard.press("Escape");
   });
 });
 

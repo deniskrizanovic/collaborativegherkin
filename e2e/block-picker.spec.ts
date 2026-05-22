@@ -116,4 +116,39 @@ test.describe("block picker", () => {
     await expect(picker).not.toBeVisible();
     await expect(page.locator(".gherkin-editor [data-gherkin-type]")).toHaveCount(blocksBefore);
   });
+
+  test("Image is always the last option in the picker, regardless of active block type", async ({ page }) => {
+    await openSession(page);
+    // Use Enter from a typed block to create a new untyped line; the slash picker
+    // will use prevType of that new line. This is the reliable cursor-placement pattern.
+
+    // Context 1: after Feature — openSession leaves cursor on feature; press End+Enter
+    await page.locator('[data-gherkin-type="feature"]').click();
+    await page.keyboard.press("End");
+    await page.keyboard.press("Enter");
+    await page.locator('[data-gherkin-type="scenario"]').last().click();
+    await page.keyboard.press("End");
+    await page.keyboard.press("Enter");
+    // new untyped line after scenario: prevType=scenario
+    await page.keyboard.type("/");
+    const picker = page.locator('[style*="position: fixed"]');
+    await expect(picker).toBeVisible();
+    const buttons = picker.locator("button");
+    const count = await buttons.count();
+    const lastText = await buttons.nth(count - 1).textContent();
+    expect(lastText?.trim()).toBe("Image");
+    await page.keyboard.press("Escape");
+
+    // Context 2: after Then — press Enter from the seeded then block
+    await page.locator('[data-gherkin-type="then"]').last().click();
+    await page.keyboard.press("End");
+    await page.keyboard.press("Enter");
+    // new untyped line after then: prevType=then
+    await page.keyboard.type("/");
+    await expect(picker).toBeVisible();
+    const count2 = await picker.locator("button").count();
+    const lastText2 = await picker.locator("button").nth(count2 - 1).textContent();
+    expect(lastText2?.trim()).toBe("Image");
+    await page.keyboard.press("Escape");
+  });
 });

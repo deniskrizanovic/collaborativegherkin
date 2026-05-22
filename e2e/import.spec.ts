@@ -104,4 +104,32 @@ test.describe("Gherkin text import", () => {
     await expect(page.locator('[data-gherkin-type="given"]')).toHaveCount(2);
     await expect(page.locator("[data-gherkin-table]")).toHaveCount(1);
   });
+
+  test("plain text with no Gherkin keywords produces no new blocks", async ({ page }) => {
+    await openSession(page);
+    const blocksBefore = await page.locator(".gherkin-editor [data-gherkin-type]").count();
+    await page.locator(".gherkin-import-btn").click();
+    await page.locator(".gherkin-import-textarea").fill("This is just plain text with no keywords at all");
+    await page.locator(".gherkin-import-confirm").click();
+    await expect(page.locator(".gherkin-import-modal")).not.toBeVisible();
+    await expect(page.locator(".gherkin-editor [data-gherkin-type]")).toHaveCount(blocksBefore);
+  });
+
+  test("GIVEN: (uppercase with colon) is parsed as a Given block", async ({ page }) => {
+    await openSession(page);
+    const givenCountBefore = await page.locator('[data-gherkin-type="given"]').count();
+    await page.locator(".gherkin-import-btn").click();
+    await page.locator(".gherkin-import-textarea").fill("GIVEN: something uppercase");
+    await page.locator(".gherkin-import-confirm").click();
+    await expect(page.locator('[data-gherkin-type="given"]')).toHaveCount(givenCountBefore + 1);
+  });
+
+  test("Given something (no colon) is parsed as a Given block", async ({ page }) => {
+    await openSession(page);
+    const givenCountBefore = await page.locator('[data-gherkin-type="given"]').count();
+    await page.locator(".gherkin-import-btn").click();
+    await page.locator(".gherkin-import-textarea").fill("Given something without a colon");
+    await page.locator(".gherkin-import-confirm").click();
+    await expect(page.locator('[data-gherkin-type="given"]')).toHaveCount(givenCountBefore + 1);
+  });
 });

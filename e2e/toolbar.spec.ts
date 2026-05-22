@@ -35,4 +35,11 @@ test.describe("toolbar", () => {
     await page.locator(".gherkin-toolbar-btn", { hasText: "Scenario" }).click();
     await expect(page.locator('[data-gherkin-type="scenario"]')).toHaveCount(countBefore + 1);
   });
+
+  test("Image button is present in toolbar when cursor is on a non-Feature block", async ({ page }) => {
+    await openSession(page);
+    await page.locator('[data-gherkin-type="then"]').click();
+    const texts = await page.locator(".gherkin-toolbar-btn").allTextContents();
+    expect(texts).toContain("Image");
+  });
 });

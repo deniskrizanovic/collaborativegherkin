@@ -72,6 +72,35 @@ test.describe("export", () => {
     expect(lines[1]).toMatch(/^Scenario:/);
     expect(lines[2]).toMatch(/^Given:/);
   });
+
+  test("exported TXT includes image src for image blocks", async ({ page }) => {
+    await openSession(page);
+
+    const PNG_1x1 = Buffer.from(
+      "89504e470d0a1a0a0000000d49484452000000010000000108020000009001" +
+      "2e00000000c4944415478016360f8cfc00000000200016c3455300000000049454e44ae426082",
+      "hex"
+    );
+    const tmpImg = path.join(os.tmpdir(), `test-img-export-${Date.now()}.png`);
+    fs.writeFileSync(tmpImg, PNG_1x1);
+
+    await page.locator('[data-gherkin-type="then"]').last().click();
+    await page.locator(".gherkin-toolbar-btn", { hasText: "Image" }).click();
+    await page.locator('input[type="file"]').setInputFiles(tmpImg);
+    await page.waitForSelector(".gherkin-image-block");
+
+    const downloadPromise = page.waitForEvent("download");
+    await page.locator(".gherkin-export-btn").click();
+    const download = await downloadPromise;
+
+    const tmpTxt = path.join(os.tmpdir(), `gherkin-img-export-${Date.now()}.txt`);
+    await download.saveAs(tmpTxt);
+    const content = fs.readFileSync(tmpTxt, "utf-8");
+    fs.unlinkSync(tmpTxt);
+    fs.unlinkSync(tmpImg);
+
+    expect(content).toContain("data:image");
+  });
 });
 
 // spec §3.9

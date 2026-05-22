@@ -5,13 +5,14 @@
 Tests are organised in three layers, each matching a different part of the
 application and a different cost/confidence trade-off.
 
-| Layer | Scope | Tool | Status |
-|---|---|---|---|
-| 1 — Pure logic | `src/lib/gherkin.ts` | Vitest | Done |
-| 2 — API routes | `src/app/api/sessions/` | Vitest (mocked db) | Done |
-| 3 — Editor UI | Browser interactions, real-time collaboration | Playwright | Done |
 
-## Run all layers in parallel
+| Layer           | Scope                                         | Tool               | Status |
+| --------------- | --------------------------------------------- | ------------------ | ------ |
+| 1 — Pure logic | `src/lib/gherkin.ts`                          | Vitest             | Done   |
+| 2 — API routes | `src/app/api/sessions/`                       | Vitest (mocked db) | Done   |
+| 3 — Editor UI  | Browser interactions, real-time collaboration | Playwright         | Done   |
+
+## Run all layers in sequentially
 
 ```bash
 npm run test:all
@@ -24,6 +25,7 @@ npm run test:all
 **File:** `src/lib/gherkin.test.ts`
 
 Covers every exported function in `gherkin.ts`:
+
 - `canFollow()` — all transition rules from spec §2.2, including the
   empty-document case
 - `NEXT_BLOCK_ON_ENTER` — all entries from the §3.2 table
@@ -45,6 +47,7 @@ npm run test
 
 Calls route handler functions directly with `NextRequest` objects. `db` and
 `logger` are mocked with `vi.mock`. Covers all scenarios from spec §4:
+
 - `GET /api/sessions` — returns sessions, empty array, 500 on db error
 - `POST /api/sessions` — 201 on valid input; 400 for empty/missing/too-long
   title and invalid CUID; 500 on db error
@@ -71,81 +74,101 @@ downloaded files.
 Both servers start automatically. If they're already running, Playwright reuses them.
 
 #### All suites
+
 ```bash
 npm run test:e2e
 ```
+
 ```bash
 npx playwright test --ui
 ```
 
 #### Block picker
+
 ```bash
 npx playwright test e2e/block-picker.spec.ts
 ```
+
 ```bash
 npx playwright test e2e/block-picker.spec.ts --ui
 ```
 
 #### Toolbar
+
 ```bash
 npx playwright test e2e/toolbar.spec.ts
 ```
+
 ```bash
 npx playwright test e2e/toolbar.spec.ts --ui
 ```
 
 #### Enter progression
+
 ```bash
 npx playwright test e2e/enter-progression.spec.ts
 ```
+
 ```bash
 npx playwright test e2e/enter-progression.spec.ts --ui
 ```
 
 #### Export
+
 ```bash
 npx playwright test e2e/export.spec.ts
 ```
+
 ```bash
 npx playwright test e2e/export.spec.ts --ui
 ```
 
 #### Visual separation
+
 ```bash
 npx playwright test e2e/visual-separation.spec.ts
 ```
+
 ```bash
 npx playwright test e2e/visual-separation.spec.ts --ui
 ```
 
 #### Collaboration
+
 ```bash
 npx playwright test e2e/collaboration.spec.ts
 ```
+
 ```bash
 npx playwright test e2e/collaboration.spec.ts --ui
 ```
 
 #### Data table
+
 ```bash
 npx playwright test e2e/data-table.spec.ts
 ```
+
 ```bash
 npx playwright test e2e/data-table.spec.ts --ui
 ```
 
 #### Import
+
 ```bash
 npx playwright test e2e/import.spec.ts
 ```
+
 ```bash
 npx playwright test e2e/import.spec.ts --ui
 ```
 
 #### LLM review
+
 ```bash
 npx playwright test e2e/llm-review.spec.ts
 ```
+
 ```bash
 npx playwright test e2e/llm-review.spec.ts --ui
 ```
