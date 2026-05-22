@@ -24,7 +24,7 @@ export default function RootLayout({
       </head>
       <body>
         {children}
-        <Script strategy="afterInteractive">
+        <Script id="nsw-init" strategy="afterInteractive">
           {`if (window.NSW) window.NSW.initSite();`}
         </Script>
       </body>
