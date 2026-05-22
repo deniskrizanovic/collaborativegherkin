@@ -63,7 +63,28 @@ All structural rules live here and nowhere else:
 
 ### Database
 
-SQLite in dev, PostgreSQL in production, via Prisma. Two models: `User` and `Session`. The session's `content` field stores `{}` by default — actual document state lives in Y.js (in-memory in the WebSocket server), not in the database.
+SQLite in dev, PostgreSQL in production, via Prisma. Prisma's `provider` is a compile-time literal, not a runtime env var, so two separate schema files exist:
+
+| Schema | Provider | Migrations |
+|--------|----------|------------|
+| `prisma/schema.prisma` | `sqlite` | `prisma/migrations/` |
+| `prisma/postgres/schema.prisma` | `postgresql` | `prisma/postgres/migrations/` |
+
+**Local development** — no extra steps, `prisma/schema.prisma` is the default used by `npx prisma migrate dev` and `npx prisma studio`.
+
+**First-time production setup** — generate the PostgreSQL migration history once against a real Postgres instance:
+
+```bash
+DATABASE_URL="postgresql://..." npm run db:migrate:dev:postgres
+```
+
+**Every production deploy** — apply pending migrations:
+
+```bash
+DATABASE_URL="postgresql://..." npm run db:migrate:prod
+```
+
+Three models: `User`, `Session`, `AppSetting`. The session's `content` field stores `{}` by default — actual document state lives in Y.js (in-memory in the WebSocket server), not in the database.
 
 ### Auth
 
