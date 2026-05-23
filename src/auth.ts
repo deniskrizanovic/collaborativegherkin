@@ -12,8 +12,8 @@ declare module "next-auth" {
 
 const providers: NextAuthConfig["providers"] = [
   ResendProvider({
-    apiKey: process.env.RESEND_API_KEY,
-    from: process.env.AUTH_EMAIL_FROM ?? "noreply@yourdomain.com",
+    apiKey: process.env.AUTH_RESEND_KEY,
+    from: process.env.AUTH_EMAIL_FROM ?? "onboarding@resend.dev",
   }),
 ];
 

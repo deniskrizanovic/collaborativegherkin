@@ -9,15 +9,18 @@ Acceptance Criteria are a critical mechanism to transfer the context of a busine
 Acceptance Criteria allow the system users to deepen their own understanding of the information system they are building.
 The collaborative wrestling with the acceptance criteria by the users, the builders and the testers helps ensure the system is built correctly.
 
+![Collaborative Gherkin whiteboard](docs/collaborative-gherkin-white-board.png)
+
 ---
 # What problem does this solve?
-Creating Acceptance Criteria in tools like jira, or confluence is difficult, because they offer only text editors, not anything specialised for this Domain Specific Language.
-Adding remote working to this equation, creates friction, as those not typing, are watching someone else type slowly, make typos, and not capture the true intent of the statement.
 
-Quality of Acceptance Criteria tends to be mediocre, as coaching/skill-improvement of writers is marginalised, and skills in this arena are unequally distributed.
-Remote meeting fatigue also impacts the quality of outcome, as these sessions can become long and tedious, and reviewing the outcome becomes too hard.
+Most teams write Acceptance Criteria in Jira or Confluence — plain text editors with no understanding of Gherkin. The result is structurally broken, inconsistently formatted, and painful to review.
 
-What follows is a screenshot overview of a tool that tries to fix these problems.
+Remote sessions make it worse. One person types while everyone else watches. By the time it's done, the Gherkin reflects whoever was at the keyboard, not the room's collective intent.
+
+Quality stays mediocre because there's no guardrail. Good Gherkin takes practice, feedback is rare, and the skill is unevenly spread across the team.
+
+This tool fixes all three: a structured editor that enforces valid Gherkin, real-time multiplayer so the whole team edits simultaneously, and an AI coach that catches weak criteria before they reach Jira.
 
 ---
 # Screenshot Overview
@@ -148,6 +151,7 @@ The **Edit prompt** button opens a modal where you can customise the system prom
 ### Prerequisites
 
 - Node.js 20+
+- A [Resend](https://resend.com) account for magic link emails (free tier: 3,000 emails/month)
 
 ### Setup
 
@@ -157,29 +161,40 @@ npm install
 
 # 2. Set up environment variables
 cp .env.example .env.local
-# Edit .env.local and fill in your DATABASE_URL and AUTH_SECRET
+```
 
-# 3. Set up the database
+Edit `.env.local` and fill in:
+
+| Variable | Description |
+|---|---|
+| `AUTH_SECRET` | Random string — run `openssl rand -base64 32` |
+| `RESEND_API_KEY` | API key from resend.com |
+| `AUTH_EMAIL_FROM` | A sender address verified in your Resend account |
+| `DATABASE_URL` | Already set to `file:./dev.db` for local SQLite |
+
+```bash
+# 3. Run database migrations
 npx prisma migrate dev
 
 # 4. Seed the dev database
 npm run seed
 
 # 5. Start both servers
-npm run dev      # Next.js on http://localhost:3000
-npm run dev:ws   # Y.js WebSocket on ws://localhost:1234
+npm run dev:all
 ```
 
-Both `dev` and `dev:ws` must be running for real-time collaboration to work.
+Visit `http://localhost:3000` — you'll be redirected to the sign-in page. Enter your email and click the magic link to authenticate.
 
 ### Commands
 
 | Command | What it does |
 |---|---|
-| `npm run dev` | Start Next.js dev server |
-| `npm run dev:ws` | Start Y.js WebSocket sync server |
+| `npm run dev:all` | Start Next.js + Y.js WebSocket server together |
+| `npm run dev` | Start Next.js dev server only |
+| `npm run dev:ws` | Start Y.js WebSocket sync server only |
 | `npm run build` | Build for production |
 | `npm run test` | Run Vitest unit tests |
+| `npm run test:e2e` | Run Playwright end-to-end tests |
 | `npm run lint` | Lint the codebase |
 | `npx prisma migrate dev` | Apply database migrations |
 | `npx prisma studio` | Browse the database in a UI |
