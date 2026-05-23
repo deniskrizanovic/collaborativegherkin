@@ -2,14 +2,14 @@
 
 ## 1.1 Listing sessions
 
-**Given** a user visits the home page  
-**When** sessions exist in the database  
-**Then** the user sees a list of sessions ordered by creation date, newest first  
+**Given** a signed-in user visits the home page  
+**When** sessions exist in the database that were created by that user  
+**Then** the user sees a list of their sessions ordered by creation date, newest first  
 **And** each entry shows the session title and a human-readable creation timestamp  
 **And** each entry is a link that navigates to that session's editor
 
-**Given** a user visits the home page  
-**When** no sessions exist in the database  
+**Given** a signed-in user visits the home page  
+**When** no sessions exist in the database for that user  
 **Then** the session list is empty and only the creation form is shown
 
 ---
@@ -62,7 +62,13 @@
 
 ## 1.5 Deleting a session
 
-**Given** a session exists  
+**Given** a session exists and the request is authenticated as the session owner  
 **When** a DELETE request is made to `/api/sessions/{id}`  
 **Then** the session is removed from the database  
 **And** a 204 No Content response is returned
+
+**Given** a DELETE request is made to `/api/sessions/{id}` without authentication  
+**Then** a 401 Unauthorized response is returned
+
+**Given** a DELETE request is made to `/api/sessions/{id}` by a signed-in user who is not the session owner  
+**Then** a 403 Forbidden response is returned

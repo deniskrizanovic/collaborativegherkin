@@ -1,7 +1,5 @@
 import { Page } from "@playwright/test";
 
-const PLACEHOLDER_USER_ID = "cm000000000000000000000000";
-
 export async function pressEnterAndWait(page: Page, expectedType: string): Promise<void> {
   const before = await page.locator(`[data-gherkin-type="${expectedType}"]`).count();
   await page.keyboard.press("Enter");
@@ -15,7 +13,7 @@ export async function pressEnterAndWait(page: Page, expectedType: string): Promi
 
 export async function createSession(page: Page, title: string): Promise<string> {
   const res = await page.request.post("/api/sessions", {
-    data: { title, userId: PLACEHOLDER_USER_ID },
+    data: { title },
   });
   const body = await res.json();
   return body.id as string;

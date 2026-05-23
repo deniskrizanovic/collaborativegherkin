@@ -37,10 +37,13 @@ src/
     HomeClient.tsx              # Client component for home page
     layout.tsx                  # Root layout
     globals.css                 # Global styles
-    api/sessions/               # REST API: list/create sessions
-    api/sessions/[id]/          # REST API: get/delete a session
+    api/auth/[...nextauth]/     # NextAuth route handler
+    api/sessions/               # REST API: list/create sessions (auth required)
+    api/sessions/[id]/          # REST API: get/delete a session (auth required)
     sessions/[id]/page.tsx      # Session page (server component)
     sessions/[id]/SessionView.tsx  # Session page (client shell)
+  auth.ts                       # NextAuth v5 config — Resend magic link, JWT strategy
+  middleware.ts                 # Auth gate — all routes require sign-in
   components/
     GherkinEditor.tsx           # Tiptap + Y.js collaborative editor
   lib/
@@ -49,7 +52,7 @@ src/
     db.ts         # Prisma client singleton
 prisma/
   schema.prisma   # Database schema
-  seed.ts         # Dev seed — creates placeholder user
+  seed.ts         # Dev seed — creates dev@example.com user
 y-websocket-server.mjs  # Standalone Y.js WebSocket sync server
 logs/             # Written at runtime — never commit
 ```

@@ -46,3 +46,4 @@ prisma/migrations/dev.db
 # Playwright test artifacts
 test-results/
 playwright-report/
+e2e/.auth/

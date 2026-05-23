@@ -19,3 +19,11 @@ _Avoid_: LLM review, AI review, LLM service
 **Export**:
 The act of serialising a session's blocks to plain-text Gherkin or Markdown for use outside the app (e.g. pasting into Jira).
 _Avoid_: download, save, copy
+
+**Owner**:
+The authenticated user who created a session. Recorded for housekeeping: the home page shows only sessions the owner created, and only the owner may delete a session. Ownership does not gate viewing or editing — any authenticated user may open any session.
+_Avoid_: creator, author, admin
+
+**Participant**:
+Any authenticated user who opens and edits a session they did not create.
+_Avoid_: collaborator, editor, viewer

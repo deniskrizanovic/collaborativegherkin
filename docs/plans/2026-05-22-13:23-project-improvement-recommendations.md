@@ -111,7 +111,7 @@ Implemented via `prisma/postgres/` directory containing the PostgreSQL schema an
 
 ---
 
-## 9. Upgrade Prisma from v6 to v7
+## 9. Upgrade Prisma from v6 to v7 ✅ DONE
 
 **Problem:** `prisma` and `@prisma/client` are pinned to `^6.0.0`. Prisma 7 is now current. Running v6 in CI requires using the locally installed binary to avoid `npx` pulling v7 (which has breaking changes). Staying on v6 long-term means missing performance, type safety, and driver improvements.
 
@@ -137,5 +137,5 @@ Implemented via `prisma/postgres/` directory containing the PostgreSQL schema an
 | 5 | #8 Pre-commit hooks | Small | None | ✅ Done |
 | 6 | #6 WebSocket server types | Small–Medium | Low | — |
 | 7 | #7 NextAuth upgrade | Medium | Medium | — |
-| 8 | #9 Prisma v6 → v7 upgrade | Medium | Low | — |
+| 8 | #9 Prisma v6 → v7 upgrade | Medium | Low | ✅ Done |
 | 9 | #3 Per-session authorization | Small | Low | 🟠 Blocked on auth |

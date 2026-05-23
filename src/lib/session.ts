@@ -16,8 +16,9 @@ export class SessionNotFoundError extends Error {}
 export class Session {
   constructor(private deps: SessionDeps) {}
 
-  async list(): Promise<SessionRecord[]> {
+  async list(userId: string): Promise<SessionRecord[]> {
     return this.deps.session.findMany({
+      where: { userId },
       orderBy: { createdAt: "desc" },
       select: { id: true, title: true, createdAt: true, userId: true },
     });

@@ -21,25 +21,26 @@ beforeEach(() => {
 // ─── list ─────────────────────────────────────────────────────────────────────
 
 describe("Session.list", () => {
-  it("returns all sessions ordered by createdAt desc", async () => {
+  it("returns sessions for the given user ordered by createdAt desc", async () => {
     const rows = [
       { id: "abc", title: "My session", createdAt: new Date(), userId: VALID_USER_ID },
     ];
     fakeSessionTable.findMany.mockResolvedValue(rows);
 
-    const result = await makeSession().list();
+    const result = await makeSession().list(VALID_USER_ID);
 
     expect(result).toEqual(rows);
     expect(fakeSessionTable.findMany).toHaveBeenCalledWith({
+      where: { userId: VALID_USER_ID },
       orderBy: { createdAt: "desc" },
       select: { id: true, title: true, createdAt: true, userId: true },
     });
   });
 
-  it("returns empty array when no sessions exist", async () => {
+  it("returns empty array when no sessions exist for user", async () => {
     fakeSessionTable.findMany.mockResolvedValue([]);
 
-    const result = await makeSession().list();
+    const result = await makeSession().list(VALID_USER_ID);
 
     expect(result).toEqual([]);
   });
@@ -47,7 +48,7 @@ describe("Session.list", () => {
   it("propagates db errors", async () => {
     fakeSessionTable.findMany.mockRejectedValue(new Error("db down"));
 
-    await expect(makeSession().list()).rejects.toThrow("db down");
+    await expect(makeSession().list(VALID_USER_ID)).rejects.toThrow("db down");
   });
 });
 

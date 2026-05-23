@@ -20,10 +20,13 @@ src/
     HomeClient.tsx              # Client component for home page
     layout.tsx                  # Root layout
     globals.css                 # Global styles
-    api/sessions/               # REST API: list/create sessions
-    api/sessions/[id]/          # REST API: get/delete a session
+    api/auth/[...nextauth]/     # NextAuth route handler
+    api/sessions/               # REST API: list/create sessions (auth required)
+    api/sessions/[id]/          # REST API: get/delete a session (auth required)
     sessions/[id]/page.tsx      # Session page (server component)
     sessions/[id]/SessionView.tsx  # Session page (client shell)
+  auth.ts                       # NextAuth v5 config — Resend provider, JWT strategy
+  middleware.ts                 # Auth middleware — gates all routes
   components/
     GherkinEditor.tsx           # Tiptap + Y.js collaborative editor
   lib/
@@ -84,11 +87,16 @@ DATABASE_URL="postgresql://..." npm run db:migrate:dev:postgres
 DATABASE_URL="postgresql://..." npm run db:migrate:prod
 ```
 
-Three models: `User`, `Session`, `AppSetting`. The session's `content` field stores `{}` by default — actual document state lives in Y.js (in-memory in the WebSocket server), not in the database.
+Five models: `User`, `Account`, `Session`, `VerificationToken`, `AppSetting`. The session's `content` field stores `{}` by default — actual document state lives in Y.js (in-memory in the WebSocket server), not in the database.
 
 ### Auth
 
-NextAuth.js v5 is wired into the schema but not yet hooked up to the UI. Session creation currently uses a hardcoded placeholder `userId`.
+NextAuth.js v5 (`src/auth.ts`) — magic link via **Resend**, JWT session strategy (avoids naming conflict with the Gherkin `Session` model), `PrismaAdapter` for token persistence.
+
+- Every route is gated by `src/middleware.ts` — unauthenticated requests redirect to the NextAuth sign-in page.
+- Any authenticated user can view/edit any session. Only the session owner (creator) can delete it.
+- The home page lists only sessions the signed-in user created.
+- `TEST_AUTH_SECRET` env var activates a `test-bypass` credentials provider for E2E tests; it must never be set in production.
 
 ---
 
@@ -118,6 +126,5 @@ Scenario boundaries are visually separated by a top border. Typography: Syne (di
 
 ## Known gaps
 
-- Auth is schema-only — all sessions are created under a single seed user
 - Y.js document state is not persisted to the database; restarting the WebSocket server loses in-progress content
 - No session deletion UI (the `DELETE /api/sessions/:id` route exists but is not exposed in the UI)

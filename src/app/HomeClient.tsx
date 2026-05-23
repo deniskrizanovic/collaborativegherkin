@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { signOut } from "next-auth/react";
 
 interface SessionSummary {
   id: string;
@@ -11,9 +12,10 @@ interface SessionSummary {
 
 interface Props {
   sessions: SessionSummary[];
+  currentUser: { id: string; email: string };
 }
 
-export default function HomeClient({ sessions: initialSessions }: Props) {
+export default function HomeClient({ sessions: initialSessions, currentUser }: Props) {
   const router = useRouter();
   const sessions = initialSessions;
   const [title, setTitle] = useState("");
@@ -26,11 +28,10 @@ export default function HomeClient({ sessions: initialSessions }: Props) {
     setCreating(true);
     setError("");
     try {
-      // Use a placeholder userId until auth is wired up
       const res = await fetch("/api/sessions", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ title: title.trim(), userId: "cm000000000000000000000000" }),
+        body: JSON.stringify({ title: title.trim() }),
       });
       if (!res.ok) {
         const body = await res.json();
@@ -49,6 +50,15 @@ export default function HomeClient({ sessions: initialSessions }: Props) {
   return (
     <div className="container">
       <header className="home-header">
+        <div className="home-user-bar">
+          <span className="home-user-email">{currentUser.email}</span>
+          <button
+            className="nsw-button nsw-button--outline nsw-button--small"
+            onClick={() => signOut({ callbackUrl: "/" })}
+          >
+            Sign out
+          </button>
+        </div>
         <p className="home-eyebrow">Collaborative Gherkin</p>
         <h1>Acceptance criteria,<br />written together.</h1>
         <p className="home-tagline">
