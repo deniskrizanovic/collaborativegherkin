@@ -2,51 +2,53 @@ import { test, expect } from "@playwright/test";
 import { createSession } from "./helpers";
 
 // spec §3.5 — real-time collaboration
-// Uses two browser contexts to simulate two users.
+// Uses two separate browser contexts so BroadcastChannel cannot bridge them.
+// All Y.js sync must flow through the WebSocket server — the test will catch
+// a dead or broken ws server that same-context tests would miss.
 
 test.describe("real-time collaboration", () => {
-  test("a block typed in one context appears in the other in real time", async ({ page, context }) => {
+  test("a block typed in one context appears in the other in real time", async ({ page, browser }) => {
     const sessionId = await createSession(page, "Collab test");
     const url = `/sessions/${sessionId}`;
 
-    // Open first context (already have `page`)
     await page.goto(url);
     await page.waitForSelector('[data-gherkin-type="feature"]');
 
-    // Open second context
-    const page2 = await context.newPage();
-    await page2.goto(url);
-    await page2.waitForSelector('[data-gherkin-type="feature"]');
+    const context2 = await browser.newContext({ storageState: "e2e/.auth/user.json" });
+    const page2 = await context2.newPage();
+    try {
+      await page2.goto(`http://localhost:3000${url}`);
+      await page2.waitForSelector('[data-gherkin-type="feature"]');
 
-    // Type into the seeded Feature block in page1
-    await page.locator('[data-gherkin-type="feature"]').click();
-    await page.keyboard.type("Shared feature");
+      await page.locator('[data-gherkin-type="feature"]').click();
+      await page.keyboard.type("Shared feature");
 
-    // Wait for the block to propagate to page2
-    await expect(page2.locator('[data-gherkin-type="feature"]')).toBeVisible({ timeout: 5000 });
-    const text2 = await page2.locator('[data-gherkin-type="feature"]').textContent();
-    expect(text2).toContain("Shared feature");
+      await expect(page2.locator('[data-gherkin-type="feature"]')).toContainText("Shared feature", { timeout: 5000 });
+    } finally {
+      await context2.close();
+    }
   });
 
-  test("each remote user's cursor is visible in a distinct colour", async ({ page, context }) => {
+  test("each remote user's cursor is visible in a distinct colour", async ({ page, browser }) => {
     const sessionId = await createSession(page, "Cursor test");
     const url = `/sessions/${sessionId}`;
 
     await page.goto(url);
     await page.waitForSelector('[data-gherkin-type="feature"]');
 
-    // Type into the seeded Feature block to position cursor
     await page.locator('[data-gherkin-type="feature"]').click();
     await page.keyboard.type("A feature");
 
-    // Second user joins and clicks into the editor
-    const page2 = await context.newPage();
-    await page2.goto(url);
-    await page2.waitForSelector('[data-gherkin-type="feature"]');
-    await page2.locator('[data-gherkin-type="feature"]').click();
+    const context2 = await browser.newContext({ storageState: "e2e/.auth/user.json" });
+    const page2 = await context2.newPage();
+    try {
+      await page2.goto(`http://localhost:3000${url}`);
+      await page2.waitForSelector('[data-gherkin-type="feature"]');
+      await page2.locator('[data-gherkin-type="feature"]').click();
 
-    // Wait for the collaboration cursor element to appear in page1's DOM
-    // CollaborationCursor renders .collaboration-cursor__caret elements
-    await expect(page.locator(".collaboration-cursor__caret")).toBeVisible({ timeout: 5000 });
+      await expect(page.locator(".collaboration-cursor__caret")).toBeVisible({ timeout: 5000 });
+    } finally {
+      await context2.close();
+    }
   });
 });
