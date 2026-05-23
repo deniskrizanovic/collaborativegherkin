@@ -1,50 +1,54 @@
-import { chromium } from "@playwright/test";
 import fs from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
+import { encode } from "@auth/core/jwt";
+import { db } from "../src/lib/db";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const BASE_URL = "http://localhost:3000";
 const TEST_EMAIL = process.env.TEST_AUTH_EMAIL ?? "e2e-test@example.com";
-const TEST_SECRET = process.env.TEST_AUTH_SECRET ?? "";
+const AUTH_SECRET = process.env.AUTH_SECRET ?? "dev-secret";
 
 export default async function globalSetup() {
   const authDir = path.join(__dirname, ".auth");
   fs.mkdirSync(authDir, { recursive: true });
 
-  const browser = await chromium.launch();
-  const context = await browser.newContext();
-  const page = await context.newPage();
+  // Upsert the test user so the JWT sub resolves to a real DB row.
+  const user = await db.user.upsert({
+    where: { email: TEST_EMAIL },
+    update: {},
+    create: { email: TEST_EMAIL },
+    select: { id: true, email: true },
+  });
 
-  // Navigate to the sign-in page so NextAuth sets its CSRF cookie in the browser.
-  await page.goto(`${BASE_URL}/api/auth/signin`);
+  // Encode a NextAuth JWT directly — no browser, no CSRF.
+  const token = await encode({
+    token: { sub: user.id, email: user.email },
+    secret: AUTH_SECRET,
+    salt: "authjs.session-token",
+  });
 
-  // Submit the test-bypass credentials form via the browser (CSRF cookie is
-  // carried automatically — no manual token extraction needed).
-  await page.evaluate(
-    async ({ email, secret, baseUrl }) => {
-      const csrfRes = await fetch(`${baseUrl}/api/auth/csrf`);
-      const { csrfToken } = await csrfRes.json();
+  // Write storage state with the session cookie so every Playwright context
+  // starts authenticated.
+  const storageState = {
+    cookies: [
+      {
+        name: "authjs.session-token",
+        value: token,
+        domain: "localhost",
+        path: "/",
+        expires: Math.floor(Date.now() / 1000) + 60 * 60 * 24,
+        httpOnly: true,
+        secure: false,
+        sameSite: "Lax" as const,
+      },
+    ],
+    origins: [],
+  };
 
-      const body = new URLSearchParams({
-        csrfToken,
-        email,
-        secret,
-        callbackUrl: baseUrl,
-        json: "true",
-      });
-
-      await fetch(`${baseUrl}/api/auth/callback/credentials`, {
-        method: "POST",
-        headers: { "Content-Type": "application/x-www-form-urlencoded" },
-        body: body.toString(),
-        credentials: "include",
-      });
-    },
-    { email: TEST_EMAIL, secret: TEST_SECRET, baseUrl: BASE_URL }
+  fs.writeFileSync(
+    path.join(authDir, "user.json"),
+    JSON.stringify(storageState, null, 2)
   );
 
-  // Save cookies (includes next-auth.session-token JWT)
-  await context.storageState({ path: path.join(authDir, "user.json") });
-  await browser.close();
+  await db.$disconnect();
 }
