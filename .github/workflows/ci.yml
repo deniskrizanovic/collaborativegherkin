@@ -31,6 +31,8 @@ jobs:
       - name: Run database migrations
         run: ./node_modules/.bin/prisma migrate deploy
 
+      - name: Seed database
+        run: npm run seed
 
       - name: Lint
         run: npm run lint
