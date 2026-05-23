@@ -1,7 +1,10 @@
-import { PrismaClient } from "@prisma/client";
+import { PrismaClient } from "../src/generated/prisma/client";
+import { PrismaBetterSqlite3 } from "@prisma/adapter-better-sqlite3";
 import { DEFAULT_PROMPT, DEFAULT_MODEL } from "../src/lib/llm-constants";
 
-const db = new PrismaClient();
+const url = process.env.DATABASE_URL ?? "file:./prisma/dev.db";
+const adapter = new PrismaBetterSqlite3({ url });
+const db = new PrismaClient({ adapter });
 
 async function main() {
   await db.user.upsert({
