@@ -4,13 +4,6 @@ interface SessionDeps {
   session: PrismaClient["session"];
 }
 
-export interface SessionSummary {
-  id: string;
-  title: string;
-  createdAt: Date;
-  userId: string;
-}
-
 export interface SessionRecord {
   id: string;
   title: string;
@@ -23,7 +16,7 @@ export class SessionNotFoundError extends Error {}
 export class Session {
   constructor(private deps: SessionDeps) {}
 
-  async list(): Promise<SessionSummary[]> {
+  async list(): Promise<SessionRecord[]> {
     return this.deps.session.findMany({
       orderBy: { createdAt: "desc" },
       select: { id: true, title: true, createdAt: true, userId: true },

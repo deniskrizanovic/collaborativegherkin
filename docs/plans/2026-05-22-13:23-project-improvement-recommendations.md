@@ -67,7 +67,7 @@ Implemented via `prisma/postgres/` directory containing the PostgreSQL schema an
 
 ---
 
-## 5. `SessionSummary` and `SessionRecord` are duplicate types
+## 5. `SessionSummary` and `SessionRecord` are duplicate types ✅ DONE
 
 **Problem:** Both interfaces in `src/lib/session.ts` (lines 7–22) declare identical fields (`id`, `title`, `createdAt`, `userId`). They will drift over time and confuse future readers.
 
@@ -100,7 +100,7 @@ Implemented via `prisma/postgres/` directory containing the PostgreSQL schema an
 
 ---
 
-## 8. No pre-commit hooks
+## 8. No pre-commit hooks ✅ DONE
 
 **Problem:** Nothing prevents `console.log` statements or type errors from being committed. CLAUDE.md documents the rule but there is no enforcement.
 
@@ -133,8 +133,8 @@ Implemented via `prisma/postgres/` directory containing the PostgreSQL schema an
 | 1 | #1 Single dev command | Trivial | None | ✅ Done |
 | 2 | #2 Prisma/Postgres provider fix | Small | Low | ✅ Done |
 | 3 | #4 CI pipeline | Small | None | ✅ Done |
-| 4 | #5 Duplicate types | Trivial | None | — |
-| 5 | #8 Pre-commit hooks | Small | None | — |
+| 4 | #5 Duplicate types | Trivial | None | ✅ Done |
+| 5 | #8 Pre-commit hooks | Small | None | ✅ Done |
 | 6 | #6 WebSocket server types | Small–Medium | Low | — |
 | 7 | #7 NextAuth upgrade | Medium | Medium | — |
 | 8 | #9 Prisma v6 → v7 upgrade | Medium | Low | — |
