@@ -1,16 +1,26 @@
 import fs from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
+import dotenv from "dotenv";
 import { encode } from "@auth/core/jwt";
-import { db } from "../src/lib/db";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
+const ROOT = path.resolve(__dirname, "..");
+
+// Load .env.local before importing db so DATABASE_URL is set when the
+// Prisma adapter is chosen (global-setup runs outside Next.js).
+dotenv.config({ path: path.join(ROOT, ".env.local") });
+dotenv.config({ path: path.join(ROOT, ".env") });
+
 const TEST_EMAIL = process.env.TEST_AUTH_EMAIL ?? "e2e-test@example.com";
 const AUTH_SECRET = process.env.AUTH_SECRET ?? "dev-secret";
 
 export default async function globalSetup() {
   const authDir = path.join(__dirname, ".auth");
   fs.mkdirSync(authDir, { recursive: true });
+
+  // Dynamic import so db picks up DATABASE_URL after dotenv runs above.
+  const { db } = await import("../src/lib/db");
 
   // Upsert the test user so the JWT sub resolves to a real DB row.
   const user = await db.user.upsert({
