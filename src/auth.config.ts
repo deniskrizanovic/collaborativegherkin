@@ -4,6 +4,9 @@ import type { NextAuthConfig } from "next-auth";
 // Used by middleware.ts (Edge Runtime). The full config lives in src/auth.ts.
 export const authConfig: NextAuthConfig = {
   session: { strategy: "jwt" },
+  pages: {
+    signIn: "/auth/signin",
+  },
   providers: [],
   callbacks: {
     authorized({ auth }) {
