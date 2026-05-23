@@ -52,7 +52,7 @@ The toolbar always constrains choices to what is structurally valid. The cursor 
 
 ### Toolbar insertion
 
-Click any toolbar button to insert a block at the cursor. The toolbar re-evaluates after each insertion and shows only the blocks that can legally follow the current one. After inserting a **Then** step, the toolbar offers Rule, Scenario, Given, When, Then, And, But, Table, and Image — every block type that can follow a Then.
+Click any toolbar button to insert a block at the cursor. The toolbar re-evaluates after each insertion and shows only the blocks that can legally follow the current one. After inserting a **Then** step, the toolbar offers Rule, Scenario, Given, And, But, Table, and Image — every block type that can follow a Then.
 
 ![Full document with toolbar showing valid next blocks](docs/screenshots/editor-full.png)
 
@@ -168,7 +168,8 @@ Edit `.env.local` and fill in:
 | Variable | Description |
 |---|---|
 | `AUTH_SECRET` | Random string — run `openssl rand -base64 32` |
-| `RESEND_API_KEY` | API key from resend.com |
+| `AUTH_RESEND_KEY` | API key from resend.com |
+| `OPENROUTER_API_KEY` | API key from openrouter.ai — required for AI Coaching |
 | `AUTH_EMAIL_FROM` | A sender address verified in your Resend account |
 | `DATABASE_URL` | Already set to `file:./dev.db` for local SQLite |
 
