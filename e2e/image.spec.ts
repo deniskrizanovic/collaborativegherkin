@@ -13,7 +13,7 @@ const PNG_1x1 = Buffer.from(
 );
 
 test.describe("image blocks", () => {
-  test("inserting image via toolbar file picker shows image block", async ({ page }) => {
+  test("SC-3.8.1: Image toolbar button opens file picker and embeds image", async ({ page }) => {
     await openSession(page);
     const tmpImg = path.join(os.tmpdir(), `test-img-${Date.now()}.png`);
     fs.writeFileSync(tmpImg, PNG_1x1);
@@ -33,7 +33,7 @@ test.describe("image blocks", () => {
     fs.unlinkSync(tmpImg);
   });
 
-  test("inserting image via slash command block picker shows image block", async ({ page }) => {
+  test("SC-3.8.2: Slash-command Image selection opens file picker and embeds image", async ({ page }) => {
     await openSession(page);
     const tmpImg = path.join(os.tmpdir(), `test-img-${Date.now()}.png`);
     fs.writeFileSync(tmpImg, PNG_1x1);
@@ -53,7 +53,7 @@ test.describe("image blocks", () => {
     fs.unlinkSync(tmpImg);
   });
 
-  test("drag and drop image onto editor shows image block", async ({ page }) => {
+  test("SC-3.8.3: Drag and drop image embeds at drop position", async ({ page }) => {
     await openSession(page);
     const tmpImg = path.join(os.tmpdir(), `test-img-${Date.now()}.png`);
     fs.writeFileSync(tmpImg, PNG_1x1);

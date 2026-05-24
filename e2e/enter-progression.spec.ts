@@ -10,7 +10,7 @@ test.describe("enter-key auto-progression", () => {
   // Insert a sequence of blocks by using the toolbar/picker for the first one,
   // then pressing Enter to create the rest and checking data-gherkin-type values.
 
-  test("feature → scenario", async ({ page }) => {
+  test("SC-3.2.1: Enter at end of block inserts auto-progression type — feature → scenario", async ({ page }) => {
     await openSession(page);
     await page.locator('[data-gherkin-type="feature"]').click();
     await page.keyboard.press("End");
@@ -21,7 +21,7 @@ test.describe("enter-key auto-progression", () => {
     expect(types[1]).toBe("scenario");
   });
 
-  test("scenario → given", async ({ page }) => {
+  test("SC-3.2.1: Enter at end of block inserts auto-progression type — scenario → given", async ({ page }) => {
     await openSession(page);
     await page.locator('[data-gherkin-type="feature"]').click();
     await page.keyboard.press("Enter"); // feature → scenario (new one inserted after seed's scenario)
@@ -35,7 +35,7 @@ test.describe("enter-key auto-progression", () => {
     expect(types[lastScenarioIdx + 1]).toBe("given");
   });
 
-  test("given → when", async ({ page }) => {
+  test("SC-3.2.1: Enter at end of block inserts auto-progression type — given → when", async ({ page }) => {
     await openSession(page);
     await page.locator('[data-gherkin-type="feature"]').click();
     await page.keyboard.press("Enter"); // feature → scenario
@@ -51,7 +51,7 @@ test.describe("enter-key auto-progression", () => {
     expect(types[givenIdx + 1]).toBe("when");
   });
 
-  test("when → then", async ({ page }) => {
+  test("SC-3.2.1: Enter at end of block inserts auto-progression type — when → then", async ({ page }) => {
     await openSession(page);
     await page.locator('[data-gherkin-type="feature"]').click();
     await page.keyboard.press("Enter"); // → scenario
@@ -69,7 +69,7 @@ test.describe("enter-key auto-progression", () => {
     expect(types[whenIdx + 1]).toBe("then");
   });
 
-  test("then → and", async ({ page }) => {
+  test("SC-3.2.1: Enter at end of block inserts auto-progression type — then → and", async ({ page }) => {
     await openSession(page);
     await pressEnterAndWait(page, "scenario");
     await pressEnterAndWait(page, "given");
@@ -84,7 +84,7 @@ test.describe("enter-key auto-progression", () => {
     expect(thenFollowedByAnd).toBe(true);
   });
 
-  test("and → and", async ({ page }) => {
+  test("SC-3.2.1: Enter at end of block inserts auto-progression type — and → and", async ({ page }) => {
     await openSession(page);
     await pressEnterAndWait(page, "scenario");
     await pressEnterAndWait(page, "given");
@@ -103,7 +103,7 @@ test.describe("enter-key auto-progression", () => {
     expect(typesAfter[lastAndBefore + 1]).toBe("and");
   });
 
-  test("but → and", async ({ page }) => {
+  test("SC-3.2.1: Enter at end of block inserts auto-progression type — but → and", async ({ page }) => {
     await openSession(page);
     await pressEnterAndWait(page, "scenario");
     await pressEnterAndWait(page, "given");
@@ -121,7 +121,7 @@ test.describe("enter-key auto-progression", () => {
     expect(typesAfter[lastButIdx + 1]).toBe("and");
   });
 
-  test("background → given", async ({ page }) => {
+  test("SC-3.2.1: Enter at end of block inserts auto-progression type — background → given", async ({ page }) => {
     await openSession(page);
     await page.locator('[data-gherkin-type="feature"]').click();
     await page.locator(".gherkin-toolbar-btn", { hasText: "Background" }).click();
@@ -135,7 +135,7 @@ test.describe("enter-key auto-progression", () => {
     expect(types[bgIdx + 1]).toBe("given");
   });
 
-  test("rule → scenario", async ({ page }) => {
+  test("SC-3.2.1: Enter at end of block inserts auto-progression type — rule → scenario", async ({ page }) => {
     await openSession(page);
     await page.locator('[data-gherkin-type="feature"]').click();
     await page.locator(".gherkin-toolbar-btn", { hasText: "Rule" }).click();
@@ -150,7 +150,7 @@ test.describe("enter-key auto-progression", () => {
   });
 
   // spec §3.2 — image block: Enter inserts next block using prevType context
-  test("Enter on image block inserts next block by prevType context", async ({ page }) => {
+  test("SC-3.2.2: Enter on image block uses prevType context", async ({ page }) => {
     await openSession(page);
 
     // Build: feature → scenario → given → when → then

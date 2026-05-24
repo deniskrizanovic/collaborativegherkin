@@ -26,32 +26,62 @@ Documents may also contain **data table blocks**. A data table block carries a 2
 
 These rules govern which block type may follow another. They are enforced by `canFollow()` in `src/lib/gherkin.ts` and apply everywhere in the application — editor toolbar, slash-command menu, and Enter-key auto-progression.
 
+#### SC-2.2.1 Empty document — only feature allowed
+> **Tests:** none (enforced indirectly via toolbar/picker/progression tests)
+
 **Given** the document is empty  
 **Then** the only valid first block type is `feature`
+
+#### SC-2.2.2 After feature — rule, background, scenario allowed
+> **Tests:** none (enforced indirectly via toolbar/picker/progression tests)
 
 **Given** the current block is `feature`  
 **Then** the valid next block types are: `rule`, `background`, `scenario`
 
+#### SC-2.2.3 After rule — background, scenario allowed
+> **Tests:** none (enforced indirectly via toolbar/picker/progression tests)
+
 **Given** the current block is `rule`  
 **Then** the valid next block types are: `background`, `scenario`
+
+#### SC-2.2.4 After background — only given allowed
+> **Tests:** none (enforced indirectly via toolbar/picker/progression tests)
 
 **Given** the current block is `background`  
 **Then** the only valid next block type is `given`
 
+#### SC-2.2.5 After scenario — only given allowed
+> **Tests:** none (enforced indirectly via toolbar/picker/progression tests)
+
 **Given** the current block is `scenario`  
 **Then** the only valid next block type is `given`
+
+#### SC-2.2.6 After given — when, and, but allowed
+> **Tests:** none (enforced indirectly via toolbar/picker/progression tests)
 
 **Given** the current block is `given`  
 **Then** the valid next block types are: `when`, `and`, `but`
 
+#### SC-2.2.7 After when — then, and, but allowed
+> **Tests:** none (enforced indirectly via toolbar/picker/progression tests)
+
 **Given** the current block is `when`  
 **Then** the valid next block types are: `then`, `and`, `but`
+
+#### SC-2.2.8 After then — and, but, given, scenario, rule allowed
+> **Tests:** none (enforced indirectly via toolbar/picker/progression tests)
 
 **Given** the current block is `then`  
 **Then** the valid next block types are: `and`, `but`, `given`, `scenario`, `rule`
 
+#### SC-2.2.9 After and — given, when, then, and, but, scenario, rule allowed
+> **Tests:** none (enforced indirectly via toolbar/picker/progression tests)
+
 **Given** the current block is `and`  
 **Then** the valid next block types are: `given`, `when`, `then`, `and`, `but`, `scenario`, `rule`
+
+#### SC-2.2.10 After but — given, when, then, and, scenario, rule allowed
+> **Tests:** none (enforced indirectly via toolbar/picker/progression tests)
 
 **Given** the current block is `but`  
 **Then** the valid next block types are: `given`, `when`, `then`, `and`, `scenario`, `rule`

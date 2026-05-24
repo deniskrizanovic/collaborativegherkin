@@ -2,7 +2,7 @@ import { test, expect } from "@playwright/test";
 import { createSession, openSession } from "./helpers";
 
 test.describe("home page", () => {
-  test("empty state shows only the create form, no session list", async ({ page }) => {
+  test("SC-1.1.2: No sessions shows empty state", async ({ page }) => {
     // Delete all sessions via the API so the home page is genuinely empty
     const listRes = await page.request.get("/api/sessions");
     const sessions = await listRes.json() as { id: string }[];
@@ -14,7 +14,7 @@ test.describe("home page", () => {
     await expect(page.locator(".create-form")).toBeVisible();
   });
 
-  test("session list rendered after creating a session", async ({ page }) => {
+  test("SC-1.1.1: Sessions listed newest first — list visible after creating", async ({ page }) => {
     const id = await createSession(page, "List test session");
     await page.goto("/");
     const link = page.locator(".session-link").first();
@@ -22,7 +22,7 @@ test.describe("home page", () => {
     await expect(link).toHaveAttribute("href", `/sessions/${id}`);
   });
 
-  test("sessions shown in reverse-chronological order", async ({ page }) => {
+  test("SC-1.1.1: Sessions listed newest first — order", async ({ page }) => {
     await createSession(page, "Session Alpha");
     await createSession(page, "Session Beta");
     await page.goto("/");
@@ -30,12 +30,12 @@ test.describe("home page", () => {
     await expect(names.first()).toHaveText("Session Beta");
   });
 
-  test("submit button disabled when title is empty", async ({ page }) => {
+  test("SC-1.2.2: Empty title disables Create button", async ({ page }) => {
     await page.goto("/");
     await expect(page.locator('button[type="submit"]')).toBeDisabled();
   });
 
-  test("title > 200 chars shows validation error, stays on home page", async ({ page }) => {
+  test("SC-1.2.3: Title over 200 chars shows validation error", async ({ page }) => {
     await page.goto("/");
     const longTitle = "a".repeat(201);
     // Bypass maxLength and trigger React's synthetic onChange via nativeInputValueSetter
@@ -54,7 +54,7 @@ test.describe("home page", () => {
     await expect(page).toHaveURL("/");
   });
 
-  test("server error shows error message", async ({ page }) => {
+  test("SC-1.2.4: Server error shows error message", async ({ page }) => {
     await page.route("**/api/sessions", (route) => {
       if (route.request().method() === "POST") {
         route.fulfill({
@@ -72,21 +72,21 @@ test.describe("home page", () => {
     await expect(page.locator(".form-error")).toBeVisible();
   });
 
-  test("successful create redirects to session page", async ({ page }) => {
+  test("SC-1.2.1: Valid title creates session and redirects", async ({ page }) => {
     await page.goto("/");
     await page.locator(".nsw-form__input").fill("Redirect test session");
     await page.locator('button[type="submit"]').click();
     await expect(page).toHaveURL(/\/sessions\//);
   });
 
-  test("session title shown in editor page header", async ({ page }) => {
+  test("SC-1.3.1: Valid session ID loads editor with title", async ({ page }) => {
     const title = "Header title session";
     const id = await createSession(page, title);
     await page.goto(`/sessions/${id}`);
     await expect(page.locator(".session-title")).toHaveText(title);
   });
 
-  test("copy invite link button present; clicking changes label to Copied!", async ({ page, context }) => {
+  test("SC-1.4.1: Copy invite link copies URL and shows Copied!", async ({ page, context }) => {
     await context.grantPermissions(["clipboard-read", "clipboard-write"]);
     await openSession(page, "Copy link session");
     const btn = page.locator(".copy-link-btn");

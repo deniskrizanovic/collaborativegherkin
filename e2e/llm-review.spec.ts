@@ -12,13 +12,13 @@ async function interceptReview(page: Parameters<typeof openSession>[0], response
 }
 
 test.describe("LLM review — session page controls", () => {
-  test("Get AI Coaching button and model dropdown are visible on session page", async ({ page }) => {
+  test("SC-8.3.1: Model dropdown shown pre-selected to persisted model — button and dropdown visible", async ({ page }) => {
     await openSession(page);
     await expect(page.locator(".session-review-btn")).toBeVisible();
     await expect(page.locator(".session-model-select")).toBeVisible();
   });
 
-  test("model dropdown lists the expected free models", async ({ page }) => {
+  test("SC-8.3.1: Model dropdown shown pre-selected to persisted model — expected models listed", async ({ page }) => {
     await openSession(page);
     const options = page.locator(".session-model-select option");
     await options.first().waitFor({ state: "attached" });
@@ -29,14 +29,14 @@ test.describe("LLM review — session page controls", () => {
     expect(texts).toContain("google/gemma-4-26b-a4b-it:free");
   });
 
-  test("Edit prompt button is visible on session page", async ({ page }) => {
+  test("SC-8.4.1: Edit prompt button opens modal with pre-filled textarea — button visible", async ({ page }) => {
     await openSession(page);
     await expect(page.locator(".session-edit-prompt-btn")).toBeVisible();
   });
 });
 
 test.describe("LLM review — triggering a review", () => {
-  test("clicking Get AI Coaching sends content and opens result modal", async ({ page }) => {
+  test("SC-8.1.1: Clicking Get AI Coaching sends content and disables controls — modal opens", async ({ page }) => {
     await openSession(page);
     await interceptReview(page);
 
@@ -45,7 +45,7 @@ test.describe("LLM review — triggering a review", () => {
     await expect(page.locator(".session-review-modal-body")).toContainText("Feedback");
   });
 
-  test("result modal header shows the name of the selected model", async ({ page }) => {
+  test("SC-8.1.2: Successful LLM response displayed as Markdown in modal — header shows model name", async ({ page }) => {
     await openSession(page);
     await interceptReview(page);
 
@@ -54,7 +54,7 @@ test.describe("LLM review — triggering a review", () => {
     await expect(page.locator(".session-review-modal-header")).toContainText(selectedModel);
   });
 
-  test("result is rendered as Markdown — heading and list items", async ({ page }) => {
+  test("SC-8.1.2: Successful LLM response displayed as Markdown in modal — Markdown rendered", async ({ page }) => {
     await openSession(page);
     await interceptReview(page);
 
@@ -63,7 +63,7 @@ test.describe("LLM review — triggering a review", () => {
     await expect(page.locator(".session-review-modal-body li")).toHaveCount(2);
   });
 
-  test("button is disabled and shows Reviewing… while request is in flight", async ({ page }) => {
+  test("SC-8.1.1: Clicking Get AI Coaching sends content and disables controls — button disabled in flight", async ({ page }) => {
     await openSession(page);
 
     // Hold the request open until we've checked the disabled state
@@ -86,7 +86,7 @@ test.describe("LLM review — triggering a review", () => {
 });
 
 test.describe("LLM review — dismissing the result modal", () => {
-  test("clicking the ✕ button closes the modal", async ({ page }) => {
+  test("SC-8.2.3: X button closes results modal", async ({ page }) => {
     await openSession(page);
     await interceptReview(page);
 
@@ -96,7 +96,7 @@ test.describe("LLM review — dismissing the result modal", () => {
     await expect(page.locator(".session-review-modal")).not.toBeVisible();
   });
 
-  test("pressing Escape closes the modal", async ({ page }) => {
+  test("SC-8.2.1: Escape closes results modal", async ({ page }) => {
     await openSession(page);
     await interceptReview(page);
 
@@ -106,7 +106,7 @@ test.describe("LLM review — dismissing the result modal", () => {
     await expect(page.locator(".session-review-modal")).not.toBeVisible();
   });
 
-  test("clicking outside the modal panel closes the modal", async ({ page }) => {
+  test("SC-8.2.2: Clicking outside panel closes results modal", async ({ page }) => {
     await openSession(page);
     await interceptReview(page);
 
@@ -119,12 +119,12 @@ test.describe("LLM review — dismissing the result modal", () => {
 });
 
 test.describe("LLM review — cached result", () => {
-  test("View last review button is absent before any review has been run", async ({ page }) => {
+  test("SC-8.8.3: View last review button absent before first review", async ({ page }) => {
     await openSession(page);
     await expect(page.locator(".session-view-last-review-btn")).not.toBeVisible();
   });
 
-  test("after closing the modal, View last review button appears", async ({ page }) => {
+  test("SC-8.8.1: View last review button visible after review is closed", async ({ page }) => {
     await openSession(page);
     await interceptReview(page);
 
@@ -135,7 +135,7 @@ test.describe("LLM review — cached result", () => {
     await expect(page.locator(".session-view-last-review-btn")).toBeVisible();
   });
 
-  test("clicking View last review reopens the modal with the same content", async ({ page }) => {
+  test("SC-8.8.2: View last review reopens modal without new API call", async ({ page }) => {
     await openSession(page);
     await interceptReview(page);
 
@@ -149,7 +149,7 @@ test.describe("LLM review — cached result", () => {
     await expect(page.locator(".session-review-modal-body")).toContainText("Feedback");
   });
 
-  test("cached result remains visible via View last review while a new review is in flight", async ({ page }) => {
+  test("SC-8.8.4: Cached result remains available while new review in flight", async ({ page }) => {
     await openSession(page);
     await interceptReview(page);
 
@@ -174,7 +174,7 @@ test.describe("LLM review — cached result", () => {
     await expect(page.locator(".session-review-modal")).toBeVisible();
   });
 
-  test("running a new review replaces the cached result when response arrives", async ({ page }) => {
+  test("SC-8.8.5: New review result replaces cached result", async ({ page }) => {
     await openSession(page);
     await interceptReview(page, "First result content");
 
@@ -189,7 +189,7 @@ test.describe("LLM review — cached result", () => {
 });
 
 test.describe("LLM review — error handling", () => {
-  test("displays error message in modal when API returns 500", async ({ page }) => {
+  test("SC-8.1.3: LLM failure shows error in modal and resets button", async ({ page }) => {
     await openSession(page);
     await page.route("/api/llm-review", (route) =>
       route.fulfill({ status: 500, contentType: "application/json", body: JSON.stringify({ error: "LLM request failed" }) })
@@ -202,7 +202,7 @@ test.describe("LLM review — error handling", () => {
 });
 
 test.describe("LLM review — prompt editing", () => {
-  test("clicking Edit prompt opens the prompt modal with a pre-filled textarea", async ({ page }) => {
+  test("SC-8.4.1: Edit prompt button opens modal with pre-filled textarea", async ({ page }) => {
     await openSession(page);
     await page.locator(".session-edit-prompt-btn").click();
     await expect(page.locator(".session-prompt-modal")).toBeVisible();
@@ -210,7 +210,7 @@ test.describe("LLM review — prompt editing", () => {
     expect(value.length).toBeGreaterThan(10);
   });
 
-  test("Cancel closes the prompt modal without saving", async ({ page }) => {
+  test("SC-8.4.3: Cancel, Escape, or outside click closes prompt modal without saving — Cancel", async ({ page }) => {
     await openSession(page);
     await page.locator(".session-edit-prompt-btn").click();
     await page.locator(".session-prompt-textarea").fill("Changed prompt text that is long enough");
@@ -218,7 +218,7 @@ test.describe("LLM review — prompt editing", () => {
     await expect(page.locator(".session-prompt-modal")).not.toBeVisible();
   });
 
-  test("pressing Escape closes the prompt modal", async ({ page }) => {
+  test("SC-8.4.3: Cancel, Escape, or outside click closes prompt modal without saving — Escape", async ({ page }) => {
     await openSession(page);
     await page.locator(".session-edit-prompt-btn").click();
     await expect(page.locator(".session-prompt-modal")).toBeVisible();
@@ -226,7 +226,7 @@ test.describe("LLM review — prompt editing", () => {
     await expect(page.locator(".session-prompt-modal")).not.toBeVisible();
   });
 
-  test("clicking outside the prompt modal panel closes it", async ({ page }) => {
+  test("SC-8.4.3: Cancel, Escape, or outside click closes prompt modal without saving — click outside", async ({ page }) => {
     await openSession(page);
     await page.locator(".session-edit-prompt-btn").click();
     await expect(page.locator(".session-prompt-modal")).toBeVisible();
@@ -234,14 +234,14 @@ test.describe("LLM review — prompt editing", () => {
     await expect(page.locator(".session-prompt-modal")).not.toBeVisible();
   });
 
-  test("Save button is disabled when textarea has fewer than 10 characters", async ({ page }) => {
+  test("SC-8.4.4: Save disabled when textarea has fewer than 10 chars", async ({ page }) => {
     await openSession(page);
     await page.locator(".session-edit-prompt-btn").click();
     await page.locator(".session-prompt-textarea").fill("short");
     await expect(page.locator(".session-prompt-save")).toBeDisabled();
   });
 
-  test("saving a new prompt persists it — re-opening shows updated text", async ({ page }) => {
+  test("SC-8.4.2: Saving new prompt persists it and closes modal", async ({ page }) => {
     await openSession(page);
 
     await page.locator(".session-edit-prompt-btn").click();

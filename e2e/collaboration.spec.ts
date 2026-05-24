@@ -7,7 +7,7 @@ import { createSession } from "./helpers";
 // a dead or broken ws server that same-context tests would miss.
 
 test.describe("real-time collaboration", () => {
-  test("a block typed in one context appears in the other in real time", async ({ page, browser }) => {
+  test("SC-3.5.1: Change by one user is visible to all in real time", async ({ page, browser }) => {
     const sessionId = await createSession(page, "Collab test");
     const url = `/sessions/${sessionId}`;
 
@@ -29,7 +29,7 @@ test.describe("real-time collaboration", () => {
     }
   });
 
-  test("second joiner does not wipe content typed by the first user", async ({ page, browser }) => {
+  test("SC-3.1.2: New document seeded with 5 scaffold blocks once — second joiner does not re-seed", async ({ page, browser }) => {
     const sessionId = await createSession(page, "Seed race test");
     const url = `/sessions/${sessionId}`;
 
@@ -51,7 +51,7 @@ test.describe("real-time collaboration", () => {
     }
   });
 
-  test("each remote user's cursor is visible in a distinct colour", async ({ page, browser }) => {
+  test("SC-3.5.2: Remote user cursors visible in distinct colour", async ({ page, browser }) => {
     const sessionId = await createSession(page, "Cursor test");
     const url = `/sessions/${sessionId}`;
 

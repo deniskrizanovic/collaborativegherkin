@@ -10,7 +10,7 @@ import * as os from "os";
 // since globals.css uses a CSS sibling selector to draw the visual border.
 
 test.describe("visual separation", () => {
-  test("given after then has a top border (start of new step group)", async ({ page }) => {
+  test("SC-3.7.1: Given after then/and/but gets top border — after then", async ({ page }) => {
     await openSession(page);
 
     // Build: Feature → Scenario → Given → When → Then → (then→scenario via Enter,
@@ -34,7 +34,7 @@ test.describe("visual separation", () => {
     expect(borderTop).toBe("1px");
   });
 
-  test("given after and has a top border", async ({ page }) => {
+  test("SC-3.7.1: Given after then/and/but gets top border — after and", async ({ page }) => {
     await openSession(page);
 
     await pressEnterAndWait(page, "scenario");
@@ -55,7 +55,7 @@ test.describe("visual separation", () => {
     expect(borderTop).toBe("1px");
   });
 
-  test("given after but has a top border", async ({ page }) => {
+  test("SC-3.7.1: Given after then/and/but gets top border — after but", async ({ page }) => {
     await openSession(page);
 
     await pressEnterAndWait(page, "scenario");
@@ -74,7 +74,7 @@ test.describe("visual separation", () => {
     expect(borderTop).toBe("1px");
   });
 
-  test("scenario after then has a top border (start of new step group)", async ({ page }) => {
+  test("SC-3.7.2: Scenario after then/and/but gets top border — after then", async ({ page }) => {
     await openSession(page);
 
     await pressEnterAndWait(page, "scenario");
@@ -95,7 +95,7 @@ test.describe("visual separation", () => {
     expect(borderTop).toBe("1px");
   });
 
-  test("scenario after and has a top border", async ({ page }) => {
+  test("SC-3.7.2: Scenario after then/and/but gets top border — after and", async ({ page }) => {
     await openSession(page);
 
     await pressEnterAndWait(page, "scenario");
@@ -114,7 +114,7 @@ test.describe("visual separation", () => {
     expect(borderTop).toBe("1px");
   });
 
-  test("scenario after but has a top border", async ({ page }) => {
+  test("SC-3.7.2: Scenario after then/and/but gets top border — after but", async ({ page }) => {
     await openSession(page);
 
     await pressEnterAndWait(page, "scenario");
@@ -133,7 +133,7 @@ test.describe("visual separation", () => {
     expect(borderTop).toBe("1px");
   });
 
-  test("first given after scenario does not have a separator border", async ({ page }) => {
+  test("SC-3.7.1: Given after then/and/but gets top border — first given after scenario has no border", async ({ page }) => {
     await openSession(page);
 
     await pressEnterAndWait(page, "scenario");
@@ -147,7 +147,7 @@ test.describe("visual separation", () => {
     expect(borderTop).toBe("0px");
   });
 
-  test("separator does not appear in the exported file", async ({ page }) => {
+  test("SC-3.7.1: Given after then/and/but gets top border — separator not in export", async ({ page }) => {
     await openSession(page);
 
     await page.locator('[data-gherkin-type="feature"]').first().click();

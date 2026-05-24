@@ -4,12 +4,12 @@ import { openSession } from "./helpers";
 // spec §7.1
 
 test.describe("Gherkin text import", () => {
-  test("Import button is always visible in empty editor", async ({ page }) => {
+  test("SC-7.1.1: Import button always visible in toolbar", async ({ page }) => {
     await openSession(page);
     await expect(page.locator(".gherkin-import-btn")).toBeVisible();
   });
 
-  test("clicking Import opens the modal", async ({ page }) => {
+  test("SC-7.1.2: Clicking Import opens modal with textarea and buttons", async ({ page }) => {
     await openSession(page);
     await page.locator(".gherkin-import-btn").click();
     await expect(page.locator(".gherkin-import-modal")).toBeVisible();
@@ -18,7 +18,7 @@ test.describe("Gherkin text import", () => {
     await expect(page.locator(".gherkin-import-cancel")).toBeVisible();
   });
 
-  test("Cancel closes modal without inserting blocks", async ({ page }) => {
+  test("SC-7.1.4: Cancel closes modal without inserting", async ({ page }) => {
     await openSession(page);
     await page.locator(".gherkin-import-btn").click();
     await page.locator(".gherkin-import-textarea").fill("Feature: Should not appear");
@@ -27,7 +27,7 @@ test.describe("Gherkin text import", () => {
     await expect(page.locator('[data-gherkin-type="feature"]')).toHaveCount(1);
   });
 
-  test("inserting a valid Gherkin sequence creates the right blocks", async ({ page }) => {
+  test("SC-7.1.3: Inserting Gherkin creates blocks, skips non-matching, clears modal — valid sequence", async ({ page }) => {
     await openSession(page);
     await page.locator(".gherkin-import-btn").click();
     const gherkin = [
@@ -47,7 +47,7 @@ test.describe("Gherkin text import", () => {
     await expect(page.locator('[data-gherkin-type="then"]')).toHaveCount(2);
   });
 
-  test("out-of-order sequence is inserted leniently (Scenario without Feature)", async ({ page }) => {
+  test("SC-7.1.3: Inserting Gherkin creates blocks, skips non-matching, clears modal — out-of-order inserted leniently", async ({ page }) => {
     await openSession(page);
     await page.locator(".gherkin-import-btn").click();
     await page.locator(".gherkin-import-textarea").fill("Scenario: Orphan\nGiven context");
@@ -56,7 +56,7 @@ test.describe("Gherkin text import", () => {
     await expect(page.locator('[data-gherkin-type="given"]')).toHaveCount(2);
   });
 
-  test("modal textarea is cleared after Insert", async ({ page }) => {
+  test("SC-7.1.3: Inserting Gherkin creates blocks, skips non-matching, clears modal — textarea cleared", async ({ page }) => {
     await openSession(page);
     await page.locator(".gherkin-import-btn").click();
     await page.locator(".gherkin-import-textarea").fill("Feature: Test");
@@ -66,7 +66,7 @@ test.describe("Gherkin text import", () => {
     await expect(page.locator(".gherkin-import-textarea")).toHaveValue("");
   });
 
-  test("markdown-prefixed Gherkin (headings and list items) is parsed correctly", async ({ page }) => {
+  test("SC-7.1.3: Inserting Gherkin creates blocks, skips non-matching, clears modal — markdown-prefixed Gherkin parsed", async ({ page }) => {
     await openSession(page);
     await page.locator(".gherkin-import-btn").click();
     const gherkin = [
@@ -86,7 +86,7 @@ test.describe("Gherkin text import", () => {
     await expect(page.locator('[data-gherkin-type="then"]')).toHaveCount(2);
   });
 
-  test("pipe-delimited rows in import text produce a data table block", async ({ page }) => {
+  test("SC-7.1.3: Inserting Gherkin creates blocks, skips non-matching, clears modal — pipe rows become DataTable", async ({ page }) => {
     await openSession(page);
     await page.locator(".gherkin-import-btn").click();
     const gherkin = [
@@ -105,7 +105,7 @@ test.describe("Gherkin text import", () => {
     await expect(page.locator("[data-gherkin-table]")).toHaveCount(1);
   });
 
-  test("plain text with no Gherkin keywords produces no new blocks", async ({ page }) => {
+  test("SC-7.1.3: Inserting Gherkin creates blocks, skips non-matching, clears modal — plain text skipped", async ({ page }) => {
     await openSession(page);
     const blocksBefore = await page.locator(".gherkin-editor [data-gherkin-type]").count();
     await page.locator(".gherkin-import-btn").click();
@@ -115,7 +115,7 @@ test.describe("Gherkin text import", () => {
     await expect(page.locator(".gherkin-editor [data-gherkin-type]")).toHaveCount(blocksBefore);
   });
 
-  test("GIVEN: (uppercase with colon) is parsed as a Given block", async ({ page }) => {
+  test("SC-7.1.3: Inserting Gherkin creates blocks, skips non-matching, clears modal — case-insensitive with colon", async ({ page }) => {
     await openSession(page);
     const givenCountBefore = await page.locator('[data-gherkin-type="given"]').count();
     await page.locator(".gherkin-import-btn").click();
@@ -124,7 +124,7 @@ test.describe("Gherkin text import", () => {
     await expect(page.locator('[data-gherkin-type="given"]')).toHaveCount(givenCountBefore + 1);
   });
 
-  test("Given something (no colon) is parsed as a Given block", async ({ page }) => {
+  test("SC-7.1.3: Inserting Gherkin creates blocks, skips non-matching, clears modal — case-insensitive without colon", async ({ page }) => {
     await openSession(page);
     const givenCountBefore = await page.locator('[data-gherkin-type="given"]').count();
     await page.locator(".gherkin-import-btn").click();

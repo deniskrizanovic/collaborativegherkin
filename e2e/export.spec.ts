@@ -7,7 +7,7 @@ import * as os from "os";
 // spec §3.6
 
 test.describe("export", () => {
-  test("Export button downloads a plain-text file with correct content", async ({ page }) => {
+  test("SC-3.6.1: Export downloads plain-text file in document order — correct content", async ({ page }) => {
     await openSession(page);
 
     // Type into each scaffold block directly
@@ -47,7 +47,7 @@ test.describe("export", () => {
     expect(lines[4]).toBe("Then: the user is redirected to the dashboard");
   });
 
-  test("exported file contains blocks in document order", async ({ page }) => {
+  test("SC-3.6.1: Export downloads plain-text file in document order — block order", async ({ page }) => {
     await openSession(page);
 
     await page.locator('[data-gherkin-type="feature"]').first().click();
@@ -73,7 +73,7 @@ test.describe("export", () => {
     expect(lines[2]).toMatch(/^Given:/);
   });
 
-  test("exported TXT includes image src for image blocks", async ({ page }) => {
+  test("SC-3.6.1: Export downloads plain-text file in document order — image data-URI included", async ({ page }) => {
     await openSession(page);
 
     const PNG_1x1 = Buffer.from(
@@ -105,7 +105,7 @@ test.describe("export", () => {
 
 // spec §3.9
 test.describe("markdown export", () => {
-  test("Export MD button downloads a markdown file with correct content", async ({ page }) => {
+  test("SC-3.9.1: Export MD downloads markdown file in document order", async ({ page }) => {
     await openSession(page);
 
     await page.locator('[data-gherkin-type="feature"]').first().click();

@@ -4,7 +4,7 @@ import { openSession } from "./helpers";
 // spec §3.3
 
 test.describe("block picker", () => {
-  test("typing / opens the picker with valid options on the Feature block", async ({ page }) => {
+  test("SC-3.3.1: Typing / opens picker with valid next blocks and Image", async ({ page }) => {
     await openSession(page);
     await page.locator('[data-gherkin-type="feature"]').click();
     await page.keyboard.type("/");
@@ -12,7 +12,7 @@ test.describe("block picker", () => {
     await expect(page.locator("text=Scenario").first()).toBeVisible();
   });
 
-  test("picker shows only valid next blocks for the current block", async ({ page }) => {
+  test("SC-3.3.1: Typing / opens picker with valid next blocks and Image — only valid types shown", async ({ page }) => {
     await openSession(page);
     // Feature block is already seeded; press Enter to get an untyped line and type / there.
     // In insert mode the options are based on "after Feature": Rule, Background, Scenario.
@@ -31,7 +31,7 @@ test.describe("block picker", () => {
     expect(texts).not.toContain("Feature");
   });
 
-  test("down arrow moves selection", async ({ page }) => {
+  test("SC-3.3.2: Down arrow moves picker focus to next item", async ({ page }) => {
     await openSession(page);
     // Use an untyped line after Feature (insert mode) so there are multiple options
     await page.locator('[data-gherkin-type="feature"]').click();
@@ -47,7 +47,7 @@ test.describe("block picker", () => {
     await expect(secondBtn).toHaveCSS("background", /rgba\(0, 38, 100, 0\.06\)/);
   });
 
-  test("up arrow wraps selection to last item", async ({ page }) => {
+  test("SC-3.3.3: Up arrow moves picker focus to previous item", async ({ page }) => {
     await openSession(page);
     // Use an untyped line after Feature (insert mode) so there are multiple options
     await page.locator('[data-gherkin-type="feature"]').click();
@@ -62,7 +62,7 @@ test.describe("block picker", () => {
     await expect(buttons.nth(count - 1)).toHaveCSS("background", /rgba\(0, 38, 100, 0\.06\)/);
   });
 
-  test("Enter on focused item replaces block type and closes picker", async ({ page }) => {
+  test("SC-3.3.4: Enter on focused picker item inserts type and closes", async ({ page }) => {
     await openSession(page);
     // Type / on the seeded Scenario block — replace mode should change its type
     await page.locator('[data-gherkin-type="scenario"]').click();
@@ -79,7 +79,7 @@ test.describe("block picker", () => {
     expect(types[1]).not.toBe("scenario");
   });
 
-  test("clicking an item replaces block type and closes picker", async ({ page }) => {
+  test("SC-3.3.5: Clicking picker item inserts type and closes", async ({ page }) => {
     await openSession(page);
     await page.locator('[data-gherkin-type="scenario"]').click();
     await page.keyboard.type("/");
@@ -93,7 +93,7 @@ test.describe("block picker", () => {
     expect(types[1]).not.toBe("scenario");
   });
 
-  test("Escape closes picker without inserting", async ({ page }) => {
+  test("SC-3.3.6: Escape closes picker without inserting", async ({ page }) => {
     await openSession(page);
     const blocksBefore = await page.locator(".gherkin-editor [data-gherkin-type]").count();
     await page.locator('[data-gherkin-type="feature"]').click();
@@ -105,7 +105,7 @@ test.describe("block picker", () => {
     await expect(page.locator(".gherkin-editor [data-gherkin-type]")).toHaveCount(blocksBefore);
   });
 
-  test("clicking outside picker closes it without inserting", async ({ page }) => {
+  test("SC-3.3.7: Clicking outside picker closes without inserting", async ({ page }) => {
     await openSession(page);
     const blocksBefore = await page.locator(".gherkin-editor [data-gherkin-type]").count();
     await page.locator('[data-gherkin-type="feature"]').click();
@@ -117,7 +117,7 @@ test.describe("block picker", () => {
     await expect(page.locator(".gherkin-editor [data-gherkin-type]")).toHaveCount(blocksBefore);
   });
 
-  test("Image is always the last option in the picker, regardless of active block type", async ({ page }) => {
+  test("SC-3.3.1: Typing / opens picker with valid next blocks and Image — Image always last", async ({ page }) => {
     await openSession(page);
     // Use Enter from a typed block to create a new untyped line; the slash picker
     // will use prevType of that new line. This is the reliable cursor-placement pattern.

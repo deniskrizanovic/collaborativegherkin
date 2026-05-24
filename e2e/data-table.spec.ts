@@ -7,7 +7,7 @@ import * as os from "os";
 // spec §3.11
 
 test.describe("data table insertion", () => {
-  test("Table button appears in toolbar after inserting a Given block", async ({ page }) => {
+  test("SC-3.11.1: Table button shown when cursor is on step or data table — visible on Given", async ({ page }) => {
     await openSession(page);
 
     await page.locator('[data-gherkin-type="given"]').first().click();
@@ -15,7 +15,7 @@ test.describe("data table insertion", () => {
     await expect(page.locator(".gherkin-toolbar-btn", { hasText: "Table" })).toBeVisible();
   });
 
-  test("Table button is absent when cursor is on a Feature block", async ({ page }) => {
+  test("SC-3.11.1: Table button shown when cursor is on step or data table — absent on Feature", async ({ page }) => {
     await openSession(page);
 
     await page.locator('[data-gherkin-type="feature"]').click();
@@ -23,7 +23,7 @@ test.describe("data table insertion", () => {
     await expect(page.locator(".gherkin-toolbar-btn", { hasText: "Table" })).not.toBeVisible();
   });
 
-  test("clicking Table button inserts a data_table node", async ({ page }) => {
+  test("SC-3.11.2: Clicking Table inserts 2×2 stub with cursor in first cell — node inserted", async ({ page }) => {
     await openSession(page);
 
     await page.locator('[data-gherkin-type="given"]').first().click();
@@ -33,7 +33,7 @@ test.describe("data table insertion", () => {
     await expect(page.locator("[data-gherkin-table]")).toBeVisible();
   });
 
-  test("inserted table has management toolbar with row and column controls", async ({ page }) => {
+  test("SC-3.11.6: Add row and Add column controls available", async ({ page }) => {
     await openSession(page);
 
     await page.locator('[data-gherkin-type="given"]').first().click();
@@ -48,7 +48,7 @@ test.describe("data table insertion", () => {
     await expect(page.locator('.gherkin-table-toolbar-btn[data-action="insert-col-after"]')).toBeVisible();
   });
 
-  test("first cell is interactive immediately after inserting a table", async ({ page }) => {
+  test("SC-3.11.2: Clicking Table inserts 2×2 stub with cursor in first cell — first cell interactive", async ({ page }) => {
     await openSession(page);
     await page.locator('[data-gherkin-type="given"]').first().click();
     await page.locator(".gherkin-toolbar-btn", { hasText: "Table" }).click();
@@ -59,7 +59,7 @@ test.describe("data table insertion", () => {
     await expect(firstCell).toHaveText("header");
   });
 
-  test("Tab moves focus to the next cell", async ({ page }) => {
+  test("SC-3.11.4: Tab moves focus to next cell", async ({ page }) => {
     await openSession(page);
     await page.locator('[data-gherkin-type="given"]').first().click();
     await page.locator(".gherkin-toolbar-btn", { hasText: "Table" }).click();
@@ -70,7 +70,7 @@ test.describe("data table insertion", () => {
     await expect(secondCell).toBeFocused();
   });
 
-  test("Shift+Tab moves focus to the previous cell", async ({ page }) => {
+  test("SC-3.11.5: Shift+Tab moves focus to previous cell", async ({ page }) => {
     await openSession(page);
     await page.locator('[data-gherkin-type="given"]').first().click();
     await page.locator(".gherkin-toolbar-btn", { hasText: "Table" }).click();
@@ -81,7 +81,7 @@ test.describe("data table insertion", () => {
     await expect(firstCell).toBeFocused();
   });
 
-  test("Table option appears in slash command picker when on a step block", async ({ page }) => {
+  test("SC-3.11.3: Slash-command picker includes Table when on step block", async ({ page }) => {
     await openSession(page);
     // Use pressEnterAndWait to reliably navigate to a step block and beyond.
     // After given, pressing Enter creates a when block (NEXT_BLOCK_ON_ENTER["given"]="when").
@@ -99,7 +99,7 @@ test.describe("data table insertion", () => {
 });
 
 test.describe("data table export", () => {
-  test("Export TXT includes pipe-delimited rows for a data table", async ({ page }) => {
+  test("SC-3.11.7: TXT export uses pipe-delimited rows padded to column width", async ({ page }) => {
     await openSession(page);
 
     await page.locator('[data-gherkin-type="feature"]').first().click();
@@ -138,7 +138,7 @@ test.describe("data table export", () => {
     expect(content).toContain("| age");
   });
 
-  test("Export MD includes pipe table with separator for a data table", async ({ page }) => {
+  test("SC-3.11.8: MD export uses header row with separator", async ({ page }) => {
     await openSession(page);
 
     await page.locator('[data-gherkin-type="feature"]').first().click();
