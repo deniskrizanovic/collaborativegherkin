@@ -36,7 +36,7 @@
     "@tiptap/extension-collaboration": "^2.10.4",
     "@tiptap/extension-collaboration-cursor": "^2.10.4",
     "@tiptap/pm": "^2.10.4",
-    "@tiptap/react": "^2.10.4",
+    "@tiptap/react": "^3.23.6",
     "@tiptap/starter-kit": "^2.10.4",
     "dotenv": "^17.4.2",
     "next": "^15.0.0",
