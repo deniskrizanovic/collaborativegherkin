@@ -95,7 +95,7 @@ interface GherkinEditorProps {
 
 const GherkinEditor = forwardRef<GherkinEditorHandle, GherkinEditorProps>(
 function GherkinEditor({ sessionId, wsUrl = "ws://localhost:1234" }, ref) {
-  const { ydoc, provider } = useCollabProvider(sessionId, wsUrl);
+  const { ydoc, provider, connStatus } = useCollabProvider(sessionId, wsUrl);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
 
   const [importOpen, setImportOpen] = useState(false);
@@ -144,7 +144,10 @@ function GherkinEditor({ sessionId, wsUrl = "ws://localhost:1234" }, ref) {
     const handleSynced = () => {
       if (seededRef.current) return;
       seededRef.current = true;
-      if (getAllBlocks(editor.state).length === 0) {
+      // Check the Y.js fragment directly — Tiptap state may not have processed
+      // synced content yet when this fires, causing a second joiner to wipe the doc.
+      const yFragment = ydoc.getXmlFragment("default");
+      if (yFragment.length === 0) {
         editor.commands.setContent({
           type: "doc",
           content: [
@@ -165,7 +168,7 @@ function GherkinEditor({ sessionId, wsUrl = "ws://localhost:1234" }, ref) {
       typedProvider.on("synced", handleSynced);
     }
     return () => { typedProvider.off("synced", handleSynced); };
-  }, [editor, provider]);
+  }, [editor, provider, ydoc]);
 
   useImperativeHandle(ref, () => ({
     getContent: () => getContentText(),
@@ -243,6 +246,14 @@ function GherkinEditor({ sessionId, wsUrl = "ws://localhost:1234" }, ref) {
   );
 
   return (
+    <div className="gherkin-collab-root">
+    {connStatus !== "connected" && (
+      <div className={`gherkin-conn-banner gherkin-conn-banner--${connStatus}`}>
+        {connStatus === "connecting"
+          ? "Connecting to sync server…"
+          : "Sync server disconnected — changes are local only. Run npm run dev:ws to restore collaboration."}
+      </div>
+    )}
     <div
       className="gherkin-editor-wrapper"
       onDrop={(e) => {
@@ -346,6 +357,7 @@ function GherkinEditor({ sessionId, wsUrl = "ws://localhost:1234" }, ref) {
           onClose={closePicker}
         />
       )}
+    </div>
     </div>
   );
 });

@@ -29,6 +29,28 @@ test.describe("real-time collaboration", () => {
     }
   });
 
+  test("second joiner does not wipe content typed by the first user", async ({ page, browser }) => {
+    const sessionId = await createSession(page, "Seed race test");
+    const url = `/sessions/${sessionId}`;
+
+    await page.goto(`http://localhost:3000${url}`);
+    await page.waitForSelector('[data-gherkin-type="feature"]');
+    await page.locator('[data-gherkin-type="feature"]').click();
+    await page.keyboard.type("Do not wipe me");
+
+    const context2 = await browser.newContext({ storageState: "e2e/.auth/user.json" });
+    const page2 = await context2.newPage();
+    try {
+      await page2.goto(`http://localhost:3000${url}`);
+      await page2.waitForSelector('[data-gherkin-type="feature"]');
+
+      await expect(page2.locator('[data-gherkin-type="feature"]')).toContainText("Do not wipe me", { timeout: 5000 });
+      await expect(page.locator('[data-gherkin-type="feature"]')).toContainText("Do not wipe me", { timeout: 5000 });
+    } finally {
+      await context2.close();
+    }
+  });
+
   test("each remote user's cursor is visible in a distinct colour", async ({ page, browser }) => {
     const sessionId = await createSession(page, "Cursor test");
     const url = `/sessions/${sessionId}`;
