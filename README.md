@@ -31,6 +31,9 @@ On top of that, actually getting to gherkin is really hard. But is necessary for
 
 # Screenshot Overview
 
+The following youtube video is a google notebooklm video summary of the following content. Just click the image to watch it. 
+[![AI Generatd Overview](docs/screenshots/ai-video-overview-thumbnails.png)](https://youtu.be/wZZKcGN3uAA)
+
 ## Home page
 
 The home page lists recent sessions and provides a form to create a new one.
