@@ -28,6 +28,8 @@ On top of that, actually getting to gherkin is really hard. But is necessary for
 ![Extracting Gherkin](docs/screenshots/extracting-requirements-into-gherkin.png)
 
 ---
+# Implementation Notes
+This system is about 99.99% written by AI. Including this document, and the video below.
 
 # Screenshot Overview
 
