@@ -232,7 +232,7 @@ async function createSession(baseURL: string, title: string): Promise<string> {
 
   // ── 15. Copy invite link (just the button state) ─────────────────────────
   // Already visible in the session page; screenshot to highlight it
-  await page.screenshot({ path: path.join(OUT, "invite-link.png"), fullPage: false });
+  await page.screenshot({ path: path.join(OUT, "collaboration.png"), fullPage: false });
   console.log("✓ invite-link");
 
   // ── 16. Home page with existing sessions ─────────────────────────────────

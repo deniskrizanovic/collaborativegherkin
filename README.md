@@ -1,7 +1,7 @@
 # Collaborative Gherkin
 
-A real-time collaborative editor for writing Gherkin acceptance criteria. 
-Multiple people share a URL and edit the same document simultaneously. 
+A real-time collaborative editor for writing Gherkin acceptance criteria.
+Multiple people share a URL and edit the same document simultaneously.
 Sessions are ephemeral workspaces — the end product is exported Gherkin text or Markdown for tools like Jira, not a permanent record.
 An AI Coach performs the hard work of checking things, and improving the quality of the Acceptance Criteria.
 
@@ -12,6 +12,7 @@ The collaborative wrestling with the acceptance criteria by the users, the build
 ![Collaborative Gherkin whiteboard](docs/collaborative-gherkin-white-board.png)
 
 ---
+
 # What problem does this solve?
 
 Most teams write Acceptance Criteria in Jira or Confluence — plain text editors with no understanding of Gherkin. The result is structurally broken, inconsistently formatted, and painful to review.
@@ -22,8 +23,14 @@ Quality stays mediocre because there's no guardrail. Good Gherkin takes practice
 
 This tool fixes all three: a structured editor that enforces valid Gherkin, real-time multiplayer so the whole team edits simultaneously, and an AI coach that catches weak criteria before they reach Jira.
 
+On top of that, actually getting to gherkin is really hard. But is necessary for AI driven software builds.
+
+![Extracting Gherkin](docs/screenshots/extracting-requirements-into-gherkin.png)
+
 ---
+
 # Screenshot Overview
+
 ## Home page
 
 The home page lists recent sessions and provides a form to create a new one.
@@ -60,17 +67,18 @@ Click any toolbar button to insert a block at the cursor. The toolbar re-evaluat
 
 Pressing **Enter** at the end of a block auto-inserts the most natural next block type without touching the keyboard shortcut or toolbar:
 
+
 | Current block | Enter produces |
-|---|---|
-| Feature | Scenario |
-| Scenario | Given |
-| Given | When |
-| When | Then |
-| Then | And |
-| And | And |
-| But | And |
-| Background | Given |
-| Rule | Scenario |
+| ------------- | -------------- |
+| Feature       | Scenario       |
+| Scenario      | Given          |
+| Given         | When           |
+| When          | Then           |
+| Then          | And            |
+| And           | And            |
+| But           | And            |
+| Background    | Given          |
+| Rule          | Scenario       |
 
 ![Smart Enter — complete feature/scenario/step sequence](docs/screenshots/smart-enter.png)
 
@@ -119,14 +127,14 @@ Two export buttons are always visible in the toolbar:
 
 ## Real-time collaboration
 
-Share the session URL with teammates. Every editor connected to the same session sees changes live. Y.js CRDTs handle concurrent edits without conflicts. 
+Share the session URL with teammates. Every editor connected to the same session sees changes live. Y.js CRDTs handle concurrent edits without conflicts.
 Collaborators' cursors appear with coloured labels so you can see where everyone is working.
 
 Just like Google Docs, edits are real-time replicated between users.
 /
 To invite someone, click **Copy invite link** next to the session title — it copies the session URL to the clipboard.
 
-![Copy invite link next to the session title](docs/screenshots/invite-link.png)
+![Copy invite link next to the session title](docs/screenshots/collaboration.png)
 
 ---
 
@@ -165,13 +173,14 @@ cp .env.example .env.local
 
 Edit `.env.local` and fill in:
 
-| Variable | Description |
-|---|---|
-| `AUTH_SECRET` | Random string — run `openssl rand -base64 32` |
-| `AUTH_RESEND_KEY` | API key from resend.com |
+
+| Variable             | Description                                            |
+| -------------------- | ------------------------------------------------------ |
+| `AUTH_SECRET`        | Random string — run`openssl rand -base64 32`          |
+| `AUTH_RESEND_KEY`    | API key from resend.com                                |
 | `OPENROUTER_API_KEY` | API key from openrouter.ai — required for AI Coaching |
-| `AUTH_EMAIL_FROM` | A sender address verified in your Resend account |
-| `DATABASE_URL` | Already set to `file:./dev.db` for local SQLite |
+| `AUTH_EMAIL_FROM`    | A sender address verified in your Resend account       |
+| `DATABASE_URL`       | Already set to`file:./dev.db` for local SQLite         |
 
 ```bash
 # 3. Run database migrations
@@ -188,17 +197,18 @@ Visit `http://localhost:3000` — you'll be redirected to the sign-in page. Ente
 
 ### Commands
 
-| Command | What it does |
-|---|---|
-| `npm run dev:all` | Start Next.js + Y.js WebSocket server together |
-| `npm run dev` | Start Next.js dev server only |
-| `npm run dev:ws` | Start Y.js WebSocket sync server only |
-| `npm run build` | Build for production |
-| `npm run test` | Run Vitest unit tests |
-| `npm run test:e2e` | Run Playwright end-to-end tests |
-| `npm run lint` | Lint the codebase |
-| `npx prisma migrate dev` | Apply database migrations |
-| `npx prisma studio` | Browse the database in a UI |
+
+| Command                  | What it does                                   |
+| ------------------------ | ---------------------------------------------- |
+| `npm run dev:all`        | Start Next.js + Y.js WebSocket server together |
+| `npm run dev`            | Start Next.js dev server only                  |
+| `npm run dev:ws`         | Start Y.js WebSocket sync server only          |
+| `npm run build`          | Build for production                           |
+| `npm run test`           | Run Vitest unit tests                          |
+| `npm run test:e2e`       | Run Playwright end-to-end tests                |
+| `npm run lint`           | Lint the codebase                              |
+| `npx prisma migrate dev` | Apply database migrations                      |
+| `npx prisma studio`      | Browse the database in a UI                    |
 
 ---
 
