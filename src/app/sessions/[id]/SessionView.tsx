@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import GherkinEditor, { GherkinEditorHandle } from "@/components/GherkinEditor";
 import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
 
 interface Props {
   sessionId: string;
@@ -168,7 +169,7 @@ export default function SessionView({ sessionId, title }: Props) {
               </button>
             </div>
             <div className="session-review-modal-body">
-              <ReactMarkdown>{lastReviewResult}</ReactMarkdown>
+              <ReactMarkdown remarkPlugins={[remarkGfm]}>{lastReviewResult}</ReactMarkdown>
             </div>
           </div>
         </div>
