@@ -42,7 +42,7 @@ function makeRequest(body: unknown): Request {
 describe("POST /api/llm-review", () => {
   it("returns 200 with result for valid body", async () => {
     const reviewGherkin = vi.fn().mockResolvedValue("some feedback");
-    MockedCoaching.mockImplementation(() => ({ reviewGherkin } as any));
+    MockedCoaching.mockImplementation(function () { return { reviewGherkin } as any; });
 
     const response = await POST(makeRequest({ content: "Given a step", model: AVAILABLE_MODELS[0] }));
     const body = await response.json();
@@ -53,7 +53,7 @@ describe("POST /api/llm-review", () => {
 
   it("returns 400 when content is missing", async () => {
     const reviewGherkin = vi.fn();
-    MockedCoaching.mockImplementation(() => ({ reviewGherkin } as any));
+    MockedCoaching.mockImplementation(function () { return { reviewGherkin } as any; });
 
     const response = await POST(makeRequest({ model: AVAILABLE_MODELS[0] }));
     const body = await response.json();
@@ -64,7 +64,7 @@ describe("POST /api/llm-review", () => {
 
   it("returns 500 with configured message when service throws CoachingConfigError", async () => {
     const reviewGherkin = vi.fn().mockRejectedValue(new CoachingConfigError("not configured"));
-    MockedCoaching.mockImplementation(() => ({ reviewGherkin } as any));
+    MockedCoaching.mockImplementation(function () { return { reviewGherkin } as any; });
 
     const response = await POST(makeRequest({ content: "Given a step", model: AVAILABLE_MODELS[0] }));
     const body = await response.json();
@@ -75,7 +75,7 @@ describe("POST /api/llm-review", () => {
 
   it("returns 429 with retry seconds message when RateLimitError has retryAfterSeconds", async () => {
     const reviewGherkin = vi.fn().mockRejectedValue(new RateLimitError(30));
-    MockedCoaching.mockImplementation(() => ({ reviewGherkin } as any));
+    MockedCoaching.mockImplementation(function () { return { reviewGherkin } as any; });
 
     const response = await POST(makeRequest({ content: "Given a step", model: AVAILABLE_MODELS[0] }));
     const body = await response.json();
@@ -86,7 +86,7 @@ describe("POST /api/llm-review", () => {
 
   it("returns 429 with shortly message when RateLimitError has null retryAfterSeconds", async () => {
     const reviewGherkin = vi.fn().mockRejectedValue(new RateLimitError(null));
-    MockedCoaching.mockImplementation(() => ({ reviewGherkin } as any));
+    MockedCoaching.mockImplementation(function () { return { reviewGherkin } as any; });
 
     const response = await POST(makeRequest({ content: "Given a step", model: AVAILABLE_MODELS[0] }));
     const body = await response.json();
@@ -97,7 +97,7 @@ describe("POST /api/llm-review", () => {
 
   it("returns 502 when service throws CoachingRequestError", async () => {
     const reviewGherkin = vi.fn().mockRejectedValue(new CoachingRequestError("upstream error"));
-    MockedCoaching.mockImplementation(() => ({ reviewGherkin } as any));
+    MockedCoaching.mockImplementation(function () { return { reviewGherkin } as any; });
 
     const response = await POST(makeRequest({ content: "Given a step", model: AVAILABLE_MODELS[0] }));
     const body = await response.json();

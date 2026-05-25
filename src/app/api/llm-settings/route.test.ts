@@ -37,7 +37,7 @@ describe("GET /api/llm-settings", () => {
       model: AVAILABLE_MODELS[0],
       availableModels: [...AVAILABLE_MODELS],
     });
-    MockedCoaching.mockImplementation(() => ({ getSettings } as any));
+    MockedCoaching.mockImplementation(function () { return { getSettings } as any; });
 
     const response = await GET();
     const body = await response.json();
@@ -52,7 +52,7 @@ describe("GET /api/llm-settings", () => {
 describe("PUT /api/llm-settings", () => {
   it("returns 200 with { ok: true } for valid body", async () => {
     const updateSettings = vi.fn().mockResolvedValue(undefined);
-    MockedCoaching.mockImplementation(() => ({ updateSettings } as any));
+    MockedCoaching.mockImplementation(function () { return { updateSettings } as any; });
 
     const response = await PUT(makeRequest({ prompt: "a long enough prompt here" }));
     const body = await response.json();
@@ -63,7 +63,7 @@ describe("PUT /api/llm-settings", () => {
 
   it("returns 400 when model is not in AVAILABLE_MODELS", async () => {
     const updateSettings = vi.fn().mockResolvedValue(undefined);
-    MockedCoaching.mockImplementation(() => ({ updateSettings } as any));
+    MockedCoaching.mockImplementation(function () { return { updateSettings } as any; });
 
     const response = await PUT(makeRequest({ model: "not-a-real-model" }));
     const body = await response.json();

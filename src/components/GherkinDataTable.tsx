@@ -52,7 +52,7 @@ export const GherkinDataTable = Node.create({
         if (serialized === committedRows) return;
         committedRows = serialized;
         nodeEditor.commands.command(({ tr }) => {
-          tr.setNodeMarkup(getPos(), undefined, { rows: serialized });
+          tr.setNodeMarkup(getPos()!, undefined, { rows: serialized });
           return true;
         });
       }
@@ -222,7 +222,7 @@ export const GherkinDataTable = Node.create({
       deleteTableBtn.addEventListener("mousedown", (e) => {
         e.preventDefault();
         if (typeof getPos !== "function") return;
-        const pos = getPos();
+        const pos = getPos()!;
         nodeEditor.commands.command(({ tr }) => {
           tr.delete(pos, pos + nodeEditor.state.doc.nodeAt(pos)!.nodeSize);
           return true;

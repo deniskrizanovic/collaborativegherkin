@@ -1,11 +1,10 @@
 "use client";
 
 import React, { forwardRef, useCallback, useEffect, useImperativeHandle, useRef, useState } from "react";
-import { useEditor, EditorContent } from "@tiptap/react";
+import { useEditor, useEditorState, EditorContent } from "@tiptap/react";
 import { Node, mergeAttributes } from "@tiptap/core";
 import StarterKit from "@tiptap/starter-kit";
 import Collaboration from "@tiptap/extension-collaboration";
-import CollaborationCursor from "@tiptap/extension-collaboration-cursor";
 import { GherkinBlockType, GHERKIN_LABELS, exportToMarkdown, parseGherkin, DataTableBlock } from "@/lib/gherkin";
 import { GherkinDataTable } from "./GherkinDataTable";
 import { BlockPicker, getValidNextTypes } from "./BlockPicker";
@@ -76,13 +75,6 @@ const GherkinParagraph = Node.create({
   },
 });
 
-const CURSOR_COLORS = [
-  "#3b82f6", "#10b981", "#f59e0b", "#ef4444", "#8b5cf6", "#06b6d4",
-];
-
-function randomColor() {
-  return CURSOR_COLORS[Math.floor(Math.random() * CURSOR_COLORS.length)];
-}
 
 export interface GherkinEditorHandle {
   getContent: () => string;
@@ -111,15 +103,11 @@ function GherkinEditor({ sessionId, wsUrl = "ws://localhost:1234" }, ref) {
   const editor = useEditor({
     immediatelyRender: false,
     extensions: [
-      StarterKit.configure({ history: false, paragraph: false }),
+      StarterKit.configure({ undoRedo: false, paragraph: false, trailingNode: false, link: false, underline: false }),
       GherkinParagraph,
       GherkinImage,
       GherkinDataTable,
       Collaboration.configure({ document: ydoc }),
-      CollaborationCursor.configure({
-        provider,
-        user: { name: "Anonymous", color: randomColor() },
-      }),
     ],
     content: "",
     editorProps: {
@@ -231,9 +219,14 @@ function GherkinEditor({ sessionId, wsUrl = "ws://localhost:1234" }, ref) {
     setImportText("");
   }
 
-  const prevBlockType = editor
-    ? getCurrentBlockType(editor.state) ?? getPreviousBlockType(editor.state)
-    : null;
+  const { prevBlockType } = useEditorState({
+    editor,
+    selector: (ctx) => ({
+      prevBlockType: ctx.editor
+        ? (getCurrentBlockType(ctx.editor.state) ?? getPreviousBlockType(ctx.editor.state))
+        : null,
+    }),
+  }) ?? { prevBlockType: null };
   const validNext = getValidNextTypes(prevBlockType);
 
   const handleFileInputChange = useCallback(
