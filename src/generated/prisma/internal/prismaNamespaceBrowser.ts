@@ -54,8 +54,7 @@ export const ModelName = {
   User: 'User',
   Account: 'Account',
   VerificationToken: 'VerificationToken',
-  Session: 'Session',
-  AppSetting: 'AppSetting'
+  Session: 'Session'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -113,21 +112,14 @@ export const SessionScalarFieldEnum = {
   id: 'id',
   title: 'title',
   content: 'content',
+  prompt: 'prompt',
+  model: 'model',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt',
   userId: 'userId'
 } as const
 
 export type SessionScalarFieldEnum = (typeof SessionScalarFieldEnum)[keyof typeof SessionScalarFieldEnum]
-
-
-export const AppSettingScalarFieldEnum = {
-  key: 'key',
-  value: 'value',
-  updatedAt: 'updatedAt'
-} as const
-
-export type AppSettingScalarFieldEnum = (typeof AppSettingScalarFieldEnum)[keyof typeof AppSettingScalarFieldEnum]
 
 
 export const SortOrder = {

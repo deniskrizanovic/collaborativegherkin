@@ -2,7 +2,8 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { db } from "@/lib/db";
 import logger from "@/lib/logger";
-import { AVAILABLE_MODELS } from "@/lib/llm-constants";
+import { AVAILABLE_MODELS, DEFAULT_MODEL, DEFAULT_PROMPT } from "@/lib/llm-constants";
+import { Session, SessionNotFoundError } from "@/lib/session";
 import {
   Coaching,
   CoachingConfigError,
@@ -12,7 +13,7 @@ import {
 
 const PostSchema = z.object({
   content: z.string().min(1),
-  model: z.enum(AVAILABLE_MODELS),
+  sessionId: z.string(),
 });
 
 export async function POST(request: Request) {
@@ -22,15 +23,32 @@ export async function POST(request: Request) {
     if (!parsed.success) {
       return NextResponse.json({ error: parsed.error.flatten() }, { status: 400 });
     }
-    const { content, model } = parsed.data;
+    const { content, sessionId } = parsed.data;
+
+    const sessionService = new Session({ session: db.session });
+    let sessionRecord;
+    try {
+      sessionRecord = await sessionService.get(sessionId);
+    } catch (err) {
+      if (err instanceof SessionNotFoundError) {
+        return NextResponse.json({ error: "Session not found" }, { status: 404 });
+      }
+      throw err;
+    }
+
+    const prompt = sessionRecord.prompt ?? DEFAULT_PROMPT;
+    const model = sessionRecord.model ?? DEFAULT_MODEL;
+
+    if (!AVAILABLE_MODELS.includes(model as (typeof AVAILABLE_MODELS)[number])) {
+      return NextResponse.json({ error: "Stored model is no longer available" }, { status: 400 });
+    }
 
     const coaching = new Coaching({
-      appSetting: db.appSetting,
       fetch: globalThis.fetch,
       apiKey: process.env.OPENROUTER_API_KEY,
     });
 
-    const result = await coaching.reviewGherkin(content, model);
+    const result = await coaching.reviewGherkin(content, prompt, model);
     return NextResponse.json({ result });
   } catch (err) {
     if (err instanceof RateLimitError) {

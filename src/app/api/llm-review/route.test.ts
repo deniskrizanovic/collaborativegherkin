@@ -1,9 +1,26 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { AVAILABLE_MODELS } from "@/lib/llm-constants";
+import { AVAILABLE_MODELS, DEFAULT_MODEL, DEFAULT_PROMPT } from "@/lib/llm-constants";
+
+const fakeSessionRecord = {
+  id: "session-1",
+  title: "Test",
+  prompt: null,
+  model: null,
+  createdAt: new Date(),
+  userId: "user-1",
+};
 
 vi.mock("@/lib/db", () => ({
-  db: { appSetting: {} },
+  db: { session: {} },
 }));
+
+vi.mock("@/lib/session", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("@/lib/session")>();
+  return {
+    ...actual,
+    Session: vi.fn(),
+  };
+});
 
 vi.mock("@/lib/coaching", async (importOriginal) => {
   const actual = await importOriginal<typeof import("@/lib/coaching")>();
@@ -17,6 +34,7 @@ vi.mock("@/lib/logger", () => ({
   default: { error: vi.fn(), info: vi.fn() },
 }));
 
+import { Session, SessionNotFoundError } from "@/lib/session";
 import {
   Coaching,
   CoachingConfigError,
@@ -25,10 +43,14 @@ import {
 } from "@/lib/coaching";
 import { POST } from "./route";
 
+const MockedSession = vi.mocked(Session);
 const MockedCoaching = vi.mocked(Coaching);
 
 beforeEach(() => {
   vi.clearAllMocks();
+  MockedSession.mockImplementation(function () {
+    return { get: vi.fn().mockResolvedValue(fakeSessionRecord) } as any;
+  });
 });
 
 function makeRequest(body: unknown): Request {
@@ -44,29 +66,75 @@ describe("POST /api/llm-review", () => {
     const reviewGherkin = vi.fn().mockResolvedValue("some feedback");
     MockedCoaching.mockImplementation(function () { return { reviewGherkin } as any; });
 
-    const response = await POST(makeRequest({ content: "Given a step", model: AVAILABLE_MODELS[0] }));
+    const response = await POST(makeRequest({ content: "Given a step", sessionId: "session-1" }));
     const body = await response.json();
 
     expect(response.status).toBe(200);
     expect(body).toEqual({ result: "some feedback" });
   });
 
-  it("returns 400 when content is missing", async () => {
-    const reviewGherkin = vi.fn();
+  it("calls reviewGherkin with DEFAULT_PROMPT when session has no prompt", async () => {
+    const reviewGherkin = vi.fn().mockResolvedValue("ok");
     MockedCoaching.mockImplementation(function () { return { reviewGherkin } as any; });
 
-    const response = await POST(makeRequest({ model: AVAILABLE_MODELS[0] }));
+    await POST(makeRequest({ content: "Given a step", sessionId: "session-1" }));
+
+    expect(reviewGherkin).toHaveBeenCalledWith("Given a step", DEFAULT_PROMPT, DEFAULT_MODEL);
+  });
+
+  it("calls reviewGherkin with session prompt and model when set", async () => {
+    MockedSession.mockImplementation(function () {
+      return {
+        get: vi.fn().mockResolvedValue({
+          ...fakeSessionRecord,
+          prompt: "custom prompt text here ok",
+          model: AVAILABLE_MODELS[1],
+        }),
+      } as any;
+    });
+    const reviewGherkin = vi.fn().mockResolvedValue("ok");
+    MockedCoaching.mockImplementation(function () { return { reviewGherkin } as any; });
+
+    await POST(makeRequest({ content: "Given a step", sessionId: "session-1" }));
+
+    expect(reviewGherkin).toHaveBeenCalledWith("Given a step", "custom prompt text here ok", AVAILABLE_MODELS[1]);
+  });
+
+  it("returns 400 when content is missing", async () => {
+    const response = await POST(makeRequest({ sessionId: "session-1" }));
     const body = await response.json();
 
     expect(response.status).toBe(400);
     expect(body.error).toBeDefined();
   });
 
+  it("returns 400 when sessionId is missing", async () => {
+    const response = await POST(makeRequest({ content: "Given a step" }));
+    const body = await response.json();
+
+    expect(response.status).toBe(400);
+    expect(body.error).toBeDefined();
+  });
+
+  it("returns 404 when session is not found", async () => {
+    MockedSession.mockImplementation(function () {
+      return {
+        get: vi.fn().mockRejectedValue(new SessionNotFoundError("session-1")),
+      } as any;
+    });
+
+    const response = await POST(makeRequest({ content: "Given a step", sessionId: "session-1" }));
+    const body = await response.json();
+
+    expect(response.status).toBe(404);
+    expect(body.error).toBe("Session not found");
+  });
+
   it("returns 500 with configured message when service throws CoachingConfigError", async () => {
     const reviewGherkin = vi.fn().mockRejectedValue(new CoachingConfigError("not configured"));
     MockedCoaching.mockImplementation(function () { return { reviewGherkin } as any; });
 
-    const response = await POST(makeRequest({ content: "Given a step", model: AVAILABLE_MODELS[0] }));
+    const response = await POST(makeRequest({ content: "Given a step", sessionId: "session-1" }));
     const body = await response.json();
 
     expect(response.status).toBe(500);
@@ -77,7 +145,7 @@ describe("POST /api/llm-review", () => {
     const reviewGherkin = vi.fn().mockRejectedValue(new RateLimitError(30));
     MockedCoaching.mockImplementation(function () { return { reviewGherkin } as any; });
 
-    const response = await POST(makeRequest({ content: "Given a step", model: AVAILABLE_MODELS[0] }));
+    const response = await POST(makeRequest({ content: "Given a step", sessionId: "session-1" }));
     const body = await response.json();
 
     expect(response.status).toBe(429);
@@ -88,7 +156,7 @@ describe("POST /api/llm-review", () => {
     const reviewGherkin = vi.fn().mockRejectedValue(new RateLimitError(null));
     MockedCoaching.mockImplementation(function () { return { reviewGherkin } as any; });
 
-    const response = await POST(makeRequest({ content: "Given a step", model: AVAILABLE_MODELS[0] }));
+    const response = await POST(makeRequest({ content: "Given a step", sessionId: "session-1" }));
     const body = await response.json();
 
     expect(response.status).toBe(429);
@@ -99,7 +167,7 @@ describe("POST /api/llm-review", () => {
     const reviewGherkin = vi.fn().mockRejectedValue(new CoachingRequestError("upstream error"));
     MockedCoaching.mockImplementation(function () { return { reviewGherkin } as any; });
 
-    const response = await POST(makeRequest({ content: "Given a step", model: AVAILABLE_MODELS[0] }));
+    const response = await POST(makeRequest({ content: "Given a step", sessionId: "session-1" }));
     const body = await response.json();
 
     expect(response.status).toBe(502);

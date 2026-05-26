@@ -61,8 +61,3 @@ export type VerificationToken = Prisma.VerificationTokenModel
  * 
  */
 export type Session = Prisma.SessionModel
-/**
- * Model AppSetting
- * 
- */
-export type AppSetting = Prisma.AppSettingModel

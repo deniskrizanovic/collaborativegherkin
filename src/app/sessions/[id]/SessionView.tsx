@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import GherkinEditor, { GherkinEditorHandle } from "@/components/GherkinEditor";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
+import { AVAILABLE_MODELS, DEFAULT_MODEL, DEFAULT_PROMPT } from "@/lib/llm-constants";
 
 interface Props {
   sessionId: string;
@@ -15,8 +16,7 @@ export default function SessionView({ sessionId, title }: Props) {
   const editorRef = useRef<GherkinEditorHandle>(null);
 
   // LLM settings
-  const [availableModels, setAvailableModels] = useState<string[]>([]);
-  const [selectedModel, setSelectedModel] = useState("");
+  const [selectedModel, setSelectedModel] = useState<string>(DEFAULT_MODEL);
 
   // Review modal
   const [reviewing, setReviewing] = useState(false);
@@ -25,19 +25,18 @@ export default function SessionView({ sessionId, title }: Props) {
 
   // Prompt edit modal
   const [promptOpen, setPromptOpen] = useState(false);
-  const [promptText, setPromptText] = useState("");
+  const [promptText, setPromptText] = useState(DEFAULT_PROMPT);
   const [savingPrompt, setSavingPrompt] = useState(false);
 
   useEffect(() => {
-    fetch("/api/llm-settings")
+    fetch(`/api/sessions/${sessionId}`)
       .then((r) => r.json())
-      .then((data: { availableModels: string[]; model: string; prompt: string }) => {
-        setAvailableModels(data.availableModels);
-        setSelectedModel(data.model);
-        setPromptText(data.prompt);
+      .then((data: { model: string | null; prompt: string | null }) => {
+        setSelectedModel(data.model ?? DEFAULT_MODEL);
+        setPromptText(data.prompt ?? DEFAULT_PROMPT);
       })
       .catch(() => {});
-  }, []);
+  }, [sessionId]);
 
   // Close review modal on Escape
   useEffect(() => {
@@ -64,8 +63,8 @@ export default function SessionView({ sessionId, title }: Props) {
 
   const handleModelChange = async (model: string) => {
     setSelectedModel(model);
-    await fetch("/api/llm-settings", {
-      method: "PUT",
+    await fetch(`/api/sessions/${sessionId}`, {
+      method: "PATCH",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ model }),
     });
@@ -79,7 +78,7 @@ export default function SessionView({ sessionId, title }: Props) {
       const res = await fetch("/api/llm-review", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ content, model: selectedModel }),
+        body: JSON.stringify({ content, sessionId }),
       });
       const data = await res.json() as { result?: string; error?: string };
       setLastReviewResult(data.result ?? data.error ?? "No response received.");
@@ -95,8 +94,8 @@ export default function SessionView({ sessionId, title }: Props) {
   const handleSavePrompt = async () => {
     setSavingPrompt(true);
     try {
-      await fetch("/api/llm-settings", {
-        method: "PUT",
+      await fetch(`/api/sessions/${sessionId}`, {
+        method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ prompt: promptText }),
       });
@@ -106,10 +105,7 @@ export default function SessionView({ sessionId, title }: Props) {
     }
   };
 
-  const handleOpenPrompt = async () => {
-    const res = await fetch("/api/llm-settings");
-    const data = await res.json() as { prompt: string };
-    setPromptText(data.prompt);
+  const handleOpenPrompt = () => {
     setPromptOpen(true);
   };
 
@@ -137,7 +133,7 @@ export default function SessionView({ sessionId, title }: Props) {
           onChange={(e) => handleModelChange(e.target.value)}
           disabled={reviewing}
         >
-          {availableModels.map((m) => (
+          {AVAILABLE_MODELS.map((m) => (
             <option key={m} value={m}>{m}</option>
           ))}
         </select>
