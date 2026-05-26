@@ -87,7 +87,7 @@ DATABASE_URL="postgresql://..." npm run db:migrate:dev:postgres
 DATABASE_URL="postgresql://..." npm run db:migrate:prod
 ```
 
-Five models: `User`, `Account`, `Session`, `VerificationToken`, `AppSetting`. The session's `content` field stores `{}` by default — actual document state lives in Y.js (in-memory in the WebSocket server), not in the database.
+Four models: `User`, `Account`, `Session`, `VerificationToken`. The `Session` model carries optional `prompt` and `model` columns for per-session coaching configuration; both are `null` by default and fall back to the constants in `src/lib/llm-constants.ts`. The session's `content` field stores `{}` by default — actual document state lives in Y.js (in-memory in the WebSocket server), not in the database.
 
 ### Auth
 
