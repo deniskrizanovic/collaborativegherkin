@@ -38,7 +38,7 @@ There is a notebookllm podcast of the story of how the AI built this whole thing
 
 # Screenshot Overview
 
-The following youtube video is a google notebooklm video summary of the following content. Just click the image to watch it. 
+The following youtube video is a google notebooklm video summary of the below screenshot content. Just click the image to watch it. The screenshots walk you through all the main features of this tool
 [![AI Generated Overview](docs/screenshots/ai-video-overview-thumbnails.png)](https://youtu.be/wZZKcGN3uAA)
 
 ## Home page
