@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState, MutableRefObject } from "react";
+import { useCallback, useEffect, useLayoutEffect, useRef, useState, MutableRefObject } from "react";
 import { Editor } from "@tiptap/react";
 import { TextSelection } from "@tiptap/pm/state";
 import {
@@ -100,7 +100,7 @@ export function useGherkinKeyboard(
 } {
   const [pickerState, setPickerState] = useState<PickerState>(CLOSED_PICKER);
   const pickerStateRef = useRef(pickerState);
-  useEffect(() => { pickerStateRef.current = pickerState; }, [pickerState]);
+  useLayoutEffect(() => { pickerStateRef.current = pickerState; });
 
   // Keep triggerFileUpload stable in a ref so insertBlock doesn't re-create on every render
   const triggerFileUploadRef = useRef(triggerFileUpload);
@@ -222,8 +222,8 @@ export function useGherkinKeyboard(
   );
 
   useEffect(() => {
-    if (!pickerState.show) return;
     const handler = (e: KeyboardEvent) => {
+      if (!pickerStateRef.current.show) return;
       if (e.key === "ArrowDown") {
         e.preventDefault();
         e.stopPropagation();
@@ -247,7 +247,7 @@ export function useGherkinKeyboard(
     };
     document.addEventListener("keydown", handler, true);
     return () => document.removeEventListener("keydown", handler, true);
-  }, [pickerState.show, closePicker, insertBlock]);
+  }, [closePicker, insertBlock]);
 
   const handlePickerSelect = useCallback(
     (type: InsertableType) => {
