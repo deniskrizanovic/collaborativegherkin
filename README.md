@@ -33,7 +33,7 @@ This system is about 99.99% written by AI. Including this document, and the vide
 There is a notebookllm podcast of the story of how the AI built this whole thing here ->
 
 
-[![AI Generated Podcast of Implementation Overview](docs/screenshots/ai-video-overview-thumbnails.png)](https://youtu.be/jkzGXqDRDV4)
+[![AI Generated Podcast of Implementation Overview](docs/architecture-review/podcast-frontcover.png)](https://youtu.be/jkzGXqDRDV4)
 
 
 # Screenshot Overview
