@@ -32,13 +32,14 @@ On top of that, actually getting to gherkin is really hard. But is necessary for
 This system is about 99.99% written by AI. Including this document, and the video below.
 There is a notebookllm podcast of the story of how the AI built this whole thing here ->
 
-https://github.com/deniskrizanovic/collaborativegherkin/raw/main/docs/architecture-review/How_AI_built_software_in_ten_days.mp4
+
+[![AI Generated Podcast of Implementation Overview](docs/screenshots/ai-video-overview-thumbnails.png)](https://youtu.be/jkzGXqDRDV4)
 
 
 # Screenshot Overview
 
 The following youtube video is a google notebooklm video summary of the following content. Just click the image to watch it. 
-[![AI Generatd Overview](docs/screenshots/ai-video-overview-thumbnails.png)](https://youtu.be/wZZKcGN3uAA)
+[![AI Generated Overview](docs/screenshots/ai-video-overview-thumbnails.png)](https://youtu.be/wZZKcGN3uAA)
 
 ## Home page
 
