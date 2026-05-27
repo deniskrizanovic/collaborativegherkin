@@ -13,7 +13,7 @@
     "typecheck": "tsc --noEmit",
     "test": "vitest",
     "test:e2e": "playwright test",
-    "test:all": "run-p \"test -- --run\" test:e2e",
+    "test:all": "run-p lint typecheck \"test -- --run\" test:e2e",
     "seed": "npx tsx prisma/seed.ts",
     "db:generate:postgres": "prisma generate --config prisma/postgres/prisma.config.ts",
     "db:migrate:dev:postgres": "prisma migrate dev --config prisma/postgres/prisma.config.ts && prisma generate --config prisma/postgres/prisma.config.ts",

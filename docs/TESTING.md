@@ -12,7 +12,9 @@ application and a different cost/confidence trade-off.
 | 2 — API routes | `src/app/api/sessions/`                       | Vitest (mocked db) | Done   |
 | 3 — Editor UI  | Browser interactions, real-time collaboration | Playwright         | Done   |
 
-## Run all layers in sequentially
+## Run all layers sequentially
+
+Runs lint, typecheck, unit/API tests, and E2E tests in parallel.
 
 ```bash
 npm run test:all
