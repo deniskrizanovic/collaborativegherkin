@@ -38,7 +38,9 @@ There is a notebookllm podcast of the story of how the AI built this whole thing
 
 # Screenshot Overview
 
-The following youtube video is a google notebooklm video summary of the below screenshot content. Just click the image to watch it. The screenshots walk you through all the main features of this tool
+The following youtube video is a google notebooklm video summary of the below screenshot content. 
+Just click the image to watch it. The screenshots walk you through all the main features of this tool
+
 [![AI Generated Overview](docs/screenshots/ai-video-overview-thumbnails.png)](https://youtu.be/wZZKcGN3uAA)
 
 ## Home page
@@ -141,7 +143,7 @@ Share the session URL with teammates. Every editor connected to the same session
 Collaborators' cursors appear with coloured labels so you can see where everyone is working.
 
 Just like Google Docs, edits are real-time replicated between users.
-/
+
 To invite someone, click **Copy invite link** next to the session title — it copies the session URL to the clipboard.
 
 ![Copy invite link next to the session title](docs/screenshots/collaboration.png)
