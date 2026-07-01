@@ -47,3 +47,8 @@ prisma/migrations/dev.db
 test-results/
 playwright-report/
 e2e/.auth/
+
+# OpenSpec skills and commands
+.claude/skills/openspec-*/
+.claude/commands/opsx/
+**/openspec/config.yaml
