@@ -1,0 +1,5 @@
+{
+  "branch_pattern": "issue/(\\d+)",
+  "output_path": "docs/economics/token-tracker.md",
+  "repo_url": "https://github.com/deniskrizanovic/collaborativegherkin"
+}
