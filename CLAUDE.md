@@ -71,6 +71,19 @@ logs/             # Written at runtime — never commit
 Do not create git commits unless the user explicitly asks. Implement, verify,
 and report — then wait for a commit instruction.
 
+## Git Workflow
+
+The "## Git commits" gate above still applies: never commit, push, or merge
+unless the user explicitly asks. The steps below describe *how* to carry out
+Git work once the user has asked for it — they are not license to act
+autonomously.
+
+- Check branch before any edit: `git branch --show-current`
+- **Never edit on `main` or `master`** — tell user to create feature branch first
+- When asked to commit: feature branch → commit → push → merge to main → push main → delete branch
+- Conventional commits: `type[scope]: description` (feat/fix/docs/refactor/chore/etc.)
+- Never use `--no-verify` unless user explicitly asks
+
 ## Anti-patterns to avoid
 - Do not use `console.log` in server-side code — use the Pino logger.
 - Do not allow Gherkin block sequences that fail `canFollow()` in gherkin.ts.
