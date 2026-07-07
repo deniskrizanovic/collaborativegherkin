@@ -11,18 +11,22 @@ The status-code ordering MUST be: unauthenticated → 401; session not found →
 authenticated non-owner → 403; owner → 200.
 
 #### Scenario: Unauthenticated request is rejected
+> **Tests:** [`src/app/api/sessions/[id]/route.test.ts`](../../../../../src/app/api/sessions/[id]/route.test.ts) — GET returns 401 when unauthenticated
 - **WHEN** an unauthenticated caller requests `GET /api/sessions/{id}`
 - **THEN** the API responds with 401 and no session data
 
 #### Scenario: Owner reads their session
+> **Tests:** [`src/app/api/sessions/[id]/route.test.ts`](../../../../../src/app/api/sessions/[id]/route.test.ts) — GET returns 200 with session including prompt and model
 - **WHEN** the authenticated owner requests `GET /api/sessions/{id}`
 - **THEN** the API responds with 200 and the session body (including `prompt` and `model`)
 
 #### Scenario: Non-owner is forbidden
+> **Tests:** none
 - **WHEN** an authenticated user requests `GET /api/sessions/{id}` for a session whose `userId` is a different user
 - **THEN** the API responds with 403 and no session data
 
 #### Scenario: Missing session returns not found
+> **Tests:** [`src/app/api/sessions/[id]/route.test.ts`](../../../../../src/app/api/sessions/[id]/route.test.ts) — GET returns 404 when session is not found
 - **WHEN** an authenticated caller requests `GET /api/sessions/{id}` for an id that does not exist
 - **THEN** the API responds with 404
 
@@ -37,17 +41,21 @@ The status-code ordering MUST be: unauthenticated → 401; invalid body → 400;
 not found → 404; authenticated non-owner → 403; owner with valid body → 200.
 
 #### Scenario: Unauthenticated request is rejected
+> **Tests:** [`src/app/api/sessions/[id]/route.test.ts`](../../../../../src/app/api/sessions/[id]/route.test.ts) — PATCH returns 401 when unauthenticated
 - **WHEN** an unauthenticated caller sends `PATCH /api/sessions/{id}`
 - **THEN** the API responds with 401 and makes no change
 
 #### Scenario: Owner updates their session
+> **Tests:** [`src/app/api/sessions/[id]/route.test.ts`](../../../../../src/app/api/sessions/[id]/route.test.ts) — PATCH returns 200 when model/prompt is updated
 - **WHEN** the authenticated owner sends a valid `PATCH /api/sessions/{id}` body
 - **THEN** the API responds with 200 and the update is applied
 
 #### Scenario: Non-owner is forbidden
+> **Tests:** none
 - **WHEN** an authenticated user sends `PATCH /api/sessions/{id}` for a session whose `userId` is a different user
 - **THEN** the API responds with 403 and no change is made
 
 #### Scenario: Invalid body is rejected before ownership disclosure
+> **Tests:** [`src/app/api/sessions/[id]/route.test.ts`](../../../../../src/app/api/sessions/[id]/route.test.ts) — PATCH returns 400 when prompt too short / model invalid
 - **WHEN** an authenticated caller sends `PATCH /api/sessions/{id}` with a body that fails validation
 - **THEN** the API responds with 400
