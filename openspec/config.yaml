@@ -1,0 +1,33 @@
+schema: spec-driven
+
+# Project context (shown to AI when creating artifacts).
+context: |
+  Collaborative Gherkin — a real-time collaborative Gherkin editor. Multiple
+  people share one central web app and edit the same Gherkin acceptance
+  criteria simultaneously, seeing each other's changes live. Sessions produce
+  Gherkin that users export to tools like Jira. The app is a transient
+  workspace, not a permanent archive — sessions are ephemeral working docs.
+
+  Tech stack:
+  - Framework: Next.js 15 (App Router), TypeScript front end and back end
+  - Editor: Tiptap with Y.js for real-time collaboration
+  - Database: SQLite (dev) / PostgreSQL (production) via Prisma
+  - Auth: NextAuth.js v5 (Resend magic link, JWT strategy)
+  - Validation: Zod (validate on the server, not client-only)
+  - Logging: Pino (use the logger, never console.log in server code)
+  - Testing: Vitest (unit) and Playwright (e2e)
+
+  All Gherkin structure/validation rules live in src/lib/gherkin.ts and must
+  not be duplicated. Wrap DB, network, and filesystem calls in try/catch and
+  log before re-throwing.
+
+# Per-artifact rules.
+rules:
+  specs:
+    - >-
+      Every `#### Scenario:` MUST be immediately followed by a `> **Tests:**`
+      line citing the e2e/unit spec(s) that exercise it, or the literal word
+      `none` when no test exists yet. Silence is not permitted — an absent line
+      is indistinguishable from an overlooked one. Enforced by the
+      `lint:specs` traceability gate over both openspec/specs/** and
+      openspec/changes/*/specs/**.
