@@ -1,3 +1,8 @@
+<!-- SUPERSEDED: Migrated to OpenSpec. The structured, traceability-enforced
+     source of truth now lives at `openspec/specs/data-model/spec.md`. This file
+     is kept as human-readable narrative only; edit the OpenSpec spec for
+     normative changes. -->
+
 # 5. Data Model Constraints
 
 #### SC-5.1 Session has CUID, title constraints, timestamps, and user
