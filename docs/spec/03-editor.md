@@ -1,3 +1,10 @@
+<!-- SUPERSEDED: Migrated to OpenSpec across three capabilities:
+     `openspec/specs/gherkin-editor/spec.md` (core: 3.1–3.4, 3.7, 3.8, 3.10, 3.11),
+     `openspec/specs/realtime-collaboration/spec.md` (3.5), and
+     `openspec/specs/gherkin-export/spec.md` (3.6, 3.9, and data-table export).
+     This file is kept as human-readable narrative only; edit the OpenSpec specs
+     for normative changes. -->
+
 # 3. The Editor
 
 ## 3.1 Loading

@@ -1,3 +1,8 @@
+<!-- SUPERSEDED: Migrated to OpenSpec. The structured, traceability-enforced
+     source of truth now lives at `openspec/specs/llm-review/spec.md`. This file
+     is kept as human-readable narrative only; edit the OpenSpec spec for
+     normative changes. -->
+
 # 8. LLM Review
 
 The LLM review feature allows users to send the current session's Gherkin content to a large language model for critique and improvement suggestions. The model and prompt are stored per-session as nullable columns on the `Session` record. If no value is set for a session, the app falls back to the default model and prompt constants in `src/lib/llm-constants.ts`.

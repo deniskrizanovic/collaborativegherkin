@@ -22,6 +22,10 @@ const eslintConfig = [
       "out/**",
       "build/**",
       "next-env.d.ts",
+      // Generated Playwright artifacts (also gitignored). Excluded so ESLint
+      // does not race Playwright creating/removing these dirs under `run-p`.
+      "test-results/**",
+      "playwright-report/**",
     ],
   },
 ];

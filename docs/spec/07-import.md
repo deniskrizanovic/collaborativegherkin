@@ -1,3 +1,8 @@
+<!-- SUPERSEDED: Migrated to OpenSpec. The structured, traceability-enforced
+     source of truth now lives at `openspec/specs/gherkin-import/spec.md`. This
+     file is kept as human-readable narrative only; edit the OpenSpec spec for
+     normative changes. -->
+
 ## 7.1 Gherkin text import
 
 #### SC-7.1.1 Import button always visible in toolbar
