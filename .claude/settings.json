@@ -7,7 +7,7 @@
           {
             "type": "command",
             "if": "Bash(git commit*)",
-            "command": "cmd=$(jq -r '.tool_input.command'); if echo \"$cmd\" | grep -qE '^git commit'; then cd /Users/dkrizanovic/projects/collaborativegherkin && result=$(npm test -- --run 2>&1); code=$?; if [ $code -ne 0 ]; then echo \"$result\" >&2; printf '{\"continue\": false, \"stopReason\": \"Tests failed — fix all failing tests before committing.\"}'; fi; fi",
+            "command": "cmd=$(jq -r '.tool_input.command'); if echo \"$cmd\" | grep -qE '^git commit'; then cd /Users/dkrizanovic/projects/collaborativegherkin && result=$(npm test -- --run 2>&1); code=$?; if [ $code -ne 0 ]; then echo \"$result\" >&2; printf '{\"continue\": false, \"stopReason\": \"Tests failed \u2014 fix all failing tests before committing.\"}'; fi; fi",
             "timeout": 120,
             "statusMessage": "Running tests before commit..."
           }
@@ -21,6 +21,28 @@
           {
             "type": "command",
             "command": "cd /Users/dkrizanovic/projects/collaborativegherkin && npm test -- --run 2>&1"
+          }
+        ]
+      }
+    ],
+    "SessionEnd": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 /Users/dkrizanovic/.claude/hooks/cost-tracker.py finalize"
+          }
+        ]
+      }
+    ],
+    "SessionStart": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 /Users/dkrizanovic/.claude/hooks/cost-tracker.py backfill"
           }
         ]
       }
