@@ -1,3 +1,7 @@
+## GitHub Issue
+
+https://github.com/deniskrizanovic/collaborativegherkin/issues/22
+
 ## Why
 
 `GET` and `PATCH` on `/api/sessions/[id]` authenticate the caller (401 when signed
