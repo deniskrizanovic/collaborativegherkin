@@ -6,10 +6,12 @@ updates:
       interval: "weekly"
       day: "monday"
     open-pull-requests-limit: 10
+    reviewers:
+      - "deniskrizanovic"
     groups:
       minor-and-patch:
         update-types:
-          - "minor"
+          - "minor"W
           - "patch"
     ignore:
       - dependency-name: "next-auth"
