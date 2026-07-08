@@ -16,17 +16,17 @@ omit the line entirely; silence is not permitted, because an absent line is
 indistinguishable from an overlooked one.
 
 #### Scenario: Scenario with a linked test passes the gate
-> **Tests:** [`scripts/lint-spec-traceability.test.ts`](../../../scripts/lint-spec-traceability.test.ts) — passes when link present
+> **Tests:** [`scripts/lint-spec-traceability.test.ts`](../../../../scripts/lint-spec-traceability.test.ts) — passes when link present
 - **WHEN** a scenario is immediately followed by `> **Tests:** [path](...)`
 - **THEN** the traceability lint gate accepts it
 
 #### Scenario: Scenario marked none passes the gate
-> **Tests:** [`scripts/lint-spec-traceability.test.ts`](../../../scripts/lint-spec-traceability.test.ts) — passes when marked none
+> **Tests:** [`scripts/lint-spec-traceability.test.ts`](../../../../scripts/lint-spec-traceability.test.ts) — passes when marked none
 - **WHEN** a scenario is immediately followed by `> **Tests:** none`
 - **THEN** the traceability lint gate accepts it as an explicit, visible coverage gap
 
 #### Scenario: Scenario missing the tests line fails the gate
-> **Tests:** [`scripts/lint-spec-traceability.test.ts`](../../../scripts/lint-spec-traceability.test.ts) — fails when line absent
+> **Tests:** [`scripts/lint-spec-traceability.test.ts`](../../../../scripts/lint-spec-traceability.test.ts) — fails when line absent
 - **WHEN** a scenario has no `> **Tests:**` line before the next heading or blank-line boundary
 - **THEN** the traceability lint gate exits non-zero and names the offending file and scenario
 
@@ -38,7 +38,7 @@ The traceability lint gate SHALL scan change delta specs under
 archived.
 
 #### Scenario: Delta spec is scanned before archive
-> **Tests:** [`scripts/lint-spec-traceability.test.ts`](../../../scripts/lint-spec-traceability.test.ts) — scans change deltas
+> **Tests:** [`scripts/lint-spec-traceability.test.ts`](../../../../scripts/lint-spec-traceability.test.ts) — scans change deltas
 - **WHEN** an unarchived change under `openspec/changes/` contains a scenario without a `> **Tests:**` line
 - **THEN** the traceability lint gate fails, before the change is archived
 
