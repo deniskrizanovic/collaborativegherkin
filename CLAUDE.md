@@ -84,6 +84,28 @@ autonomously.
 - Conventional commits: `type[scope]: description` (feat/fix/docs/refactor/chore/etc.)
 - Never use `--no-verify` unless user explicitly asks
 
+## OpenSpec change standard: every change must link an open GitHub issue
+
+Every active OpenSpec change (`openspec/changes/<name>/`, excluding `archive/`)
+MUST have a `## GitHub Issue` section at the top of its `proposal.md` containing
+the full URL of a **real, open** issue on this repository:
+
+```
+https://github.com/deniskrizanovic/collaborativegherkin/issues/N
+```
+
+The `lint:issue-link` gate (`npm run lint:issue-link`) enforces this and runs on
+every commit (git pre-commit hook and the Claude Code `PreToolUse` commit hook).
+A commit that includes an active change with no valid open-issue link is blocked.
+
+**Host-pinning convention** — the `gh` CLI must always target `github.com`, not
+the Salesforce enterprise account:
+- For `gh api` calls: `--hostname github.com`
+- For `gh issue create`: `GH_HOST=github.com gh issue create ...`
+
+The `/opsx:propose` flow auto-creates the issue before finalising artifacts, so
+the gate almost never fires in practice — it is a safety net.
+
 ## Anti-patterns to avoid
 - Do not use `console.log` in server-side code — use the Pino logger.
 - Do not allow Gherkin block sequences that fail `canFollow()` in gherkin.ts.
