@@ -93,3 +93,15 @@ rather than a distinct node type, which means ProseMirror cannot enforce
 node-level schema constraints. Sequence enforcement is handled instead by the
 `canFollow()` function in `src/lib/gherkin.ts` at interaction time.
 Date: 2026-05-17
+
+---
+
+## Session id is a capability URL — open read/write, owner-only delete
+See ADR-0005. A compliance review flagged open GET/PATCH on `/api/sessions/[id]`
+as an IDOR; a first fix added owner-only guards and broke link-sharing.
+Alternatives considered: owner-only read/write (contradicts ADR-0003 and the
+"Copy invite link" feature); a revocable collaborator ACL (deferred future work).
+Reason: the session id is an unguessable `cuid`, so holding it is equivalent to
+holding the invite link. GET/PATCH stay open to any authenticated holder; only
+the irreversible DELETE is owner-gated. Reaffirms ADR-0003.
+Date: 2026-07-09
