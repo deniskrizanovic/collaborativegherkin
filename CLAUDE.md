@@ -94,9 +94,16 @@ the full URL of a **real, open** issue on this repository:
 https://github.com/deniskrizanovic/collaborativegherkin/issues/N
 ```
 
-The `lint:issue-link` gate (`npm run lint:issue-link`) enforces this and runs on
-every commit (git pre-commit hook and the Claude Code `PreToolUse` commit hook).
-A commit that includes an active change with no valid open-issue link is blocked.
+The `lint:issue-link` gate (`npm run lint:issue-link`) enforces this. Because it
+calls the GitHub API (network + `gh` auth), it runs in the Claude Code
+`PreToolUse` commit hook and in CI (`.github/workflows/ci.yml`) — **not** in the
+git/husky pre-commit hook, which stays offline-safe. A commit that includes an
+active change with no valid open-issue link is blocked by the Claude hook; CI is
+the authoritative catch-all for commits made outside the agent.
+
+Spec traceability is a separate gate: `lint:specs` (`npm run lint:specs`) is a
+pure filesystem check, so it runs in the husky pre-commit hook (whole spec tree,
+every commit) **and** in CI.
 
 **Host-pinning convention** — the `gh` CLI must always target `github.com`, not
 the Salesforce enterprise account:
