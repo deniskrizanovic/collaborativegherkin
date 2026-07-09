@@ -28,14 +28,20 @@ export default function SessionView({ sessionId, title }: Props) {
   const [promptText, setPromptText] = useState(DEFAULT_PROMPT);
   const [savingPrompt, setSavingPrompt] = useState(false);
 
+  const [settingsError, setSettingsError] = useState<string | null>(null);
+
   useEffect(() => {
     fetch(`/api/sessions/${sessionId}`)
-      .then((r) => r.json())
-      .then((data: { model: string | null; prompt: string | null }) => {
+      .then(async (r) => {
+        if (!r.ok) {
+          setSettingsError("Couldn't load this session's AI settings.");
+          return;
+        }
+        const data: { model: string | null; prompt: string | null } = await r.json();
         setSelectedModel(data.model ?? DEFAULT_MODEL);
         setPromptText(data.prompt ?? DEFAULT_PROMPT);
       })
-      .catch(() => {});
+      .catch(() => setSettingsError("Couldn't load this session's AI settings."));
   }, [sessionId]);
 
   // Close review modal on Escape
@@ -62,12 +68,17 @@ export default function SessionView({ sessionId, title }: Props) {
   };
 
   const handleModelChange = async (model: string) => {
+    const previousModel = selectedModel;
     setSelectedModel(model);
-    await fetch(`/api/sessions/${sessionId}`, {
+    const res = await fetch(`/api/sessions/${sessionId}`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ model }),
     });
+    if (!res.ok) {
+      setSelectedModel(previousModel);
+      setSettingsError("Couldn't save the selected model.");
+    }
   };
 
   const handleReview = async () => {
@@ -94,12 +105,16 @@ export default function SessionView({ sessionId, title }: Props) {
   const handleSavePrompt = async () => {
     setSavingPrompt(true);
     try {
-      await fetch(`/api/sessions/${sessionId}`, {
+      const res = await fetch(`/api/sessions/${sessionId}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ prompt: promptText }),
       });
-      setPromptOpen(false);
+      if (res.ok) {
+        setPromptOpen(false);
+      } else {
+        setSettingsError("Couldn't save the prompt.");
+      }
     } finally {
       setSavingPrompt(false);
     }
@@ -123,6 +138,7 @@ export default function SessionView({ sessionId, title }: Props) {
         Share the link above so others can edit this session with you.
         Press <kbd>/</kbd> to pick a block type, or use the toolbar below.
       </p>
+      {settingsError && <p className="form-error">{settingsError}</p>}
       <div className="session-actions">
         <button className="session-edit-prompt-btn" onClick={handleOpenPrompt}>
           Edit prompt

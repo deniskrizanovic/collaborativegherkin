@@ -5,10 +5,12 @@ on:
     branches: [main]
     paths:
       - 'src/**'
+      - 'openspec/**'
   pull_request:
     branches: [main]
     paths:
       - 'src/**'
+      - 'openspec/**'
 
 jobs:
   ci:
@@ -42,6 +44,14 @@ jobs:
 
       - name: Lint
         run: npm run lint
+
+      - name: Lint specs (traceability)
+        run: npm run lint:specs
+
+      - name: Lint issue links
+        run: npm run lint:issue-link
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Type check
         run: npm run typecheck

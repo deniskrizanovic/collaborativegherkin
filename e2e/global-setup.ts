@@ -13,20 +13,21 @@ dotenv.config({ path: path.join(ROOT, ".env.local") });
 dotenv.config({ path: path.join(ROOT, ".env") });
 
 const TEST_EMAIL = process.env.TEST_AUTH_EMAIL ?? "e2e-test@example.com";
+// A second, distinct identity so tests can exercise the owner-vs-collaborator
+// axis (session access control). Without this the whole suite ran as one user
+// and could never trip a non-owner code path.
+const TEST_EMAIL_2 = process.env.TEST_AUTH_EMAIL_2 ?? "e2e-test-2@example.com";
 const AUTH_SECRET = process.env.AUTH_SECRET ?? "dev-secret";
 
-export default async function globalSetup() {
-  const authDir = path.join(__dirname, ".auth");
-  fs.mkdirSync(authDir, { recursive: true });
+type Db = Awaited<typeof import("../src/lib/db")>["db"];
 
-  // Dynamic import so db picks up DATABASE_URL after dotenv runs above.
-  const { db } = await import("../src/lib/db");
-
-  // Upsert the test user so the JWT sub resolves to a real DB row.
+// Upsert a user and write a Playwright storage-state file with a NextAuth JWT
+// cookie for that user, so a context loaded with it starts authenticated as them.
+async function writeAuthState(db: Db, authDir: string, email: string, fileName: string) {
   const user = await db.user.upsert({
-    where: { email: TEST_EMAIL },
+    where: { email },
     update: {},
-    create: { email: TEST_EMAIL },
+    create: { email },
     select: { id: true, email: true },
   });
 
@@ -37,8 +38,6 @@ export default async function globalSetup() {
     salt: "authjs.session-token",
   });
 
-  // Write storage state with the session cookie so every Playwright context
-  // starts authenticated.
   const storageState = {
     cookies: [
       {
@@ -55,10 +54,20 @@ export default async function globalSetup() {
     origins: [],
   };
 
-  fs.writeFileSync(
-    path.join(authDir, "user.json"),
-    JSON.stringify(storageState, null, 2)
-  );
+  fs.writeFileSync(path.join(authDir, fileName), JSON.stringify(storageState, null, 2));
+}
+
+export default async function globalSetup() {
+  const authDir = path.join(__dirname, ".auth");
+  fs.mkdirSync(authDir, { recursive: true });
+
+  // Dynamic import so db picks up DATABASE_URL after dotenv runs above.
+  const { db } = await import("../src/lib/db");
+
+  // Default identity for the whole suite (user.json), plus a second distinct
+  // identity (user2.json) for access-control tests.
+  await writeAuthState(db, authDir, TEST_EMAIL, "user.json");
+  await writeAuthState(db, authDir, TEST_EMAIL_2, "user2.json");
 
   await db.$disconnect();
 }
