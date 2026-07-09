@@ -33,14 +33,23 @@ The AppGenie Compliance MCP server is NOT connected in this session, so this is 
 
 | ID | Finding | File / location | Standard | Sev | Action |
 |---|---|---|---|---|---|
-| ENG-001 | IDOR: `GET` and `PATCH` check authentication (401) but not ownership; any signed-in user can read or modify any session by id. Only `DELETE` enforces `row.userId !== user.id`. | `src/app/api/sessions/[id]/route.ts` (GET, PATCH) | STD-ENTERPRISE-ACCESS-CONTROL 3.4 (deny by default, object-level), 3.1 (least privilege); ENG-CTRL-08 6.1 | H | Block |
+| ENG-001 | IDOR: `GET` and `PATCH` check authentication (401) but not ownership; any signed-in user can read or modify any session by id. Only `DELETE` enforces `row.userId !== user.id`. ✅ **Resolved — see §2.A.1.** | `src/app/api/sessions/[id]/route.ts` (GET, PATCH) | STD-ENTERPRISE-ACCESS-CONTROL 3.4 (deny by default, object-level), 3.1 (least privilege); ENG-CTRL-08 6.1 | H | Block |
 | ENG-002 | `llm-review` has no `auth()` call and no ownership check; it loads any session's stored prompt by id. | `src/app/api/llm-review/route.ts` | STD-ENTERPRISE-ACCESS-CONTROL 3.4; STD-AI-SYSTEM-SECURITY 4.1 (AI inference endpoints MUST be authenticated) | H | Block |
 | ENG-003 | Test-only `CredentialsProvider` bypass is compiled into every build, gated only by presence of `process.env.TEST_AUTH_SECRET`. | `src/auth.ts` | STD-ENTERPRISE-ACCESS-CONTROL 3.3/3.4; ENG-CTRL-08 6.1/6.3 | H | Block |
 | ENG-004 | `signin/page.tsx` passes `process.env.TEST_AUTH_SECRET` into the client `SignInForm` as `testAuthSecret`. If ever set in production the bypass button renders and the secret ships in client HTML. | `src/app/auth/signin/page.tsx` | STD-AI-SYSTEM-SECURITY 4.2 (secrets MUST NOT be in client-side code); ENG-CTRL-08 6.1 | H | Block |
 | ENG-005 | Y.js WebSocket server has no authentication, no origin check, and no authorisation. Room name is taken from the raw request URL, so any client can join `session-<id>` for any session and read/write the live document, bypassing the Next.js auth gate entirely. | `y-websocket-server.mjs` | STD-ENTERPRISE-ACCESS-CONTROL 3.4; STD-AI-SYSTEM-SECURITY 4.1; APP 11 (security of personal information) | H | Block |
-| ENG-006 | Ownership is tested only for `DELETE` (route test ~line 191). The IDOR `GET`/`PATCH` paths have no 403 test, which is why ENG-001 slipped through. | `src/app/api/sessions/[id]/route.test.ts` | ENG-CTRL-04 3.2 (must test failure paths), 3.6 (traceable to AC) | H | Flag |
+| ENG-006 | Ownership is tested only for `DELETE` (route test ~line 191). The IDOR `GET`/`PATCH` paths have no 403 test, which is why ENG-001 slipped through. ✅ **Resolved — see §2.A.1.** | `src/app/api/sessions/[id]/route.test.ts`, `e2e/session-access-control.spec.ts` | ENG-CTRL-04 3.2 (must test failure paths), 3.6 (traceable to AC) | H | Flag |
 
 Note (compliant, keep): session `list` is scoped by `where: { userId }` and `create` injects `userId` - correct.
+
+#### A.1 Resolutions (2026-07-09)
+
+Refs: [#22](https://github.com/deniskrizanovic/collaborativegherkin/issues/22) · [ADR-0005](../adr/0005-session-access-control-capability-url.md) · [ADR-0003](../adr/0003-auth-model-magic-link-jwt-resend.md)
+
+| ID | Original finding | Disposition | Resolution |
+|---|---|---|---|
+| ENG-001 | IDOR: `GET`/`PATCH` authenticate but don't check ownership; any signed-in user can read/modify any session by id. | ✅ **Not a defect** | The "guess or enumerate the id" premise fails against an unguessable `cuid`: the id is a **capability URL** (invite link), so open read/edit is the intended collaboration feature (reaffirms ADR-0003). Owner-only guards were added (`b40d4d2`) then **reverted** (`659f8e0`) because they broke link-sharing (collaborators got 403 on load and on every settings change). `DELETE` stays owner-only. Documented in ADR-0005. ⚠️ This narrows the REST surface only — the unauthenticated Y.js WebSocket (ENG-005) is the real boundary and is **still open**. |
+| ENG-006 | Ownership tested only for `DELETE`; no 403 test on `GET`/`PATCH`, which is why ENG-001 slipped through. | ✅ **Fixed** | Root cause was that the whole e2e suite ran as a **single user**, so no non-owner path was ever exercised. Added a second identity (`e2e/global-setup.ts`) and multi-user characterisation tests (`e2e/session-access-control.spec.ts`) pinning the access contract at API and UX layers. Mutation-verified load-bearing: re-applying the owner-only guard turns 5/6 tests red (DELETE correctly stays green). |
 
 ### B. Input validation and injection safety
 
@@ -250,11 +259,14 @@ Phase 0 - restore and stop the bleeding
 1. Restore the working tree (`git restore --staged . && git restore .`) so the code exists on disk. Confirm before committing the mass deletion.
 
 Phase 1 - blocking baseline defects (smallest, highest value first)
-2. ENG-001: add the ownership guard to `GET` and `PATCH` reusing the `DELETE` pattern; push it into a `userId`-scoped `Session` query. Add ENG-006 403 tests.
-3. ENG-002 / AI-006: add `auth()` and ownership check to `llm-review`.
-4. ENG-030/031: reconcile the Prisma schemas (single source of truth; add `prompt`/`model` to Postgres) before any further prod migration.
-5. ENG-003/004: compile the test-bypass provider out of production builds; stop passing the secret to the client.
-6. ENG-005: authenticate the Y.js WebSocket server and scope rooms to authorised sessions.
+
+> **Progress marker (2026-07-09): you are here → step 3.** Step 2 is complete (closed as "not a defect"). Steps 3-6 remain open.
+
+2. ✅ **DONE** — ENG-001 / ENG-006 ([#22](https://github.com/deniskrizanovic/collaborativegherkin/issues/22), [ADR-0005](../adr/0005-session-access-control-capability-url.md)). Resolved **not** by adding an ownership guard: the session id is an unguessable `cuid` used as a capability URL, so open `GET`/`PATCH` is the intended collaboration model (owner-only guards were added then reverted). `DELETE` stays owner-only. Test gap closed with a second e2e identity + multi-user characterisation tests (mutation-verified). ⚠️ Note: this narrows the REST surface only — the unauthenticated Y.js WebSocket (ENG-005) is the real boundary and is **still open**.
+3. ⬜ ENG-002 / AI-006: add `auth()` and ownership check to `llm-review`.
+4. ⬜ ENG-030/031: reconcile the Prisma schemas (single source of truth; add `prompt`/`model` to Postgres) before any further prod migration.
+5. ⬜ ENG-003/004: compile the test-bypass provider out of production builds; stop passing the secret to the client.
+6. ⬜ ENG-005: authenticate the Y.js WebSocket server and scope rooms to authorised sessions. *(Elevated by the ENG-001 resolution: since REST is intentionally open, this WebSocket is now the primary access-control boundary.)*
 
 Phase 2 - AI-controlled and privacy blocks
 7. AI-001/AI-004: assign and document a risk classification and an output-validation tier; label coaching output as AI-generated (cheapest profile-block closure).
