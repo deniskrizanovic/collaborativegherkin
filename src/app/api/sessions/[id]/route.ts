@@ -20,6 +20,9 @@ export async function GET(
   const { id } = await params;
   try {
     const found = await session.get(id);
+    if (found.userId !== authSession.user.id) {
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    }
     return NextResponse.json(found);
   } catch (err) {
     if (err instanceof SessionNotFoundError) {
@@ -50,6 +53,10 @@ export async function PATCH(
     const parsed = PatchSchema.safeParse(body);
     if (!parsed.success) {
       return NextResponse.json({ error: parsed.error.flatten() }, { status: 400 });
+    }
+    const row = await session.get(id);
+    if (row.userId !== authSession.user.id) {
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
     await session.update(id, parsed.data);
     return NextResponse.json({ ok: true });

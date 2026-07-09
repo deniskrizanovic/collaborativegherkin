@@ -82,6 +82,17 @@ describe("GET /api/sessions/[id]", () => {
     expect(res.status).toBe(404);
     expect(body).toHaveProperty("error");
   });
+
+  it("returns 403 when authenticated user does not own the session", async () => {
+    await mockAuth(OTHER_USER_ID);
+    fakeSessionTable.findUnique.mockResolvedValue(baseRow);
+
+    const { GET } = await importRoute();
+    const req = new NextRequest("http://localhost/api/sessions/abc");
+    const res = await GET(req, makeParams("abc"));
+
+    expect(res.status).toBe(403);
+  });
 });
 
 describe("PATCH /api/sessions/[id]", () => {
@@ -101,6 +112,7 @@ describe("PATCH /api/sessions/[id]", () => {
 
   it("returns 200 when model is updated", async () => {
     await mockAuth(VALID_USER_ID);
+    fakeSessionTable.findUnique.mockResolvedValue(baseRow);
     fakeSessionTable.update.mockResolvedValue({});
 
     const { PATCH } = await importRoute();
@@ -118,6 +130,7 @@ describe("PATCH /api/sessions/[id]", () => {
 
   it("returns 200 when prompt is updated", async () => {
     await mockAuth(VALID_USER_ID);
+    fakeSessionTable.findUnique.mockResolvedValue(baseRow);
     fakeSessionTable.update.mockResolvedValue({});
 
     const { PATCH } = await importRoute();
@@ -163,7 +176,7 @@ describe("PATCH /api/sessions/[id]", () => {
 
   it("returns 404 when session is not found", async () => {
     await mockAuth(VALID_USER_ID);
-    fakeSessionTable.update.mockRejectedValue({ code: "P2025" });
+    fakeSessionTable.findUnique.mockResolvedValue(null);
 
     const { PATCH } = await importRoute();
     const req = new NextRequest("http://localhost/api/sessions/unknown", {
@@ -174,6 +187,38 @@ describe("PATCH /api/sessions/[id]", () => {
     const res = await PATCH(req, makeParams("unknown"));
 
     expect(res.status).toBe(404);
+  });
+
+  it("returns 404 when session is deleted between the ownership check and the update", async () => {
+    await mockAuth(VALID_USER_ID);
+    fakeSessionTable.findUnique.mockResolvedValue(baseRow);
+    fakeSessionTable.update.mockRejectedValue({ code: "P2025" });
+
+    const { PATCH } = await importRoute();
+    const req = new NextRequest("http://localhost/api/sessions/abc", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ model: AVAILABLE_MODELS[0] }),
+    });
+    const res = await PATCH(req, makeParams("abc"));
+
+    expect(res.status).toBe(404);
+  });
+
+  it("returns 403 when authenticated user does not own the session", async () => {
+    await mockAuth(OTHER_USER_ID);
+    fakeSessionTable.findUnique.mockResolvedValue(baseRow);
+
+    const { PATCH } = await importRoute();
+    const req = new NextRequest("http://localhost/api/sessions/abc", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ model: AVAILABLE_MODELS[0] }),
+    });
+    const res = await PATCH(req, makeParams("abc"));
+
+    expect(res.status).toBe(403);
+    expect(fakeSessionTable.update).not.toHaveBeenCalled();
   });
 });
 
