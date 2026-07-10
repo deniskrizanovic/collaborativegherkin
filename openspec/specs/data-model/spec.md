@@ -15,7 +15,7 @@ most 200 characters, a `createdAt` set automatically at creation, an
 
 #### Scenario: Session has CUID, title constraints, timestamps, and user
 > **Tests:** none
-- **WHEN** a session is created
+- **GIVEN** a session is created
 - **THEN** its `id` is a CUID
 - **AND** its `title` is a non-empty string of at most 200 characters
 - **AND** its `createdAt` is set automatically at creation time
@@ -29,6 +29,6 @@ or more sessions.
 
 #### Scenario: User email is unique and owns zero or more sessions
 > **Tests:** none
-- **WHEN** a user record exists
+- **GIVEN** a user record exists
 - **THEN** its `email` is unique across all users
 - **AND** a user may own zero or more sessions

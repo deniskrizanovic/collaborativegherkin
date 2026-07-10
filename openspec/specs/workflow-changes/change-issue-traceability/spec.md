@@ -24,12 +24,14 @@ no recognisable issue URL SHALL fail the `lint:issue-link` gate.
 
 #### Scenario: Change links a valid open issue
 > **Tests:** [`scripts/lint-issue-link.test.ts`](../../changes/gate-changes-on-github-issue/specs/change-issue-traceability/spec.md) — accepts a proposal with a `## GitHub Issue` URL for an open issue
-- **WHEN** an active change's `proposal.md` has a `## GitHub Issue` section containing an issue URL for issue `N` and issue `N` exists and is open
+- **GIVEN** an active change's `proposal.md` has a `## GitHub Issue` section containing an issue URL for issue `N` and issue `N` exists and is open
+- **WHEN** the `lint:issue-link` gate runs
 - **THEN** the gate reports the change as passing and exits zero
 
 #### Scenario: Change is missing the GitHub Issue section
 > **Tests:** [`scripts/lint-issue-link.test.ts`](../../changes/gate-changes-on-github-issue/specs/change-issue-traceability/spec.md) — flags a proposal with no `## GitHub Issue` section
-- **WHEN** an active change's `proposal.md` has no `## GitHub Issue` section, or the section contains no recognisable issue URL
+- **GIVEN** an active change's `proposal.md` has no `## GitHub Issue` section, or the section contains no recognisable issue URL
+- **WHEN** the `lint:issue-link` gate runs
 - **THEN** the gate reports a violation naming the change and exits non-zero
 
 ### Requirement: Linked issue must exist and be open
@@ -42,17 +44,20 @@ unauthenticated or offline), the gate SHALL exit non-zero rather than pass.
 
 #### Scenario: Linked issue is closed
 > **Tests:** [`scripts/lint-issue-link.test.ts`](../../changes/gate-changes-on-github-issue/specs/change-issue-traceability/spec.md) — flags a proposal whose issue resolves to state `closed`
-- **WHEN** a change links the URL for issue `N` and issue `N` exists but its state is `closed`
+- **GIVEN** a change links the URL for issue `N` and issue `N` exists but its state is `closed`
+- **WHEN** the `lint:issue-link` gate runs
 - **THEN** the gate reports a violation naming the change and issue and exits non-zero
 
 #### Scenario: Linked issue does not exist
 > **Tests:** [`scripts/lint-issue-link.test.ts`](../../changes/gate-changes-on-github-issue/specs/change-issue-traceability/spec.md) — flags a proposal whose issue lookup returns not-found
-- **WHEN** a change links the URL for issue `N` and the GitHub lookup for issue `N` returns not-found
+- **GIVEN** a change links the URL for issue `N`
+- **WHEN** the GitHub lookup for issue `N` returns not-found
 - **THEN** the gate reports a violation naming the change and issue and exits non-zero
 
 #### Scenario: Issue state cannot be determined
 > **Tests:** [`scripts/lint-issue-link.test.ts`](../../changes/gate-changes-on-github-issue/specs/change-issue-traceability/spec.md) — fails closed when the issue lookup errors
-- **WHEN** the gate cannot resolve issue `N`'s state because the `gh` lookup errors (unauthenticated, offline, or API failure)
+- **GIVEN** a change links the URL for issue `N`
+- **WHEN** the gate attempts to resolve issue `N`'s state and the `gh` lookup errors (unauthenticated, offline, or API failure)
 - **THEN** the gate exits non-zero and does not report the change as passing
 
 ### Requirement: Gate blocks commits at both enforcement points
@@ -65,10 +70,12 @@ The gate SHALL also be part of the `test:all` aggregate script.
 
 #### Scenario: Commit blocked when a change is unlinked
 > **Tests:** none
-- **WHEN** a commit is attempted while an active change's `proposal.md` lacks a valid, open GitHub issue link
+- **GIVEN** an active change's `proposal.md` lacks a valid, open GitHub issue link
+- **WHEN** a commit is attempted
 - **THEN** the pre-commit gate exits non-zero and the commit is aborted with an actionable message
 
 #### Scenario: Archived changes are exempt
 > **Tests:** [`scripts/lint-issue-link.test.ts`](../../changes/gate-changes-on-github-issue/specs/change-issue-traceability/spec.md) — ignores changes under `archive/`
-- **WHEN** the gate scans `openspec/changes/` and encounters a change under `archive/`
+- **GIVEN** a change exists under `archive/`
+- **WHEN** the gate scans `openspec/changes/`
 - **THEN** that change is not checked for an issue link and does not cause a violation

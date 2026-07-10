@@ -20,20 +20,24 @@ button.
 
 #### Scenario: Clicking Get AI Coaching sends content and disables controls
 > **Tests:** [`e2e/llm-review.spec.ts`](../../../e2e/llm-review.spec.ts) — modal opens · button disabled in flight
-- **WHEN** a user on a session page clicks "Get AI Coaching"
+- **GIVEN** a user is on a session page
+- **WHEN** the user clicks "Get AI Coaching"
 - **THEN** the current Gherkin content is sent to the resolved model via the OpenRouter gateway
 - **AND** the "Get AI Coaching" button is disabled and shows "Reviewing…" while the request is in flight
 - **AND** the model dropdown is disabled while the request is in flight
 
 #### Scenario: Successful LLM response displayed as Markdown in modal
 > **Tests:** [`e2e/llm-review.spec.ts`](../../../e2e/llm-review.spec.ts) — header shows model name · Markdown rendered
-- **WHEN** the LLM returns a response and the review completes
-- **THEN** the result is displayed in a modal, rendered as Markdown
+- **GIVEN** the LLM returns a response
+- **WHEN** the review completes
+- **THEN** the result is displayed in a modal
+- **AND** the result is rendered as Markdown
 - **AND** the modal header shows the name of the model that produced the result
 
 #### Scenario: LLM failure shows error in modal and resets button
 > **Tests:** [`e2e/llm-review.spec.ts`](../../../e2e/llm-review.spec.ts)
-- **WHEN** the LLM request fails and the review completes with an error
+- **GIVEN** the LLM request fails
+- **WHEN** the review completes with an error
 - **THEN** an error message is displayed in the modal
 - **AND** the button returns to its normal state
 
@@ -44,17 +48,20 @@ on clicking the ✕ button.
 
 #### Scenario: Escape closes results modal
 > **Tests:** [`e2e/llm-review.spec.ts`](../../../e2e/llm-review.spec.ts)
-- **WHEN** the results modal is open and the user presses Escape
+- **GIVEN** the results modal is open
+- **WHEN** the user presses Escape
 - **THEN** the modal closes
 
 #### Scenario: Clicking outside panel closes results modal
 > **Tests:** [`e2e/llm-review.spec.ts`](../../../e2e/llm-review.spec.ts)
-- **WHEN** the results modal is open and the user clicks outside the modal inner panel
+- **GIVEN** the results modal is open
+- **WHEN** the user clicks outside the modal inner panel
 - **THEN** the modal closes
 
 #### Scenario: X button closes results modal
 > **Tests:** [`e2e/llm-review.spec.ts`](../../../e2e/llm-review.spec.ts)
-- **WHEN** the results modal is open and the user clicks the ✕ button
+- **GIVEN** the results modal is open
+- **WHEN** the user clicks the ✕ button
 - **THEN** the modal closes
 
 ### Requirement: Selecting a model
@@ -67,19 +74,22 @@ the next review uses it. When no model is stored the dropdown MUST default to
 
 #### Scenario: Model dropdown shown pre-selected to session model or default
 > **Tests:** [`e2e/llm-review.spec.ts`](../../../e2e/llm-review.spec.ts) — button and dropdown visible · expected models listed
-- **WHEN** a user is on a session page and the page loads
+- **GIVEN** a user is on a session page
+- **WHEN** the page loads
 - **THEN** a model dropdown is shown alongside the "Get AI Coaching" button
 - **AND** the dropdown is pre-selected to the session's stored model, or the default model if none is set
 
 #### Scenario: Changing model persists to session immediately
 > **Tests:** none
-- **WHEN** the user changes the selected model in the dropdown
+- **GIVEN** the user changes the selected model in the dropdown
+- **WHEN** the selection changes
 - **THEN** the new model is saved to the session record immediately
 - **AND** the next review uses the newly selected model
 
 #### Scenario: No model set on session defaults to openrouter/free
 > **Tests:** none
-- **WHEN** no model is stored on the session and the page loads
+- **GIVEN** no model is stored on the session
+- **WHEN** the page loads
 - **THEN** the dropdown defaults to `openrouter/free`
 
 ### Requirement: Editing the review prompt
@@ -92,29 +102,34 @@ Escape, or an outside click MUST close the modal without saving.
 
 #### Scenario: Edit prompt button opens modal with pre-filled textarea
 > **Tests:** [`e2e/llm-review.spec.ts`](../../../e2e/llm-review.spec.ts) — button visible · modal opens with pre-filled textarea
-- **WHEN** a user on a session page clicks "Edit prompt"
+- **GIVEN** a user is on a session page
+- **WHEN** the user clicks "Edit prompt"
 - **THEN** a modal opens containing a textarea pre-filled with the current prompt
 
 #### Scenario: Saving new prompt persists to session and closes modal
 > **Tests:** [`e2e/llm-review.spec.ts`](../../../e2e/llm-review.spec.ts)
-- **WHEN** the prompt edit modal is open and the user edits the textarea and clicks "Save"
+- **GIVEN** the prompt edit modal is open
+- **WHEN** the user edits the textarea and clicks "Save"
 - **THEN** the new prompt is saved to the session record
 - **AND** the modal closes
 - **AND** the next review in this session uses the updated prompt
 
 #### Scenario: Cancel, Escape, or outside click closes prompt modal without saving
 > **Tests:** [`e2e/llm-review.spec.ts`](../../../e2e/llm-review.spec.ts) — Cancel · Escape · click outside
-- **WHEN** the prompt edit modal is open and the user clicks "Cancel", presses Escape, or clicks outside the panel
+- **GIVEN** the prompt edit modal is open
+- **WHEN** the user clicks "Cancel" or presses Escape or clicks outside the panel
 - **THEN** the modal closes without saving
 
 #### Scenario: Save disabled when textarea has fewer than 10 chars
 > **Tests:** [`e2e/llm-review.spec.ts`](../../../e2e/llm-review.spec.ts)
-- **WHEN** the prompt edit modal is open and the textarea has fewer than 10 characters
+- **GIVEN** the user has cleared the textarea or entered fewer than 10 characters
+- **WHEN** the prompt edit modal is open
 - **THEN** the "Save" button is disabled
 
 #### Scenario: No prompt set on session prefills textarea with default
 > **Tests:** none
-- **WHEN** no prompt is stored on the session and the prompt edit modal is opened
+- **GIVEN** no prompt is stored on the session
+- **WHEN** the prompt edit modal is opened
 - **THEN** the textarea is pre-filled with the default prompt
 
 ### Requirement: POST /api/llm-review
@@ -130,39 +145,46 @@ handling: unknown `sessionId` → 404; stale stored model → 400; empty `conten
 
 #### Scenario: Valid request resolves session prompt and model and returns 200
 > **Tests:** none
-- **WHEN** a POST request with a valid body `{ content, sessionId }` is made to `/api/llm-review`
+- **GIVEN** a valid body `{ content, sessionId }`
+- **WHEN** a POST request is made to `/api/llm-review`
 - **THEN** the prompt and model are resolved from the session record, falling back to defaults if not set
 - **AND** a chat completion request is sent to OpenRouter with the resolved prompt as the system message and the content as the user message
 - **AND** a 200 response is returned containing `{ result }` with the model's reply
 
 #### Scenario: Session not found returns 404
 > **Tests:** none
-- **WHEN** a POST request whose body contains a `sessionId` matching no session is made to `/api/llm-review`
+- **GIVEN** the body contains a `sessionId` that does not match any session
+- **WHEN** a POST request is made to `/api/llm-review`
 - **THEN** a 404 response is returned
 
 #### Scenario: Stale model stored on session returns 400
 > **Tests:** none
-- **WHEN** a POST request is made to `/api/llm-review` and the session's stored model is no longer in the available models list
+- **GIVEN** the session's stored model is no longer in the available models list
+- **WHEN** a POST request is made to `/api/llm-review`
 - **THEN** a 400 response is returned
 
 #### Scenario: Empty content returns 400
 > **Tests:** none
-- **WHEN** a POST request with an empty `content` is made to `/api/llm-review`
+- **GIVEN** the body contains an empty `content`
+- **WHEN** a POST request is made to `/api/llm-review`
 - **THEN** a 400 response is returned with validation errors
 
 #### Scenario: Missing API key returns 500
 > **Tests:** none
-- **WHEN** a POST request is made to `/api/llm-review` and `OPENROUTER_API_KEY` is not set
+- **GIVEN** `OPENROUTER_API_KEY` is not set
+- **WHEN** a POST request is made to `/api/llm-review`
 - **THEN** a 500 response is returned with the message `"LLM service not configured"`
 
 #### Scenario: Non-2xx from OpenRouter returns 502
 > **Tests:** none
-- **WHEN** the OpenRouter request returns a non-2xx response for a POST to `/api/llm-review`
+- **GIVEN** the OpenRouter request returns a non-2xx response
+- **WHEN** a POST request is made to `/api/llm-review`
 - **THEN** a 502 response is returned with the message `"LLM request failed"`
 
 #### Scenario: Unexpected error returns 500
 > **Tests:** none
-- **WHEN** an unexpected error occurs during a POST request to `/api/llm-review`
+- **GIVEN** an unexpected error occurs
+- **WHEN** a POST request is made to `/api/llm-review`
 - **THEN** a 500 response is returned
 
 ### Requirement: Coaching fields via PATCH /api/sessions/[id]
@@ -175,24 +197,28 @@ shorter than 10 characters MUST return 400 with validation errors.
 
 #### Scenario: Valid prompt body saves to session and returns 200
 > **Tests:** [`src/app/api/sessions/[id]/route.test.ts`](../../../src/app/api/sessions/[id]/route.test.ts) — PATCH returns 200 when prompt is updated
-- **WHEN** a PATCH request with a valid body `{ prompt }` of at least 10 characters is made to `/api/sessions/[id]`
+- **GIVEN** a valid body `{ prompt }` with at least 10 characters
+- **WHEN** a PATCH request is made to `/api/sessions/[id]`
 - **THEN** the prompt is saved to the session record
 - **AND** a 200 response is returned with `{ ok: true }`
 
 #### Scenario: Valid model body saves to session and returns 200
 > **Tests:** [`src/app/api/sessions/[id]/route.test.ts`](../../../src/app/api/sessions/[id]/route.test.ts) — PATCH returns 200 when model is updated
-- **WHEN** a PATCH request with a valid body `{ model }` where model is an available model ID is made to `/api/sessions/[id]`
+- **GIVEN** a valid body `{ model }` where model is one of the available model IDs
+- **WHEN** a PATCH request is made to `/api/sessions/[id]`
 - **THEN** the model is saved to the session record
 - **AND** a 200 response is returned with `{ ok: true }`
 
 #### Scenario: Unknown model returns 400
 > **Tests:** [`src/app/api/sessions/[id]/route.test.ts`](../../../src/app/api/sessions/[id]/route.test.ts) — PATCH returns 400 when model is not in AVAILABLE_MODELS
-- **WHEN** a PATCH request whose body contains a `model` value not in the allowed list is made to `/api/sessions/[id]`
+- **GIVEN** the body contains a `model` value not in the allowed list
+- **WHEN** a PATCH request is made to `/api/sessions/[id]`
 - **THEN** a 400 response is returned with validation errors
 
 #### Scenario: Prompt shorter than 10 chars returns 400
 > **Tests:** [`src/app/api/sessions/[id]/route.test.ts`](../../../src/app/api/sessions/[id]/route.test.ts) — PATCH returns 400 when prompt is too short
-- **WHEN** a PATCH request whose body contains a `prompt` shorter than 10 characters is made to `/api/sessions/[id]`
+- **GIVEN** the body contains a `prompt` shorter than 10 characters
+- **WHEN** a PATCH request is made to `/api/sessions/[id]`
 - **THEN** a 400 response is returned with validation errors
 
 ### Requirement: Cached review result
@@ -205,25 +231,30 @@ available; when the new review completes it MUST replace the cached result.
 
 #### Scenario: View last review button visible after review is closed
 > **Tests:** [`e2e/llm-review.spec.ts`](../../../e2e/llm-review.spec.ts)
-- **WHEN** a review has completed, the result modal has been closed, and the user looks at the session header
+- **GIVEN** a review has completed and the result modal has been closed
+- **WHEN** the user looks at the session header
 - **THEN** a "View last review" button is visible
 
 #### Scenario: View last review reopens modal without new API call
 > **Tests:** [`e2e/llm-review.spec.ts`](../../../e2e/llm-review.spec.ts)
-- **WHEN** the "View last review" button is visible and the user clicks it
+- **GIVEN** the "View last review" button is visible
+- **WHEN** the user clicks it
 - **THEN** the result modal reopens showing the same result without a new API call
 
 #### Scenario: View last review button absent before first review
 > **Tests:** [`e2e/llm-review.spec.ts`](../../../e2e/llm-review.spec.ts)
-- **WHEN** no review has been run yet and the user looks at the session header
+- **GIVEN** no review has been run yet
+- **WHEN** the user looks at the session header
 - **THEN** the "View last review" button is not visible
 
 #### Scenario: Cached result remains available while new review in flight
 > **Tests:** [`e2e/llm-review.spec.ts`](../../../e2e/llm-review.spec.ts)
-- **WHEN** a review result is cached and a new review is triggered and in flight
+- **GIVEN** a review result is cached and a new review is triggered
+- **WHEN** the new review is in flight
 - **THEN** the cached result remains available via "View last review"
 
 #### Scenario: New review result replaces cached result
 > **Tests:** [`e2e/llm-review.spec.ts`](../../../e2e/llm-review.spec.ts)
-- **WHEN** a new review completes and the result arrives
+- **GIVEN** a new review completes
+- **WHEN** the result arrives
 - **THEN** the cached result is replaced with the new result

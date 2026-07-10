@@ -24,7 +24,7 @@ editor layer.
 
 #### Scenario: Keyword, image, and data table blocks compose a document
 > **Tests:** none (block model exercised indirectly via editor/import/export tests)
-- **WHEN** a document is constructed from blocks
+- **GIVEN** a document is constructed from blocks
 - **THEN** each keyword block is one of `feature`, `rule`, `background`, `scenario`, `given`, `when`, `then`, `and`, `but`
 - **AND** image blocks and data table blocks may also appear, carrying no step semantics and exempt from `canFollow()`
 
@@ -36,50 +36,50 @@ toolbar, slash-command menu, and Enter-key auto-progression.
 
 #### Scenario: Empty document — only feature allowed
 > **Tests:** none (enforced indirectly via toolbar/picker/progression tests)
-- **WHEN** the document is empty
+- **GIVEN** the document is empty
 - **THEN** the only valid first block type is `feature`
 
 #### Scenario: After feature — rule, background, scenario allowed
 > **Tests:** none (enforced indirectly via toolbar/picker/progression tests)
-- **WHEN** the current block is `feature`
+- **GIVEN** the current block is `feature`
 - **THEN** the valid next block types are `rule`, `background`, `scenario`
 
 #### Scenario: After rule — background, scenario allowed
 > **Tests:** none (enforced indirectly via toolbar/picker/progression tests)
-- **WHEN** the current block is `rule`
+- **GIVEN** the current block is `rule`
 - **THEN** the valid next block types are `background`, `scenario`
 
 #### Scenario: After background — only given allowed
 > **Tests:** none (enforced indirectly via toolbar/picker/progression tests)
-- **WHEN** the current block is `background`
+- **GIVEN** the current block is `background`
 - **THEN** the only valid next block type is `given`
 
 #### Scenario: After scenario — only given allowed
 > **Tests:** none (enforced indirectly via toolbar/picker/progression tests)
-- **WHEN** the current block is `scenario`
+- **GIVEN** the current block is `scenario`
 - **THEN** the only valid next block type is `given`
 
 #### Scenario: After given — when, and, but allowed
 > **Tests:** none (enforced indirectly via toolbar/picker/progression tests)
-- **WHEN** the current block is `given`
+- **GIVEN** the current block is `given`
 - **THEN** the valid next block types are `when`, `and`, `but`
 
 #### Scenario: After when — then, and, but allowed
 > **Tests:** none (enforced indirectly via toolbar/picker/progression tests)
-- **WHEN** the current block is `when`
+- **GIVEN** the current block is `when`
 - **THEN** the valid next block types are `then`, `and`, `but`
 
 #### Scenario: After then — and, but, given, scenario, rule allowed
 > **Tests:** none (enforced indirectly via toolbar/picker/progression tests)
-- **WHEN** the current block is `then`
+- **GIVEN** the current block is `then`
 - **THEN** the valid next block types are `and`, `but`, `given`, `scenario`, `rule`
 
 #### Scenario: After and — given, when, then, and, but, scenario, rule allowed
 > **Tests:** none (enforced indirectly via toolbar/picker/progression tests)
-- **WHEN** the current block is `and`
+- **GIVEN** the current block is `and`
 - **THEN** the valid next block types are `given`, `when`, `then`, `and`, `but`, `scenario`, `rule`
 
 #### Scenario: After but — given, when, then, and, scenario, rule allowed
 > **Tests:** none (enforced indirectly via toolbar/picker/progression tests)
-- **WHEN** the current block is `but`
+- **GIVEN** the current block is `but`
 - **THEN** the valid next block types are `given`, `when`, `then`, `and`, `scenario`, `rule`

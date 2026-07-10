@@ -17,10 +17,12 @@ colour.
 
 #### Scenario: Change by one user is visible to all in real time
 > **Tests:** [`e2e/collaboration.spec.ts`](../../../e2e/collaboration.spec.ts)
-- **WHEN** two or more users have the same session URL open and one user types or inserts a block
+- **GIVEN** two or more users have the same session URL open
+- **WHEN** one user types or inserts a block
 - **THEN** all other connected users see the change reflected in their editors in real time
 
 #### Scenario: Remote user cursors visible in distinct colour
 > **Tests:** [`e2e/collaboration.spec.ts`](../../../e2e/collaboration.spec.ts)
-- **WHEN** two or more users are in the same session and the editor renders
+- **GIVEN** two or more users are in the same session
+- **WHEN** the editor renders
 - **THEN** each remote user's cursor position is visible, displayed in a distinct colour

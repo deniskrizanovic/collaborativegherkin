@@ -22,18 +22,20 @@ re-seeding.
 
 #### Scenario: Editor establishes WebSocket and becomes interactive
 > **Tests:** none (WebSocket connection itself not directly asserted)
-- **WHEN** a user opens a session and the editor mounts
+- **GIVEN** a user opens a session
+- **WHEN** the editor mounts
 - **THEN** a WebSocket connection is established to `ws://localhost:1234` in the room `session-{sessionId}`
 - **AND** the Y.js document state is synchronised with the server and any other connected peers
 - **AND** the editor becomes interactive once the connection is established
 
 #### Scenario: New document seeded with 5 scaffold blocks once
 > **Tests:** [`e2e/initial-content.spec.ts`](../../../e2e/initial-content.spec.ts) — order · empty text · cursor on Feature; [`e2e/collaboration.spec.ts`](../../../e2e/collaboration.spec.ts) — second joiner does not re-seed
-- **WHEN** the first user's editor finishes syncing an empty Y.js document
+- **GIVEN** the Y.js document is empty after synchronisation
+- **WHEN** the first user's editor finishes syncing
 - **THEN** the editor is seeded with 5 empty scaffold blocks in this order: Feature, Scenario, Given, When, Then
 - **AND** each scaffold block contains no text — only the keyword label is displayed
 - **AND** the cursor is placed at the start of the Feature block
-- **AND** the seed is applied exactly once per document lifetime — subsequent users joining receive content via Y.js sync and do not trigger re-seeding
+- **AND** the seed is applied exactly once per document lifetime — subsequent users joining the session receive the document content via Y.js sync and do not trigger re-seeding
 
 ### Requirement: Enter-key auto-progression
 
@@ -46,13 +48,15 @@ Gherkin block preceding the image.
 
 #### Scenario: Enter at end of block inserts auto-progression type
 > **Tests:** [`e2e/enter-progression.spec.ts`](../../../e2e/enter-progression.spec.ts) — feature→scenario · scenario→given · given→when · when→then · then→and · and→and · but→and · background→given · rule→scenario
-- **WHEN** the cursor is at the end of a block and the user presses Enter
+- **GIVEN** the cursor is at the end of a block
+- **WHEN** the user presses Enter
 - **THEN** a new block of the auto-progression type is inserted immediately after the current block
 - **AND** the cursor is placed at the start of the new block's text
 
 #### Scenario: Enter on image block uses prevType context
 > **Tests:** [`e2e/enter-progression.spec.ts`](../../../e2e/enter-progression.spec.ts)
-- **WHEN** the cursor is on an image block and the user presses Enter
+- **GIVEN** the cursor is on an image block
+- **WHEN** the user presses Enter
 - **THEN** a new block is inserted after the image using the auto-progression type of the most recent Gherkin block that precedes the image
 - **AND** the cursor is placed at the start of the new block's text
 
@@ -66,38 +70,46 @@ inserting.
 
 #### Scenario: Typing / opens picker with valid next blocks and Image
 > **Tests:** [`e2e/block-picker.spec.ts`](../../../e2e/block-picker.spec.ts) — opens picker · only valid types shown · Image always last
-- **WHEN** the cursor is inside a block and the user types `/`
-- **THEN** a block picker menu opens listing the valid next block types per `canFollow()`
+- **GIVEN** the cursor is inside a block
+- **WHEN** the user types `/`
+- **THEN** a block picker menu opens
+- **AND** the menu lists the block types that are valid next blocks for the current block, according to `canFollow()`
 - **AND** the menu always includes `Image` as the final option, regardless of the current block type
 
 #### Scenario: Down arrow moves picker focus to next item
 > **Tests:** [`e2e/block-picker.spec.ts`](../../../e2e/block-picker.spec.ts)
-- **WHEN** the block picker is open and the user presses the down arrow key
+- **GIVEN** the block picker menu is open
+- **WHEN** the user presses the down arrow key
 - **THEN** focus moves to the next item in the list
 
 #### Scenario: Up arrow moves picker focus to previous item
 > **Tests:** [`e2e/block-picker.spec.ts`](../../../e2e/block-picker.spec.ts)
-- **WHEN** the block picker is open and the user presses the up arrow key
+- **GIVEN** the block picker menu is open
+- **WHEN** the user presses the up arrow key
 - **THEN** focus moves to the previous item in the list
 
 #### Scenario: Enter on focused picker item inserts type and closes
 > **Tests:** [`e2e/block-picker.spec.ts`](../../../e2e/block-picker.spec.ts)
-- **WHEN** the block picker is open with an item focused and the user presses Enter
+- **GIVEN** the block picker menu is open and an item is focused
+- **WHEN** the user presses Enter
 - **THEN** the focused block type is inserted and the menu closes
 
 #### Scenario: Clicking picker item inserts type and closes
 > **Tests:** [`e2e/block-picker.spec.ts`](../../../e2e/block-picker.spec.ts)
-- **WHEN** the block picker is open with an item focused and the user clicks the item
+- **GIVEN** the block picker menu is open and an item is focused
+- **WHEN** the user clicks the item
 - **THEN** the clicked block type is inserted and the menu closes
 
 #### Scenario: Escape closes picker without inserting
 > **Tests:** [`e2e/block-picker.spec.ts`](../../../e2e/block-picker.spec.ts)
-- **WHEN** the block picker is open and the user presses Escape
+- **GIVEN** the block picker menu is open
+- **WHEN** the user presses Escape
 - **THEN** the menu closes without inserting a block
 
 #### Scenario: Clicking outside picker closes without inserting
 > **Tests:** [`e2e/block-picker.spec.ts`](../../../e2e/block-picker.spec.ts)
-- **WHEN** the block picker is open and the user clicks outside the menu
+- **GIVEN** the block picker menu is open
+- **WHEN** the user clicks outside the menu
 - **THEN** the menu closes without inserting a block
 
 ### Requirement: Toolbar block insertion
@@ -109,13 +121,15 @@ cursor to it.
 
 #### Scenario: Toolbar shows valid next blocks and Image
 > **Tests:** [`e2e/toolbar.spec.ts`](../../../e2e/toolbar.spec.ts) — no Feature shown on Feature block · Rule, Background, Scenario after Feature · Image present on non-Feature block
-- **WHEN** the cursor is inside a block and the editor toolbar renders
-- **THEN** the toolbar shows the valid next block types per `canFollow()`
+- **GIVEN** the cursor is inside a block
+- **WHEN** the editor toolbar renders
+- **THEN** the toolbar shows the block types that are valid next blocks for the current block, according to `canFollow()`
 - **AND** the toolbar always shows an Image button, regardless of the current block type
 
 #### Scenario: Clicking toolbar button inserts block and moves cursor
 > **Tests:** [`e2e/toolbar.spec.ts`](../../../e2e/toolbar.spec.ts) — node inserted · Scenario after Feature
-- **WHEN** the toolbar is showing valid block types and the user clicks a toolbar button
+- **GIVEN** the toolbar is showing valid block types
+- **WHEN** the user clicks a toolbar button
 - **THEN** a new block of the chosen type is inserted after the current block
 - **AND** the cursor moves to the new block
 
@@ -128,13 +142,13 @@ output.
 
 #### Scenario: Given after then/and/but gets top border (visual only)
 > **Tests:** [`e2e/visual-separation.spec.ts`](../../../e2e/visual-separation.spec.ts) — after then · after and · after but · first given after scenario has no border · separator not in export
-- **WHEN** a `given` block immediately follows a `then`, `and`, or `but` block
+- **GIVEN** a `given` block immediately follows a `then`, `and`, or `but` block
 - **THEN** a horizontal rule and vertical space are rendered above the `given` block
 - **AND** this separation is purely visual and does not affect the document structure or export output
 
 #### Scenario: Scenario after then/and/but gets top border (visual only)
 > **Tests:** [`e2e/visual-separation.spec.ts`](../../../e2e/visual-separation.spec.ts) — after then · after and · after but
-- **WHEN** a `scenario` block immediately follows a `then`, `and`, or `but` block
+- **GIVEN** a `scenario` block immediately follows a `then`, `and`, or `but` block
 - **THEN** a horizontal rule and vertical space are rendered above the `scenario` block
 - **AND** this separation is purely visual and does not affect the document structure or export output
 
@@ -148,24 +162,27 @@ displayed inline at full available width and MAY appear after any keyword block.
 
 #### Scenario: Image toolbar button opens file picker and embeds image
 > **Tests:** [`e2e/image.spec.ts`](../../../e2e/image.spec.ts)
-- **WHEN** a user in a session editor clicks the Image toolbar button
+- **GIVEN** a user is in a session editor
+- **WHEN** the user clicks the Image toolbar button
 - **THEN** a file picker opens
 - **AND** selecting an image file embeds it as an image block immediately after the current block
 
 #### Scenario: Slash-command Image selection opens file picker and embeds image
 > **Tests:** [`e2e/image.spec.ts`](../../../e2e/image.spec.ts)
-- **WHEN** a user types `/` and selects Image from the block picker
+- **GIVEN** a user is in a session editor
+- **WHEN** the user types `/` and selects Image from the block picker
 - **THEN** a file picker opens
 - **AND** selecting an image file embeds it as an image block immediately after the current block
 
 #### Scenario: Drag and drop image embeds at drop position
 > **Tests:** [`e2e/image.spec.ts`](../../../e2e/image.spec.ts)
-- **WHEN** a user drags an image file onto the editor
+- **GIVEN** a user is in a session editor
+- **WHEN** the user drags an image file onto the editor
 - **THEN** the image is embedded as an image block at the drop position
 
 #### Scenario: Image block displayed inline at full width
 > **Tests:** none
-- **WHEN** an image block is in the document
+- **GIVEN** an image block is in the document
 - **THEN** the image is displayed inline at full available width
 - **AND** the image block may appear after any keyword block type
 
@@ -178,18 +195,19 @@ visual and MUST NOT affect document structure or export output.
 
 #### Scenario: Feature block flush with left margin
 > **Tests:** none
-- **WHEN** the editor contains a `feature` block
+- **GIVEN** the editor contains a `feature` block
 - **THEN** it is rendered flush with the editor left margin
 
 #### Scenario: Rule, background, scenario indented one level
 > **Tests:** none
-- **WHEN** the editor contains a `rule`, `background`, or `scenario` block
+- **GIVEN** the editor contains a `rule`, `background`, or `scenario` block
 - **THEN** it is visually indented one level from the `feature` block
 
 #### Scenario: Step blocks indented two levels
 > **Tests:** none
-- **WHEN** the editor contains a `given`, `when`, `then`, `and`, or `but` block
-- **THEN** it is visually indented two levels from the `feature` block, without affecting document structure or export output
+- **GIVEN** the editor contains a `given`, `when`, `then`, `and`, or `but` block
+- **THEN** it is visually indented two levels from the `feature` block
+- **AND** this indentation is purely visual and does not affect the document structure or export output
 
 ### Requirement: Data table insertion
 
@@ -202,31 +220,34 @@ export formatting is specified in `gherkin-export`.)
 
 #### Scenario: Table button shown when cursor is on step or data table
 > **Tests:** [`e2e/data-table.spec.ts`](../../../e2e/data-table.spec.ts) — visible on Given · absent on Feature
-- **WHEN** the cursor is on a step block (`given`, `when`, `then`, `and`, or `but`) or on a data table block that follows a step
+- **GIVEN** the cursor is on a step block (`given`, `when`, `then`, `and`, or `but`) or on a data table block that follows a step
 - **THEN** the toolbar shows a "Table" button
 
 #### Scenario: Clicking Table inserts 2×2 stub with cursor in first cell
 > **Tests:** [`e2e/data-table.spec.ts`](../../../e2e/data-table.spec.ts) — node inserted · first cell interactive
-- **WHEN** the toolbar shows a "Table" button and the user clicks it
+- **GIVEN** the toolbar shows a "Table" button
+- **WHEN** the user clicks it
 - **THEN** a 2×2 data table stub with empty cells is inserted immediately after the current block
 - **AND** the cursor is placed inside the first cell
 
 #### Scenario: Slash-command picker includes Table when on step block
 > **Tests:** [`e2e/data-table.spec.ts`](../../../e2e/data-table.spec.ts)
-- **WHEN** the user types `/` and the current/previous block is a step type
+- **GIVEN** the user types `/` and the current/previous block is a step type
 - **THEN** the block picker includes "Table" as an option
 
 #### Scenario: Tab moves focus to next cell
 > **Tests:** [`e2e/data-table.spec.ts`](../../../e2e/data-table.spec.ts)
-- **WHEN** a data table is in the document and the user presses Tab inside a cell
+- **GIVEN** a data table is in the document
+- **WHEN** the user presses Tab inside a cell
 - **THEN** focus moves to the next cell (left to right, top to bottom)
 
 #### Scenario: Shift+Tab moves focus to previous cell
 > **Tests:** [`e2e/data-table.spec.ts`](../../../e2e/data-table.spec.ts)
-- **WHEN** a data table is in the document and the user presses Shift+Tab inside a cell
+- **GIVEN** a data table is in the document
+- **WHEN** the user presses Shift+Tab inside a cell
 - **THEN** focus moves to the previous cell
 
 #### Scenario: Add row and Add column controls available
 > **Tests:** [`e2e/data-table.spec.ts`](../../../e2e/data-table.spec.ts)
-- **WHEN** a data table is in the document
+- **GIVEN** a data table is in the document
 - **THEN** "Add row" and "Add column" controls are available within the table UI

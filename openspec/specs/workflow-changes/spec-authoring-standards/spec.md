@@ -17,17 +17,20 @@ indistinguishable from an overlooked one.
 
 #### Scenario: Scenario with a linked test passes the gate
 > **Tests:** [`scripts/lint-spec-traceability.test.ts`](../../../../scripts/lint-spec-traceability.test.ts) — passes when link present
-- **WHEN** a scenario is immediately followed by `> **Tests:** [path](...)`
+- **GIVEN** a scenario is immediately followed by `> **Tests:** [path](...)`
+- **WHEN** the traceability lint gate runs
 - **THEN** the traceability lint gate accepts it
 
 #### Scenario: Scenario marked none passes the gate
 > **Tests:** [`scripts/lint-spec-traceability.test.ts`](../../../../scripts/lint-spec-traceability.test.ts) — passes when marked none
-- **WHEN** a scenario is immediately followed by `> **Tests:** none`
+- **GIVEN** a scenario is immediately followed by `> **Tests:** none`
+- **WHEN** the traceability lint gate runs
 - **THEN** the traceability lint gate accepts it as an explicit, visible coverage gap
 
 #### Scenario: Scenario missing the tests line fails the gate
 > **Tests:** [`scripts/lint-spec-traceability.test.ts`](../../../../scripts/lint-spec-traceability.test.ts) — fails when line absent
-- **WHEN** a scenario has no `> **Tests:**` line before the next heading or blank-line boundary
+- **GIVEN** a scenario has no `> **Tests:**` line before the next heading or blank-line boundary
+- **WHEN** the traceability lint gate runs
 - **THEN** the traceability lint gate exits non-zero and names the offending file and scenario
 
 ### Requirement: Traceability is enforced at delta-authoring time
@@ -39,7 +42,8 @@ archived.
 
 #### Scenario: Delta spec is scanned before archive
 > **Tests:** [`scripts/lint-spec-traceability.test.ts`](../../../../scripts/lint-spec-traceability.test.ts) — scans change deltas
-- **WHEN** an unarchived change under `openspec/changes/` contains a scenario without a `> **Tests:**` line
+- **GIVEN** an unarchived change under `openspec/changes/` contains a scenario without a `> **Tests:**` line
+- **WHEN** the traceability lint gate runs
 - **THEN** the traceability lint gate fails, before the change is archived
 
 ### Requirement: The traceability gate runs in the standard test suite
@@ -49,5 +53,6 @@ alongside the existing lint and typecheck steps and blocks a green suite when vi
 
 #### Scenario: test:all invokes the traceability gate
 > **Tests:** none
+- **GIVEN** the project's `test:all` script is configured
 - **WHEN** a developer runs `npm run test:all`
 - **THEN** the traceability lint gate executes and its failure fails the overall run
