@@ -48,6 +48,9 @@ jobs:
       - name: Lint specs (traceability)
         run: npm run lint:specs
 
+      - name: Lint specs (given clause)
+        run: npm run lint:given
+
       - name: Lint issue links
         run: npm run lint:issue-link
         env:

@@ -2,7 +2,9 @@
 # Base version: OpenSpec 1.4.1 (@fission-ai/openspec). Re-diff against the
 # package copy (<package>/schemas/spec-driven/) after any OpenSpec upgrade.
 # Local customisation: the `specs` instruction and templates/spec.md require a
-# `> **Tests:**` traceability line on every scenario (see adopt-openspec-with-test-traceability).
+# `> **Tests:**` traceability line on every scenario (see adopt-openspec-with-test-traceability),
+# and a `- **GIVEN**` clause on every scenario, with the `specs` instruction
+# directing authors to the `gherkin-authoring` skill (see require-given-clauses).
 name: spec-driven
 version: 1
 description: Default OpenSpec workflow - proposal → specs → design → tasks
@@ -52,10 +54,12 @@ artifacts:
       Format requirements:
       - Each requirement: `### Requirement: <name>` followed by description
       - Use SHALL/MUST for normative requirements (avoid should/may)
-      - Each scenario: `#### Scenario: <name>` with WHEN/THEN format
+      - Each scenario: `#### Scenario: <name>` with GIVEN/WHEN/THEN format
       - **CRITICAL**: Scenarios MUST use exactly 4 hashtags (`####`). Using 3 hashtags or bullets will fail silently.
       - Every requirement MUST have at least one scenario.
-      - **TEST TRACEABILITY**: Every `#### Scenario:` MUST be immediately followed by a `> **Tests:**` line citing the e2e/unit spec(s) that exercise it (e.g. `> **Tests:** [`path/to.spec.ts`](...) — case`), or the literal word `none` when no test exists yet (`> **Tests:** none`). The line goes between the `#### Scenario:` heading and the WHEN/THEN bullets. Omitting it fails the project's traceability lint gate; silence is not permitted because an absent line is indistinguishable from an overlooked one.
+      - **GHERKIN AUTHORING**: Before authoring scenarios, invoke the `gherkin-authoring` skill and apply its GIVEN/WHEN/THEN guidance — GIVEN describes a known initial state (not a user interaction), WHEN is one meaningful event, THEN is an observable outcome. In this repo the on-disk form is the markdown `#### Scenario:` + `- **GIVEN**` / `- **WHEN**` / `- **THEN**` bullet dialect, not real `.feature` syntax; use the skill for its authoring principles, not its literal syntax reference.
+      - **GIVEN CLAUSE**: Every `#### Scenario:` MUST contain a `- **GIVEN**` clause describing its initial state, among the scenario's bullet lines. A scenario MUST NOT be a bare WHEN/THEN pair — an absent precondition hides the state a reader or test author needs. Omitting it fails the project's `lint:given` gate.
+      - **TEST TRACEABILITY**: Every `#### Scenario:` MUST be immediately followed by a `> **Tests:**` line citing the e2e/unit spec(s) that exercise it (e.g. `> **Tests:** [`path/to.spec.ts`](...) — case`), or the literal word `none` when no test exists yet (`> **Tests:** none`). The line goes between the `#### Scenario:` heading and the GIVEN/WHEN/THEN bullets. Omitting it fails the project's traceability lint gate; silence is not permitted because an absent line is indistinguishable from an overlooked one.
 
       MODIFIED requirements workflow:
       1. Locate the existing requirement in openspec/specs/<capability>/spec.md
@@ -75,6 +79,7 @@ artifacts:
 
       #### Scenario: Successful export
       > **Tests:** none
+      - **GIVEN** a signed-in user with data to export
       - **WHEN** user clicks "Export" button
       - **THEN** system downloads a CSV file with all user data
 

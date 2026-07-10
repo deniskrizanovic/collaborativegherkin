@@ -4,3 +4,7 @@ npx lint-staged
 # Spec traceability runs against the whole spec tree (not just staged files),
 # so it catches drift anywhere in openspec/. Pure filesystem check — no network.
 npm run lint:specs
+
+# GIVEN-clause gate — every scenario must declare a GIVEN precondition.
+# Also whole-tree and offline-safe; sibling of lint:specs.
+npm run lint:given
