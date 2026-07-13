@@ -6,11 +6,15 @@ on:
     paths:
       - 'src/**'
       - 'openspec/**'
+      - 'prisma/**'
+      - 'scripts/**'
   pull_request:
     branches: [main]
     paths:
       - 'src/**'
       - 'openspec/**'
+      - 'prisma/**'
+      - 'scripts/**'
 
 jobs:
   ci:
@@ -55,6 +59,9 @@ jobs:
         run: npm run lint:issue-link
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Lint schema parity
+        run: npm run lint:schema-parity
 
       - name: Type check
         run: npm run typecheck

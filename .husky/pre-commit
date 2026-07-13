@@ -8,3 +8,8 @@ npm run lint:specs
 # GIVEN-clause gate — every scenario must declare a GIVEN precondition.
 # Also whole-tree and offline-safe; sibling of lint:specs.
 npm run lint:given
+
+# Cross-engine schema parity — the SQLite and Postgres Prisma schemas must
+# define the same models/fields. Pure filesystem check, no network; sibling
+# of lint:specs.
+npm run lint:schema-parity
