@@ -31,9 +31,14 @@ vi.mock("@/lib/coaching", async (importOriginal) => {
 });
 
 vi.mock("@/lib/logger", () => ({
-  default: { error: vi.fn(), info: vi.fn() },
+  default: { error: vi.fn(), info: vi.fn(), warn: vi.fn() },
 }));
 
+vi.mock("@/auth", () => ({
+  auth: vi.fn(),
+}));
+
+import { auth } from "@/auth";
 import { Session, SessionNotFoundError } from "@/lib/session";
 import {
   Coaching,
@@ -45,9 +50,17 @@ import { POST } from "./route";
 
 const MockedSession = vi.mocked(Session);
 const MockedCoaching = vi.mocked(Coaching);
+const mockedAuth = vi.mocked(auth);
+
+async function mockAuth(userId: string | null) {
+  mockedAuth.mockResolvedValue(
+    userId ? ({ user: { id: userId, email: "test@example.com" } } as any) : null
+  );
+}
 
 beforeEach(() => {
   vi.clearAllMocks();
+  mockAuth("user-1");
   MockedSession.mockImplementation(function () {
     return { get: vi.fn().mockResolvedValue(fakeSessionRecord) } as any;
   });
@@ -62,6 +75,20 @@ function makeRequest(body: unknown): Request {
 }
 
 describe("POST /api/llm-review", () => {
+  it("returns 401 when unauthenticated, with no session lookup or OpenRouter call", async () => {
+    await mockAuth(null);
+    const reviewGherkin = vi.fn().mockResolvedValue("should not run");
+    MockedCoaching.mockImplementation(function () { return { reviewGherkin } as any; });
+
+    const response = await POST(makeRequest({ content: "Given a step", sessionId: "session-1" }));
+    const body = await response.json();
+
+    expect(response.status).toBe(401);
+    expect(body).toEqual({ error: "Unauthorized" });
+    expect(MockedSession).not.toHaveBeenCalled();
+    expect(reviewGherkin).not.toHaveBeenCalled();
+  });
+
   it("returns 200 with result for valid body", async () => {
     const reviewGherkin = vi.fn().mockResolvedValue("some feedback");
     MockedCoaching.mockImplementation(function () { return { reviewGherkin } as any; });

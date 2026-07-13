@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
+import { auth } from "@/auth";
 import { db } from "@/lib/db";
 import logger from "@/lib/logger";
 import { AVAILABLE_MODELS, DEFAULT_MODEL, DEFAULT_PROMPT } from "@/lib/llm-constants";
@@ -17,6 +18,12 @@ const PostSchema = z.object({
 });
 
 export async function POST(request: Request) {
+  const authSession = await auth();
+  if (!authSession) {
+    logger.warn("Unauthenticated request to /api/llm-review rejected");
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
   try {
     const body = await request.json();
     const parsed = PostSchema.safeParse(body);
