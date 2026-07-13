@@ -1,10 +1,4 @@
-# data-model Specification
-
-## Purpose
-
-Persistence constraints for the `Session` and `User` records.
-
-## Requirements
+## MODIFIED Requirements
 
 ### Requirement: Session record constraints
 
@@ -40,16 +34,7 @@ production.
 - **THEN** its `prompt` attribute is null
 - **AND** its `model` attribute is null
 
-### Requirement: User record constraints
-
-A `User` SHALL have an `email` that is unique across all users and MAY own zero
-or more sessions.
-
-#### Scenario: User email is unique and owns zero or more sessions
-> **Tests:** none
-- **GIVEN** a user record exists
-- **THEN** its `email` is unique across all users
-- **AND** a user may own zero or more sessions
+## ADDED Requirements
 
 ### Requirement: Cross-engine schema parity
 

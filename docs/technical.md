@@ -89,6 +89,19 @@ DATABASE_URL="postgresql://..." npm run db:migrate:prod
 
 Four models: `User`, `Account`, `Session`, `VerificationToken`. The `Session` model carries optional `prompt` and `model` columns for per-session coaching configuration; both are `null` by default and fall back to the constants in `src/lib/llm-constants.ts`. The session's `content` field stores `{}` by default — actual document state lives in Y.js (in-memory in the WebSocket server), not in the database.
 
+**Schema parity** — because the two files are hand-maintained, they can drift (a
+field added to one engine but not the other surfaces only at runtime in the
+other engine — findings ENG-030/031). `prisma/schema.prisma` (SQLite) is the
+reference: it matches the running application code and the single generated
+client. To add or change a model or field, **edit both `prisma/schema.prisma`
+and `prisma/postgres/schema.prisma` identically** (only the datasource
+`provider`, the generator `output` path, and engine-native `@db.*` attributes
+may differ), then generate a migration for each engine. The
+`lint:schema-parity` gate (`scripts/lint-schema-parity.mjs`) parses both files
+and fails the build when their model/field sets diverge. It is offline-safe and
+runs in `test:all`, in CI, and in the husky pre-commit hook, alongside
+`lint:specs`.
+
 ### Auth
 
 NextAuth.js v5 (`src/auth.ts`) — magic link via **Resend**, JWT session strategy (avoids naming conflict with the Gherkin `Session` model), `PrismaAdapter` for token persistence.
