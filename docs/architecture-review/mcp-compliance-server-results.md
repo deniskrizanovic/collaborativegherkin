@@ -34,7 +34,7 @@ The AppGenie Compliance MCP server is NOT connected in this session, so this is 
 | ID | Finding | File / location | Standard | Sev | Action |
 |---|---|---|---|---|---|
 | ENG-001 | IDOR: `GET` and `PATCH` check authentication (401) but not ownership; any signed-in user can read or modify any session by id. Only `DELETE` enforces `row.userId !== user.id`. ✅ **Resolved — see §2.A.1.** | `src/app/api/sessions/[id]/route.ts` (GET, PATCH) | STD-ENTERPRISE-ACCESS-CONTROL 3.4 (deny by default, object-level), 3.1 (least privilege); ENG-CTRL-08 6.1 | H | Block |
-| ENG-002 | `llm-review` has no `auth()` call and no ownership check; it loads any session's stored prompt by id. | `src/app/api/llm-review/route.ts` | STD-ENTERPRISE-ACCESS-CONTROL 3.4; STD-AI-SYSTEM-SECURITY 4.1 (AI inference endpoints MUST be authenticated) | H | Block |
+| ENG-002 | `llm-review` has no `auth()` call and no ownership check; it loads any session's stored prompt by id. ✅ **Resolved — see §2.A.2.** | `src/app/api/llm-review/route.ts` | STD-ENTERPRISE-ACCESS-CONTROL 3.4; STD-AI-SYSTEM-SECURITY 4.1 (AI inference endpoints MUST be authenticated) | H | Block |
 | ENG-003 | Test-only `CredentialsProvider` bypass is compiled into every build, gated only by presence of `process.env.TEST_AUTH_SECRET`. | `src/auth.ts` | STD-ENTERPRISE-ACCESS-CONTROL 3.3/3.4; ENG-CTRL-08 6.1/6.3 | H | Block |
 | ENG-004 | `signin/page.tsx` passes `process.env.TEST_AUTH_SECRET` into the client `SignInForm` as `testAuthSecret`. If ever set in production the bypass button renders and the secret ships in client HTML. | `src/app/auth/signin/page.tsx` | STD-AI-SYSTEM-SECURITY 4.2 (secrets MUST NOT be in client-side code); ENG-CTRL-08 6.1 | H | Block |
 | ENG-005 | Y.js WebSocket server has no authentication, no origin check, and no authorisation. Room name is taken from the raw request URL, so any client can join `session-<id>` for any session and read/write the live document, bypassing the Next.js auth gate entirely. | `y-websocket-server.mjs` | STD-ENTERPRISE-ACCESS-CONTROL 3.4; STD-AI-SYSTEM-SECURITY 4.1; APP 11 (security of personal information) | H | Block |
@@ -50,6 +50,14 @@ Refs: [#22](https://github.com/deniskrizanovic/collaborativegherkin/issues/22) �
 |---|---|---|---|
 | ENG-001 | IDOR: `GET`/`PATCH` authenticate but don't check ownership; any signed-in user can read/modify any session by id. | ✅ **Not a defect** | The "guess or enumerate the id" premise fails against an unguessable `cuid`: the id is a **capability URL** (invite link), so open read/edit is the intended collaboration feature (reaffirms ADR-0003). Owner-only guards were added (`b40d4d2`) then **reverted** (`659f8e0`) because they broke link-sharing (collaborators got 403 on load and on every settings change). `DELETE` stays owner-only. Documented in ADR-0005. ⚠️ This narrows the REST surface only — the unauthenticated Y.js WebSocket (ENG-005) is the real boundary and is **still open**. |
 | ENG-006 | Ownership tested only for `DELETE`; no 403 test on `GET`/`PATCH`, which is why ENG-001 slipped through. | ✅ **Fixed** | Root cause was that the whole e2e suite ran as a **single user**, so no non-owner path was ever exercised. Added a second identity (`e2e/global-setup.ts`) and multi-user characterisation tests (`e2e/session-access-control.spec.ts`) pinning the access contract at API and UX layers. Mutation-verified load-bearing: re-applying the owner-only guard turns 5/6 tests red (DELETE correctly stays green). |
+
+#### A.2 Resolutions (2026-07-13)
+
+Refs: [#27](https://github.com/deniskrizanovic/collaborativegherkin/issues/27) · commit `7f7608b` · [ADR-0005](../adr/0005-session-access-control-capability-url.md)
+
+| ID | Original finding | Disposition | Resolution |
+|---|---|---|---|
+| ENG-002 / AI-006 | `llm-review` has no `auth()` call; it loads any session's stored prompt by id, and the AI inference endpoint is not independently authenticated. | ✅ **Fixed** | `POST /api/llm-review` now calls `auth()` as its **first action** — before body parse or session lookup — and returns **401** with no session lookup and no OpenRouter call when unauthenticated; the 401 path emits a content-free AI security log event via the Pino logger (`logger.warn`). Consistent with the ENG-001 resolution and ADR-0005, **no ownership check was added**: the session id is an unguessable `cuid` capability URL, so any signed-in caller holding the id (owner or invited collaborator) may run a review. Unit test asserts 401 short-circuits before any `Session` lookup or `reviewGherkin` call; existing tests updated to stub an authenticated session. Delta synced to `openspec/specs/llm-review/spec.md`. ⚠️ This authenticates the REST inference endpoint only — the unauthenticated Y.js WebSocket (ENG-005) remains the open boundary. |
 
 ### B. Input validation and injection safety
 
@@ -102,7 +110,7 @@ These are obligations ADDED by `profile-ai-controlled`. Per the profile, they MU
 | AI-003 | Floating, unpinned model identifiers (`...:free`); production must reference a pinned version. Several IDs also appear fabricated (`deepseek-v4-flash`, `gemma-4-31b-it`, `minimax-m2.5`, `nvidia/nemotron-3-super`), a data-validity risk. | `src/lib/llm-constants.ts`; STD-AI-MODEL-LIFECYCLE 216-217; STD-AI-SUPPLY-CHAIN 4.3 | ISO 42001 8.4 | H | Block (lifecycle "prohibited") |
 | AI-004 | No output validation tier assigned, output not labelled AI-generated, no human-oversight record. The coaching output feeds acceptance-criteria authoring. | STD-AI-OUTPUT-VALIDATION 3, 4.1, 4.2; `human_oversight_and_intervention` | NIST MEASURE-1, MANAGE-1; ISO 42001 8.4 | H | Block until tier assigned |
 | AI-005 | No prompt-injection control: user content is concatenated into the model call with system prompt; no input filtering for override/extraction/DoS. | STD-AI-SYSTEM-SECURITY 3.1, 5.1 | NIST MEASURE-2 | M | Flag |
-| AI-006 | AI inference endpoint (`llm-review`) is not independently authenticated and AI security events are not emitted to centralised logging. | STD-AI-SYSTEM-SECURITY 4.1, 8 | NIST SA-8 | H | Block (ties to ENG-002) |
+| AI-006 | AI inference endpoint (`llm-review`) is not independently authenticated and AI security events are not emitted to centralised logging. ✅ **Authentication resolved — see §2.A.2.** Endpoint now requires `auth()` and emits a content-free security log event on 401. Centralised log aggregation remains a gap (Pino still writes to local files only — see OPS-003). | STD-AI-SYSTEM-SECURITY 4.1, 8 | NIST SA-8 | H | Block (ties to ENG-002) |
 | AI-007 | No AI technical documentation (purpose, intended use, limitations, known risks, oversight). | `ai_technical_documentation` | ISO 42001 8.4 | M | Flag |
 | AI-008 | No bias / fairness assessment of the coaching output. | `ai_bias_and_fairness_testing` | NIST MEASURE-2 | M | Flag |
 | AI-009 | No drift monitoring and no AI-incident-to-problem-management linkage. | `ai_system_monitoring_and_drift_detection`, `ai_incident_response_linkage` | NIST MANAGE-2/4 | M | Flag |
@@ -145,7 +153,7 @@ Unresolved supporting-standard gaps required by the profile but absent from the 
 
 | ID | Gap | Standard | Sev | Action |
 |---|---|---|---|---|
-| TEST-001 | Failure-path coverage incomplete: ownership/403 asserted only for DELETE; GET/PATCH IDOR and the llm-review auth path are untested (ENG-006, ENG-002). | ENG-CTRL-04 3.2 | H | Flag |
+| TEST-001 | Failure-path coverage incomplete: ownership/403 asserted only for DELETE; GET/PATCH IDOR and the llm-review auth path are untested (ENG-006, ENG-002). ✅ **Partially resolved:** GET/PATCH access contract now covered by multi-user e2e tests (§2.A.1) and the llm-review 401 path has a unit test asserting no session lookup / no OpenRouter call (§2.A.2). | ENG-CTRL-04 3.2 | H | Flag |
 | TEST-002 | Pervasive "Tests: none" in the spec traceability lines - all of spec section 2 (structure rules), section 4 (REST contract), section 8.5/8.6 (LLM API + PATCH) are marked untested. The REST contract and AI feature are not traced to tests. | ENG-CTRL-04 3.6; baseline-commercial requirements_traceability | H | Flag |
 | TEST-003 | No coverage roll-up / "X of Y scenarios traced" evidence; test evidence not structured or linked as machine-readable artefacts. | ENG-CTRL-04 4.2 | M | Flag |
 | TEST-004 | No AI system testing/validation against accuracy/reliability/safety/fairness/security acceptance criteria linked to model version. | ENG-CTRL-04; ai-controlled `ai_system_testing_and_validation` | M | Flag |
@@ -260,10 +268,10 @@ Phase 0 - restore and stop the bleeding
 
 Phase 1 - blocking baseline defects (smallest, highest value first)
 
-> **Progress marker (2026-07-09): you are here → step 3.** Step 2 is complete (closed as "not a defect"). Steps 3-6 remain open.
+> **Progress marker (2026-07-13): you are here → step 4.** Step 2 is complete (closed as "not a defect") and step 3 is done (ENG-002 / AI-006, [#27](https://github.com/deniskrizanovic/collaborativegherkin/issues/27), commit `7f7608b`). Steps 4-6 remain open.
 
 2. ✅ **DONE** — ENG-001 / ENG-006 ([#22](https://github.com/deniskrizanovic/collaborativegherkin/issues/22), [ADR-0005](../adr/0005-session-access-control-capability-url.md)). Resolved **not** by adding an ownership guard: the session id is an unguessable `cuid` used as a capability URL, so open `GET`/`PATCH` is the intended collaboration model (owner-only guards were added then reverted). `DELETE` stays owner-only. Test gap closed with a second e2e identity + multi-user characterisation tests (mutation-verified). ⚠️ Note: this narrows the REST surface only — the unauthenticated Y.js WebSocket (ENG-005) is the real boundary and is **still open**.
-3. ⬜ ENG-002 / AI-006: add `auth()` and ownership check to `llm-review`.
+3. ✅ **DONE** — ENG-002 / AI-006 ([#27](https://github.com/deniskrizanovic/collaborativegherkin/issues/27), commit `7f7608b`, [ADR-0005](../adr/0005-session-access-control-capability-url.md)). `POST /api/llm-review` now calls `auth()` as its first action and returns 401 (with a content-free security log event) before any session lookup or OpenRouter call. Per ADR-0005 **no ownership guard was added** — the id is a capability URL, so any authenticated holder may run a review. ⚠️ Authenticates the REST endpoint only; the unauthenticated Y.js WebSocket (ENG-005) remains the primary open boundary.
 4. ⬜ ENG-030/031: reconcile the Prisma schemas (single source of truth; add `prompt`/`model` to Postgres) before any further prod migration.
 5. ⬜ ENG-003/004: compile the test-bypass provider out of production builds; stop passing the secret to the client.
 6. ⬜ ENG-005: authenticate the Y.js WebSocket server and scope rooms to authorised sessions. *(Elevated by the ENG-001 resolution: since REST is intentionally open, this WebSocket is now the primary access-control boundary.)*
