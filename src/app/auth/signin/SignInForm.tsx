@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { signIn } from "next-auth/react";
 
-export default function SignInForm({ testAuthSecret }: { testAuthSecret: string | null }) {
+export default function SignInForm({ devLoginEnabled }: { devLoginEnabled: boolean }) {
   const [email, setEmail] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [sent, setSent] = useState(false);
@@ -34,7 +34,6 @@ export default function SignInForm({ testAuthSecret }: { testAuthSecret: string 
     try {
       await signIn("test-bypass", {
         email: "dev@example.com",
-        secret: testAuthSecret ?? "",
         callbackUrl: "/",
       });
     } catch {
@@ -98,7 +97,7 @@ export default function SignInForm({ testAuthSecret }: { testAuthSecret: string 
         </form>
       )}
 
-      {testAuthSecret && (
+      {devLoginEnabled && (
         <div style={{ marginTop: "2rem", paddingTop: "1.5rem", borderTop: "1px solid var(--border)" }}>
           <p className="home-eyebrow" style={{ marginBottom: "0.75rem" }}>Dev login</p>
           <button
