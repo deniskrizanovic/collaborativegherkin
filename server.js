@@ -262,6 +262,13 @@ app.prepare().then(() => {
           socket.destroy();
           return;
         }
+        // Content-free security log — the accepted counterpart to the
+        // rejection log above. Records who joined which room (no token), so
+        // WS access can be correlated with session-access logs.
+        logger.info(
+          { event: "ws_upgrade_accepted", room: decision.room, userId: decision.userId },
+          "WebSocket upgrade accepted"
+        );
         wss.handleUpgrade(req, socket, head, (ws) => {
           handleConnection(ws, decision.room);
         });
