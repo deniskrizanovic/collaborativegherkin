@@ -1,6 +1,12 @@
 import pino from "pino";
 import path from "path";
 import fs from "fs";
+import { createRequire } from "module";
+
+// The custom Node server (`server.js`) imports this module from a plain ESM
+// entry point where the CommonJS `require` global is absent, so build a local
+// one from the module URL. This keeps working under Next's bundler too.
+const require = createRequire(import.meta.url);
 
 // pino.transport() spawns worker threads, which break in Next.js dev mode
 // because webpack rewrites module paths the worker can't resolve.
@@ -10,7 +16,6 @@ function createDevDestination(): pino.MultiStreamRes {
   const logsDir = path.join(process.cwd(), "logs");
   fs.mkdirSync(logsDir, { recursive: true });
 
-  // eslint-disable-next-line @typescript-eslint/no-require-imports
   const pretty = require("pino-pretty");
 
   return pino.multistream([

@@ -2,14 +2,24 @@
 
 ## Architecture
 
-### Two-server model
+### Single-server model
 
-The Next.js app server handles HTTP (sessions API, page rendering) while a separate standalone Y.js WebSocket server (`y-websocket-server.mjs`) handles real-time sync. Both must run concurrently:
+A custom Node server (`server.js`) serves the Next.js app over HTTP **and** the
+Y.js real-time sync WebSocket on the same origin/port. One process, one command:
 
 ```bash
-npm run dev      # Next.js on http://localhost:3000
-npm run dev:ws   # Y.js WebSocket on ws://localhost:1234
+npm run dev      # HTTP + WebSocket on http://localhost:3000
 ```
+
+Because the sync socket shares the app's origin, the browser attaches the
+httpOnly NextAuth session cookie on the WebSocket `upgrade` request. The server
+verifies that cookie (`AUTH_SECRET`, salt `authjs.session-token`) before joining
+any room — an unauthenticated upgrade is refused with `401` before any document
+or awareness state is sent (ENG-005). Authorization follows ADR-0005's
+capability model: a signed-in caller holding a well-formed `session-{id}` room
+name is authorized; no per-session ownership lookup. The same `server.js` runs
+in dev and production (`NODE_ENV` toggles Next's `dev` flag), so Railway and EC2
+deploy one identical artifact.
 
 ### Project structure
 
@@ -36,7 +46,7 @@ src/
 prisma/
   schema.prisma   # Database schema
   seed.ts         # Dev seed — creates placeholder user
-y-websocket-server.mjs  # Standalone Y.js WebSocket sync server
+server.js               # Custom Node server — Next.js HTTP + authenticated Y.js WebSocket
 ```
 
 ### Editor (`src/components/GherkinEditor.tsx`)
