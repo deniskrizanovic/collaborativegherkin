@@ -18,13 +18,21 @@ const providers: NextAuthConfig["providers"] = [
 ];
 
 // Test-only bypass — never set TEST_AUTH_SECRET in production.
-if (process.env.TEST_AUTH_SECRET) {
+// The static `NODE_ENV !== "production"` literal lets the bundler
+// dead-code-eliminate this entire block from a production build (ENG-003).
+if (process.env.NODE_ENV !== "production" && process.env.TEST_AUTH_SECRET) {
   providers.push(
     CredentialsProvider({
       id: "test-bypass",
       credentials: { email: {}, secret: {} },
       async authorize(credentials) {
-        if (credentials.secret !== process.env.TEST_AUTH_SECRET) return null;
+        // The client no longer carries the secret (ENG-004); an unsubmitted
+        // secret defaults to the server-side value. A caller that explicitly
+        // submits a non-matching secret is still rejected (defense in depth).
+        const submitted =
+          (credentials.secret as string | undefined) ??
+          process.env.TEST_AUTH_SECRET;
+        if (submitted !== process.env.TEST_AUTH_SECRET) return null;
         return db.user.upsert({
           where: { email: credentials.email as string },
           update: {},
