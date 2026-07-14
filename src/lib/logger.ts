@@ -12,23 +12,39 @@ const require = createRequire(import.meta.url);
 // because webpack rewrites module paths the worker can't resolve.
 // pino.multistream() + pino-pretty's sync mode achieves the same result
 // without any worker threads.
+//
+// Production logs to stdout only (see the pino() call below), so the disk
+// streams here are dev-only. If the logs/ dir can't be created or opened
+// (read-only checkout, missing perms), fall back to pretty stdout alone with a
+// warning rather than throwing at import and taking the process down.
 function createDevDestination(): pino.MultiStreamRes {
-  const logsDir = path.join(process.cwd(), "logs");
-  fs.mkdirSync(logsDir, { recursive: true });
-
   const pretty = require("pino-pretty");
+  const prettyStream = { stream: pretty({ colorize: true, sync: true }), level: "debug" as const };
 
-  return pino.multistream([
-    { stream: pretty({ colorize: true, sync: true }), level: "debug" },
-    {
-      stream: fs.createWriteStream(path.join(logsDir, "app.log"), { flags: "a" }),
-      level: "debug",
-    },
-    {
-      stream: fs.createWriteStream(path.join(logsDir, "error.log"), { flags: "a" }),
-      level: "error",
-    },
-  ]);
+  try {
+    const logsDir = path.join(process.cwd(), "logs");
+    fs.mkdirSync(logsDir, { recursive: true });
+
+    return pino.multistream([
+      prettyStream,
+      {
+        stream: fs.createWriteStream(path.join(logsDir, "app.log"), { flags: "a" }),
+        level: "debug",
+      },
+      {
+        stream: fs.createWriteStream(path.join(logsDir, "error.log"), { flags: "a" }),
+        level: "error",
+      },
+    ]);
+  } catch (err) {
+    // Content-free: the logger isn't up yet, so warn on stderr directly.
+    console.warn(
+      `[logger] could not open disk log files, using stdout only: ${
+        err instanceof Error ? err.message : String(err)
+      }`
+    );
+    return pino.multistream([prettyStream]);
+  }
 }
 
 const logger = pino(

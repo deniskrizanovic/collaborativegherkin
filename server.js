@@ -119,7 +119,15 @@ function getRoom(name) {
     }
   });
 
-  awareness.on("update", ({ added, updated, removed }) => {
+  awareness.on("update", ({ added, updated, removed }, origin) => {
+    // Track which awareness clientIDs each connection owns so we can clear
+    // exactly those when it disconnects. `origin` is the WebSocket that
+    // applied the update (see handleConnection); server-originated updates
+    // (origin == null) have no connection to attribute.
+    if (origin && origin.controlledIds) {
+      for (const id of [...added, ...updated]) origin.controlledIds.add(id);
+      for (const id of removed) origin.controlledIds.delete(id);
+    }
     const changedClients = [...added, ...updated, ...removed];
     const encoder = encoding.createEncoder();
     encoding.writeVarUint(encoder, messageAwareness);
@@ -149,6 +157,11 @@ function closeRoom(name) {
 function handleConnection(ws, roomName) {
   const room = getRoom(roomName);
   room.clients.add(ws);
+
+  // Awareness clientIDs this connection has announced. Populated by the room's
+  // awareness "update" handler (which receives this ws as the update origin)
+  // and drained on close so a departing client's presence is actually removed.
+  ws.controlledIds = new Set();
 
   // Send full sync step 1
   {
@@ -208,9 +221,11 @@ function handleConnection(ws, roomName) {
 
   ws.on("close", () => {
     room.clients.delete(ws);
+    // Remove the awareness states this specific connection announced, so its
+    // presence/cursors are broadcast as removed instead of lingering forever.
     awarenessProtocol.removeAwarenessStates(
       room.awareness,
-      [room.ydoc.clientID],
+      [...ws.controlledIds],
       null
     );
     closeRoom(roomName);

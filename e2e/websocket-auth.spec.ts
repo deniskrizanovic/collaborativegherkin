@@ -21,32 +21,39 @@ function connectResult(url: string, headers?: Record<string, string>) {
     let opened = false;
     let receivedData = false;
     let statusCode: number | undefined;
+    let settled = false;
+
+    const finish = () => {
+      if (settled) return;
+      settled = true;
+      clearTimeout(timer);
+      ws.terminate();
+      resolve({ opened, statusCode, receivedData });
+    };
 
     // 'unexpected-response' fires when the HTTP upgrade is refused (e.g. 401).
     ws.on("unexpected-response", (_req, res) => {
       statusCode = res.statusCode;
-      ws.terminate();
-      resolve({ opened, statusCode, receivedData });
+      finish();
     });
     ws.on("open", () => {
       opened = true;
     });
+    // On the success path the server sends sync-step-1 immediately on connect,
+    // so the first message is the terminal signal we're waiting for — resolve
+    // now instead of idling until the safety timeout.
     ws.on("message", () => {
       receivedData = true;
+      finish();
     });
     ws.on("error", () => {
       // A refused upgrade surfaces here too; resolve if not already handled.
-      resolve({ opened, statusCode, receivedData });
+      finish();
     });
-    ws.on("close", () => {
-      resolve({ opened, statusCode, receivedData });
-    });
+    ws.on("close", finish);
 
-    // Safety timeout so a hung socket can't stall the test.
-    setTimeout(() => {
-      ws.terminate();
-      resolve({ opened, statusCode, receivedData });
-    }, 3000);
+    // Safety backstop so a hung socket can't stall the test.
+    const timer = setTimeout(finish, 3000);
   });
 }
 
