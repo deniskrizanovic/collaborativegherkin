@@ -17,8 +17,7 @@ tools like Jira. The app is a workspace, not a permanent archive.
 
 ## Key commands
 ```bash
-npm run dev       # start Next.js dev server at http://localhost:3000
-npm run dev:ws    # start Y.js WebSocket sync server at ws://localhost:1234
+npm run dev       # start the server (Next.js HTTP + Y.js sync WebSocket) at http://localhost:3000
 npm run build     # production build
 npm run test      # run tests with Vitest
 npm run lint      # lint with Next.js ESLint config
@@ -27,7 +26,9 @@ npx prisma migrate dev   # run database migrations in development
 npx prisma studio        # open database browser UI
 ```
 
-Both `dev` and `dev:ws` must be running for real-time collaboration to work.
+`npm run dev` runs one process serving both HTTP and the real-time sync
+WebSocket on the same origin (`http://localhost:3000`). The WebSocket upgrade is
+authenticated by the same-origin NextAuth session cookie (see `server.js`).
 
 ## Project structure
 ```
@@ -53,7 +54,7 @@ src/
 prisma/
   schema.prisma   # Database schema
   seed.ts         # Dev seed — creates dev@example.com user
-y-websocket-server.mjs  # Standalone Y.js WebSocket sync server
+server.js               # Custom Node server — Next.js HTTP + authenticated Y.js WebSocket
 logs/             # Written at runtime — never commit
 ```
 

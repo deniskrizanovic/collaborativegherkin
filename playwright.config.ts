@@ -23,13 +23,7 @@ export default defineConfig({
       command: "npm run dev",
       url: "http://localhost:3000",
       reuseExistingServer: true,
-      timeout: 30_000,
-    },
-    {
-      command: "npm run dev:ws",
-      port: 1234,
-      reuseExistingServer: true,
-      timeout: 10_000,
+      timeout: 120_000,
     },
   ],
 });

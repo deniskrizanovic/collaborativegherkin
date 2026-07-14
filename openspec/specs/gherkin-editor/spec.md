@@ -12,19 +12,22 @@ specified in `gherkin-export`.)
 
 ### Requirement: Loading
 
-When a user opens a session the editor SHALL establish a WebSocket connection
-to `ws://localhost:1234` in room `session-{sessionId}`, synchronise the Y.js
-document, and become interactive. A newly empty document MUST be seeded exactly
-once per document lifetime with five empty scaffold blocks — Feature, Scenario,
-Given, When, Then — with the cursor at the start of the Feature block.
-Subsequent users receive the document via Y.js sync and MUST NOT trigger
-re-seeding.
+When a user opens a session the editor SHALL establish an authenticated WebSocket
+connection to a **same-origin** URL (derived from the current page origin, e.g.
+`wss://{host}` in production or `ws://{host}` in development) in room
+`session-{sessionId}`, synchronise the Y.js document, and become interactive. The
+connection is authenticated by the same-origin session cookie (see
+`realtime-collaboration`); the editor only becomes interactive once an authenticated
+connection is established. A newly empty document MUST be seeded exactly once per
+document lifetime with five empty scaffold blocks — Feature, Scenario, Given, When,
+Then — with the cursor at the start of the Feature block. Subsequent users receive
+the document via Y.js sync and MUST NOT trigger re-seeding.
 
 #### Scenario: Editor establishes WebSocket and becomes interactive
-> **Tests:** none (WebSocket connection itself not directly asserted)
-- **GIVEN** a user opens a session
+> **Tests:** [`e2e/websocket-auth.spec.ts`](../../../e2e/websocket-auth.spec.ts) — authenticated upgrade to a valid room succeeds and receives sync state; [`e2e/collaboration.spec.ts`](../../../e2e/collaboration.spec.ts) — editor becomes interactive and syncs over the authenticated socket
+- **GIVEN** a signed-in user opens a session
 - **WHEN** the editor mounts
-- **THEN** a WebSocket connection is established to `ws://localhost:1234` in the room `session-{sessionId}`
+- **THEN** an authenticated WebSocket connection is established to the same-origin sync URL in the room `session-{sessionId}`
 - **AND** the Y.js document state is synchronised with the server and any other connected peers
 - **AND** the editor becomes interactive once the connection is established
 

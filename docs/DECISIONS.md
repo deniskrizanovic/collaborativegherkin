@@ -80,6 +80,30 @@ in its standard server model. The sync server is a standalone Node.js process
 (`y-websocket-server.mjs`) that listens on port 1234. Run it alongside the
 Next.js dev server with `npm run dev:ws`.
 Date: 2026-05-17
+**Superseded 2026-07-14 by "Consolidate Next.js and Y.js sync into one custom
+server" below (ENG-005).**
+
+---
+
+## Consolidate Next.js and Y.js sync into one custom server (`server.js`)
+Alternatives considered: (a) keep two processes and add token-in-URL auth to the
+standalone `.mjs`; (b) two processes behind a reverse proxy sharing one origin.
+Reason: the standalone WebSocket accepted any connection on any room with no
+authentication — the real access-control boundary deferred by ADR-0005. A custom
+Node server (`server.js`) that serves HTTP via Next's request handler and attaches
+a `ws` server on the HTTP `upgrade` event puts both on one origin, so the browser
+sends the httpOnly NextAuth session cookie on the upgrade automatically. The
+handler verifies that JWT (`AUTH_SECRET`, salt `authjs.session-token`) and rejects
+unauthenticated or malformed-room upgrades before any room is joined. Authorization
+follows ADR-0005's capability model (signed-in + holds the `session-{id}` room
+name; no ownership lookup). Token-in-URL was rejected (tokens leak to logs; needs a
+separate origin check); a reverse proxy was rejected (extra per-host infra breaks
+the one-artifact goal). The custom server rules out serverless/Vercel — accepted,
+since the in-memory Y.js `rooms` Map already required a persistent host. `dev:ws`
+and `dev:all` are removed; `dev` and `start` both run `node server.js` (dev flag
+from `NODE_ENV`). The sync/awareness protocol was relocated verbatim; only its
+logging (Pino, not `console.*` — closes MIN-003) and the auth gate are new.
+Date: 2026-07-14
 
 ---
 

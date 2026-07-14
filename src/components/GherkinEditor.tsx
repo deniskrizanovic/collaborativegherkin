@@ -82,12 +82,24 @@ export interface GherkinEditorHandle {
 
 interface GherkinEditorProps {
   sessionId: string;
+  /**
+   * Sync WebSocket origin. Defaults to the current page origin so the browser
+   * attaches the same-origin session cookie on the upgrade (ENG-005). Derived
+   * lazily on the client; falls back to localhost during SSR.
+   */
   wsUrl?: string;
 }
 
+/** ws:// or wss:// origin for the current page (SSR-safe fallback). */
+function sameOriginWsUrl(): string {
+  if (typeof window === "undefined") return "ws://localhost:3000";
+  const proto = window.location.protocol === "https:" ? "wss:" : "ws:";
+  return `${proto}//${window.location.host}`;
+}
+
 const GherkinEditor = forwardRef<GherkinEditorHandle, GherkinEditorProps>(
-function GherkinEditor({ sessionId, wsUrl = "ws://localhost:1234" }, ref) {
-  const { ydoc, provider, connStatus } = useCollabProvider(sessionId, wsUrl);
+function GherkinEditor({ sessionId, wsUrl }, ref) {
+  const { ydoc, provider, connStatus } = useCollabProvider(sessionId, wsUrl ?? sameOriginWsUrl());
   const fileInputRef = useRef<HTMLInputElement | null>(null);
 
   const [importOpen, setImportOpen] = useState(false);
@@ -244,7 +256,7 @@ function GherkinEditor({ sessionId, wsUrl = "ws://localhost:1234" }, ref) {
       <div className={`gherkin-conn-banner gherkin-conn-banner--${connStatus}`}>
         {connStatus === "connecting"
           ? "Connecting to sync server…"
-          : "Sync server disconnected — changes are local only. Run npm run dev:ws to restore collaboration."}
+          : "Sync server disconnected — changes are local only. Reload the page to reconnect."}
       </div>
     )}
     <div

@@ -201,8 +201,8 @@ npx prisma migrate dev
 # 4. Seed the dev database
 npm run seed
 
-# 5. Start both servers
-npm run dev:all
+# 5. Start the server (HTTP + real-time sync WebSocket, one process)
+npm run dev
 ```
 
 Visit `http://localhost:3000` — you'll be redirected to the sign-in page. Enter your email and click the magic link to authenticate.
@@ -212,9 +212,7 @@ Visit `http://localhost:3000` — you'll be redirected to the sign-in page. Ente
 
 | Command                  | What it does                                   |
 | ------------------------ | ---------------------------------------------- |
-| `npm run dev:all`        | Start Next.js + Y.js WebSocket server together |
-| `npm run dev`            | Start Next.js dev server only                  |
-| `npm run dev:ws`         | Start Y.js WebSocket sync server only          |
+| `npm run dev`            | Start the server (Next.js HTTP + Y.js sync WebSocket, same origin) |
 | `npm run build`          | Build for production                           |
 | `npm run test`           | Run Vitest unit tests                          |
 | `npm run test:e2e`       | Run Playwright end-to-end tests                |
