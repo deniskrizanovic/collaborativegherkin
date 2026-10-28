@@ -1,11 +1,13 @@
 *** Settings ***
 Documentation       Port of e2e/enter-progression.spec.ts — spec §3.2, the 9 text rows
-...                 of the enter-progression table. SC-3.2.2 (image) lands in chunk 3.
+...                 of the enter-progression table, plus SC-3.2.2 (Enter on an image
+...                 block, chunk 3).
 ...                 The mix of plain End/Enter and Press Enter And Wait For Block
 ...                 follows the original test by test.
 
 Resource            ../resources/common.resource
 Resource            ../resources/session.resource
+Resource            ../resources/files.resource
 
 Suite Setup         Open Browser For Suite
 Test Setup          Open Owner Context And Page
@@ -127,3 +129,29 @@ SC-3.2.1: Enter at end of block inserts auto-progression type — rule → scena
     ${types}=    Block Types In Editor
     ${i}=    Evaluate    $types.index("rule")
     Should Be Equal    ${types}[${i + 1}]    scenario
+
+SC-3.2.2: Enter on image block uses prevType context
+    [Tags]    chunk3
+    [Teardown]    Remove Temp Files
+    Open Session
+    # Build: feature → scenario → given → when → then
+    Press Enter And Wait For Block    scenario
+    Press Enter And Wait For Block    given
+    Press Enter And Wait For Block    when
+    Press Enter And Wait For Block    then
+    # Insert an image after the 'then' block via the toolbar Image button.
+    ${png}=    Write Tiny PNG
+    Click    [data-gherkin-type="then"] >> nth=-1
+    ${image_button}=    Toolbar Button    Image
+    Click    ${image_button}
+    Upload File By Selector    input[type="file"]    ${png}
+    Wait For Elements State    .gherkin-image-block    visible
+    # Select the image block, then press Enter.
+    Click    .gherkin-image-block
+    ${types_before}=    Block Types In Editor
+    ${count_before}=    Get Length    ${types_before}
+    Keyboard Key    press    Enter
+    Get Element Count    [data-gherkin-type]    >    ${count_before}
+    # prevType is 'then', so the new block after the image is 'and'.
+    ${types_after}=    Block Types In Editor
+    Should Be Equal    ${types_after}[-1]    and

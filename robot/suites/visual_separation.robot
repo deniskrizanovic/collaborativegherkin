@@ -3,10 +3,11 @@ Documentation       Port of e2e/visual-separation.spec.ts — spec §3.7.
 ...                 Visual separation is CSS: a given/scenario block that follows
 ...                 then/and/but gets a 1px top border, so the computed
 ...                 border-top-width is asserted. The "separator not in export"
-...                 test lands in chunk 3.
+...                 test (chunk 3) downloads the TXT export and checks it.
 
 Resource            ../resources/common.resource
 Resource            ../resources/session.resource
+Resource            ../resources/files.resource
 
 Suite Setup         Open Browser For Suite
 Test Setup          Open Owner Context And Page
@@ -72,6 +73,38 @@ SC-3.7.1: Given after then/and/but gets top border — first given after scenari
     Press Enter And Wait For Block    given
     # No CSS sibling rule should apply here.
     Get Style    [data-gherkin-type="given"] >> nth=0    border-top-width    ==    0px
+
+
+SC-3.7.1: Given after then/and/but gets top border — separator not in export
+    [Tags]    -chunk2    chunk3
+    [Teardown]    Remove Temp Files
+    Open Session
+    Click    [data-gherkin-type="feature"] >> nth=0
+    Keyboard Input    type    F
+    Press Enter And Wait For Block    scenario
+    Keyboard Input    type    S
+    Press Enter And Wait For Block    given
+    Keyboard Input    type    G1
+    Press Enter And Wait For Block    when
+    Keyboard Input    type    W
+    Press Enter And Wait For Block    then
+    Keyboard Input    type    T
+    # Insert And after then, then Given after And.
+    Click Toolbar Button    And
+    Click    [data-gherkin-type="and"] >> nth=-1
+    Click Toolbar Button    Given
+    Click    [data-gherkin-type="given"] >> nth=-1
+    Keyboard Input    type    G2
+    ${path}    ${filename}=    Download Via Button    .gherkin-export-btn
+    ${content}=    Get File    ${path}    encoding=UTF-8
+    # No hr or separator marker in the export.
+    Should Not Contain    ${content}    ---
+    Should Not Contain    ${content}    <hr
+    # Every non-empty line has the "Keyword: text" format.
+    ${lines}=    Read Lines    ${path}
+    FOR    ${line}    IN    @{lines}
+        IF    $line    Should Match Regexp    ${line}    ^\\w+:${SPACE}
+    END
 
 
 *** Keywords ***

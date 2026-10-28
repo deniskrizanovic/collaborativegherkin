@@ -54,4 +54,5 @@ e2e/.auth/
 
 # Robot Framework output and uv virtualenv
 robot/results/
+playwright-log.txt
 .venv/

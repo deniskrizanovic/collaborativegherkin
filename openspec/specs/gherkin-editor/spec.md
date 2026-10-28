@@ -57,7 +57,7 @@ Gherkin block preceding the image.
 - **AND** the cursor is placed at the start of the new block's text
 
 #### Scenario: Enter on image block uses prevType context
-> **Tests:** [`e2e/enter-progression.spec.ts`](../../../e2e/enter-progression.spec.ts)
+> **Tests:** [`e2e/enter-progression.spec.ts`](../../../e2e/enter-progression.spec.ts) · [`robot/suites/enter_progression.robot`](../../../robot/suites/enter_progression.robot)
 - **GIVEN** the cursor is on an image block
 - **WHEN** the user presses Enter
 - **THEN** a new block is inserted after the image using the auto-progression type of the most recent Gherkin block that precedes the image
@@ -164,21 +164,21 @@ current block; drag-and-drop embeds at the drop position. An image block MUST be
 displayed inline at full available width and MAY appear after any keyword block.
 
 #### Scenario: Image toolbar button opens file picker and embeds image
-> **Tests:** [`e2e/image.spec.ts`](../../../e2e/image.spec.ts)
+> **Tests:** [`e2e/image.spec.ts`](../../../e2e/image.spec.ts) · [`robot/suites/image.robot`](../../../robot/suites/image.robot)
 - **GIVEN** a user is in a session editor
 - **WHEN** the user clicks the Image toolbar button
 - **THEN** a file picker opens
 - **AND** selecting an image file embeds it as an image block immediately after the current block
 
 #### Scenario: Slash-command Image selection opens file picker and embeds image
-> **Tests:** [`e2e/image.spec.ts`](../../../e2e/image.spec.ts)
+> **Tests:** [`e2e/image.spec.ts`](../../../e2e/image.spec.ts) · [`robot/suites/image.robot`](../../../robot/suites/image.robot)
 - **GIVEN** a user is in a session editor
 - **WHEN** the user types `/` and selects Image from the block picker
 - **THEN** a file picker opens
 - **AND** selecting an image file embeds it as an image block immediately after the current block
 
 #### Scenario: Drag and drop image embeds at drop position
-> **Tests:** [`e2e/image.spec.ts`](../../../e2e/image.spec.ts)
+> **Tests:** [`e2e/image.spec.ts`](../../../e2e/image.spec.ts) · [`robot/suites/image.robot`](../../../robot/suites/image.robot)
 - **GIVEN** a user is in a session editor
 - **WHEN** the user drags an image file onto the editor
 - **THEN** the image is embedded as an image block at the drop position
@@ -222,35 +222,35 @@ cells, and "Add row"/"Add column" controls MUST be available. (Data table
 export formatting is specified in `gherkin-export`.)
 
 #### Scenario: Table button shown when cursor is on step or data table
-> **Tests:** [`e2e/data-table.spec.ts`](../../../e2e/data-table.spec.ts) — visible on Given · absent on Feature
+> **Tests:** [`e2e/data-table.spec.ts`](../../../e2e/data-table.spec.ts) · [`robot/suites/data_table.robot`](../../../robot/suites/data_table.robot) — visible on Given · absent on Feature
 - **GIVEN** the cursor is on a step block (`given`, `when`, `then`, `and`, or `but`) or on a data table block that follows a step
 - **THEN** the toolbar shows a "Table" button
 
 #### Scenario: Clicking Table inserts 2×2 stub with cursor in first cell
-> **Tests:** [`e2e/data-table.spec.ts`](../../../e2e/data-table.spec.ts) — node inserted · first cell interactive
+> **Tests:** [`e2e/data-table.spec.ts`](../../../e2e/data-table.spec.ts) · [`robot/suites/data_table.robot`](../../../robot/suites/data_table.robot) — node inserted · first cell interactive
 - **GIVEN** the toolbar shows a "Table" button
 - **WHEN** the user clicks it
 - **THEN** a 2×2 data table stub with empty cells is inserted immediately after the current block
 - **AND** the cursor is placed inside the first cell
 
 #### Scenario: Slash-command picker includes Table when on step block
-> **Tests:** [`e2e/data-table.spec.ts`](../../../e2e/data-table.spec.ts)
+> **Tests:** [`e2e/data-table.spec.ts`](../../../e2e/data-table.spec.ts) · [`robot/suites/data_table.robot`](../../../robot/suites/data_table.robot)
 - **GIVEN** the user types `/` and the current/previous block is a step type
 - **THEN** the block picker includes "Table" as an option
 
 #### Scenario: Tab moves focus to next cell
-> **Tests:** [`e2e/data-table.spec.ts`](../../../e2e/data-table.spec.ts)
+> **Tests:** [`e2e/data-table.spec.ts`](../../../e2e/data-table.spec.ts) · [`robot/suites/data_table.robot`](../../../robot/suites/data_table.robot)
 - **GIVEN** a data table is in the document
 - **WHEN** the user presses Tab inside a cell
 - **THEN** focus moves to the next cell (left to right, top to bottom)
 
 #### Scenario: Shift+Tab moves focus to previous cell
-> **Tests:** [`e2e/data-table.spec.ts`](../../../e2e/data-table.spec.ts)
+> **Tests:** [`e2e/data-table.spec.ts`](../../../e2e/data-table.spec.ts) · [`robot/suites/data_table.robot`](../../../robot/suites/data_table.robot)
 - **GIVEN** a data table is in the document
 - **WHEN** the user presses Shift+Tab inside a cell
 - **THEN** focus moves to the previous cell
 
 #### Scenario: Add row and Add column controls available
-> **Tests:** [`e2e/data-table.spec.ts`](../../../e2e/data-table.spec.ts)
+> **Tests:** [`e2e/data-table.spec.ts`](../../../e2e/data-table.spec.ts) · [`robot/suites/data_table.robot`](../../../robot/suites/data_table.robot)
 - **GIVEN** a data table is in the document
 - **THEN** "Add row" and "Add column" controls are available within the table UI

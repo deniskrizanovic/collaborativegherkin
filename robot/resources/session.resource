@@ -47,6 +47,12 @@ Press Enter And Wait For Block
     Get Element Count    ${selector}    >    ${before}
     Click    ${selector} >> nth=-1
 
+Type Into Block
+    [Documentation]    Click the first block of ${type} and type ${text}.
+    [Arguments]    ${type}    ${text}
+    Click    [data-gherkin-type="${type}"] >> nth=0
+    Keyboard Input    type    ${text}
+
 Click Editor
     [Documentation]    Click the editor surface. Port of helpers.ts `clickEditor`.
     Click    .gherkin-editor

@@ -45,15 +45,15 @@ assertion, and never use `Sleep`.
 
 ## 3. Chunk 3: Download and file suites
 
-- [ ] 3.1 Create `robot/resources/files.resource`: `Write Tiny PNG` (the same 1×1 hex bytes, unique temp path, returned for teardown), `Download Via Button` (`Promise To Wait For Download` → click → `Wait For`, returns path and `suggestedFilename`), `Read Lines`, and `Remove Temp Files` for `[Teardown]`.
-- [ ] 3.2 Port `export.spec.ts` to `robot/suites/export.robot` (4 tests). Assert the exact filename and exact line-by-line content.
-- [ ] 3.3 Port `image.spec.ts` to `robot/suites/image.robot` (3 tests). This includes the bounding-box width/height > 0 check (`Get BoundingBox`) and the synthetic `DataTransfer` drop through `Evaluate JavaScript`.
-- [ ] 3.4 Add `SC-3.2.2` (Enter on image block uses prevType) to `enter_progression.robot`.
-- [ ] 3.5 Port `data-table.spec.ts` to `robot/suites/data_table.robot` (10 tests): focus checks after `Tab`/`Shift+Tab`, `Fill Text` into cells, the blur commit, and TXT/MD export content.
-- [ ] 3.6 Add the "separator not in export" test to `visual_separation.robot`.
-- [ ] 3.7 Tag `chunk3`, update PARITY.md and the baseline `> **Tests:**` citations, then run `pnpm lint:specs`.
-- [ ] 3.8 **Checkpoint**: both suites green, and no temp files are left in the OS temp dir after the run.
-- [ ] 3.9 **STOP for user review**: report what changed and the checkpoint results, then wait. Do not start chunk 4 until the user says to continue.
+- [x] 3.1 Create `robot/resources/files.resource`: `Write Tiny PNG` (the same 1×1 hex bytes, unique temp path, returned for teardown), `Download Via Button` (`Promise To Wait For Download` → click → `Wait For`, returns path and `suggestedFilename`), `Read Lines`, and `Remove Temp Files` for `[Teardown]`.
+- [x] 3.2 Port `export.spec.ts` to `robot/suites/export.robot` (4 tests). Assert the exact filename and exact line-by-line content.
+- [x] 3.3 Port `image.spec.ts` to `robot/suites/image.robot` (3 tests). This includes the bounding-box width/height > 0 check (`Get BoundingBox`) and the synthetic `DataTransfer` drop through `Evaluate JavaScript`.
+- [x] 3.4 Add `SC-3.2.2` (Enter on image block uses prevType) to `enter_progression.robot`.
+- [x] 3.5 Port `data-table.spec.ts` to `robot/suites/data_table.robot` (10 tests): focus checks after `Tab`/`Shift+Tab`, `Fill Text` into cells, the blur commit, and TXT/MD export content.
+- [x] 3.6 Add the "separator not in export" test to `visual_separation.robot`.
+- [x] 3.7 Tag `chunk3`, update PARITY.md and the baseline `> **Tests:**` citations, then run `pnpm lint:specs`.
+- [x] 3.8 **Checkpoint**: both suites green, and no temp files are left in the OS temp dir after the run.
+- [x] 3.9 **STOP for user review**: report what changed and the checkpoint results, then wait. Do not start chunk 4 until the user says to continue.
 
 ## 4. Chunk 4: Network interception
 

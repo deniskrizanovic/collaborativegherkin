@@ -93,7 +93,7 @@ the Feature block) unless noted otherwise.
 | enter-progression.spec.ts | SC-3.2.1: Enter at end of block inserts auto-progression type — but → and | pressEnterAndWait scenario, given; toolbar `But`; click last but; `End`; record last `but` index; pressEnterAndWait and; type at index + 1 == `and` | enter_progression.robot | 2 | ported |
 | enter-progression.spec.ts | SC-3.2.1: Enter at end of block inserts auto-progression type — background → given | click feature; toolbar `Background`; click background; `End`, `Enter`; type after background == `given` | enter_progression.robot | 2 | ported |
 | enter-progression.spec.ts | SC-3.2.1: Enter at end of block inserts auto-progression type — rule → scenario | click feature; toolbar `Rule`; click rule; `End`, `Enter`; type after rule == `scenario` | enter_progression.robot | 2 | ported |
-| enter-progression.spec.ts | SC-3.2.2: Enter on image block uses prevType context | pressEnterAndWait scenario, given, when, then; write 1×1 PNG to temp; click last then; toolbar `Image`; setInputFiles; wait `.gherkin-image-block`; click it; count blocks; `Enter`; wait for function count > before; last type == `and`; delete temp file | enter_progression.robot | 3 | pending |
+| enter-progression.spec.ts | SC-3.2.2: Enter on image block uses prevType context | pressEnterAndWait scenario, given, when, then; write 1×1 PNG to temp; click last then; toolbar `Image`; setInputFiles; wait `.gherkin-image-block`; click it; count blocks; `Enter`; wait for function count > before; last type == `and`; delete temp file | enter_progression.robot | 3 | ported |
 
 ## block-picker.spec.ts
 
@@ -120,39 +120,39 @@ the Feature block) unless noted otherwise.
 | visual-separation.spec.ts | SC-3.7.2: Scenario after then/and/but gets top border — after and | same build; toolbar `And`; click last and; toolbar `Scenario`; last scenario `borderTopWidth` == `1px` | visual_separation.robot | 2 | ported |
 | visual-separation.spec.ts | SC-3.7.2: Scenario after then/and/but gets top border — after but | same build; toolbar `But`; click last but; toolbar `Scenario`; last scenario `borderTopWidth` == `1px` | visual_separation.robot | 2 | ported |
 | visual-separation.spec.ts | SC-3.7.1: Given after then/and/but gets top border — first given after scenario has no border | pressEnterAndWait scenario, given; first given `borderTopWidth` == `0px` | visual_separation.robot | 2 | ported |
-| visual-separation.spec.ts | SC-3.7.1: Given after then/and/but gets top border — separator not in export | type `F`/`S`/`G1`/`W`/`T` via pressEnterAndWait chain; toolbar `And`, click last and, toolbar `Given`, click last given, type `G2`; download via `.gherkin-export-btn`; save to temp, read, delete; content not contains `---` nor `<hr`; every non-empty line matches `^\w+: ` | visual_separation.robot | 3 | pending |
+| visual-separation.spec.ts | SC-3.7.1: Given after then/and/but gets top border — separator not in export | type `F`/`S`/`G1`/`W`/`T` via pressEnterAndWait chain; toolbar `And`, click last and, toolbar `Given`, click last given, type `G2`; download via `.gherkin-export-btn`; save to temp, read, delete; content not contains `---` nor `<hr`; every non-empty line matches `^\w+: ` | visual_separation.robot | 3 | ported |
 
 ## export.spec.ts
 
 | Playwright file | Title | Key assertions | Robot suite | Chunk | Status |
 |---|---|---|---|---|---|
-| export.spec.ts | SC-3.6.1: Export downloads plain-text file in document order — correct content | click + type into each of 5 scaffold blocks; download via `.gherkin-export-btn`; suggestedFilename == `gherkin.txt`; save to temp, read, delete; lines[0..4] == `Feature: User login`, `Scenario: Successful login`, `Given: the user is on the login page`, `When: the user enters valid credentials`, `Then: the user is redirected to the dashboard` | export.robot | 3 | pending |
-| export.spec.ts | SC-3.6.1: Export downloads plain-text file in document order — block order | type into feature, scenario, given; download TXT; save, read, delete; lines[0] `^Feature:`, lines[1] `^Scenario:`, lines[2] `^Given:` | export.robot | 3 | pending |
-| export.spec.ts | SC-3.6.1: Export downloads plain-text file in document order — image data-URI included | write 1×1 PNG temp; click last then; toolbar `Image`; setInputFiles; wait `.gherkin-image-block`; download TXT; save, read; delete both temp files; content contains `data:image` | export.robot | 3 | pending |
-| export.spec.ts | SC-3.9.1: Export MD downloads markdown file in document order | type into feature, scenario, given; download via `.gherkin-export-md-btn`; suggestedFilename == `gherkin.md`; save, read, delete; lines[0..2] == `# Feature: User login`, `## Scenario: Successful login`, `- Given: the user is on the login page` | export.robot | 3 | pending |
+| export.spec.ts | SC-3.6.1: Export downloads plain-text file in document order — correct content | click + type into each of 5 scaffold blocks; download via `.gherkin-export-btn`; suggestedFilename == `gherkin.txt`; save to temp, read, delete; lines[0..4] == `Feature: User login`, `Scenario: Successful login`, `Given: the user is on the login page`, `When: the user enters valid credentials`, `Then: the user is redirected to the dashboard` | export.robot | 3 | ported |
+| export.spec.ts | SC-3.6.1: Export downloads plain-text file in document order — block order | type into feature, scenario, given; download TXT; save, read, delete; lines[0] `^Feature:`, lines[1] `^Scenario:`, lines[2] `^Given:` | export.robot | 3 | ported |
+| export.spec.ts | SC-3.6.1: Export downloads plain-text file in document order — image data-URI included | write 1×1 PNG temp; click last then; toolbar `Image`; setInputFiles; wait `.gherkin-image-block`; download TXT; save, read; delete both temp files; content contains `data:image` | export.robot | 3 | ported |
+| export.spec.ts | SC-3.9.1: Export MD downloads markdown file in document order | type into feature, scenario, given; download via `.gherkin-export-md-btn`; suggestedFilename == `gherkin.md`; save, read, delete; lines[0..2] == `# Feature: User login`, `## Scenario: Successful login`, `- Given: the user is on the login page` | export.robot | 3 | ported |
 
 ## image.spec.ts
 
 | Playwright file | Title | Key assertions | Robot suite | Chunk | Status |
 |---|---|---|---|---|---|
-| image.spec.ts | SC-3.8.1: Image toolbar button opens file picker and embeds image | write 1×1 PNG temp; click last then; toolbar `Image`; setInputFiles; `.gherkin-image-block` visible; `.gherkin-image-block img` visible; boundingBox not null, width > 0, height > 0; delete temp | image.robot | 3 | pending |
-| image.spec.ts | SC-3.8.2: Slash-command Image selection opens file picker and embeds image | write PNG temp; click last then; type `/`; picker visible; click last picker button; setInputFiles; `.gherkin-image-block` visible; delete temp | image.robot | 3 | pending |
-| image.spec.ts | SC-3.8.3: Drag and drop image embeds at drop position | page.evaluate: build `File` from base64 PNG, `DataTransfer`, dispatch `DragEvent("drop", {bubbles, cancelable, dataTransfer})` on `.gherkin-editor-wrapper`; `.gherkin-image-block` visible; delete temp | image.robot | 3 | pending |
+| image.spec.ts | SC-3.8.1: Image toolbar button opens file picker and embeds image | write 1×1 PNG temp; click last then; toolbar `Image`; setInputFiles; `.gherkin-image-block` visible; `.gherkin-image-block img` visible; boundingBox not null, width > 0, height > 0; delete temp | image.robot | 3 | ported |
+| image.spec.ts | SC-3.8.2: Slash-command Image selection opens file picker and embeds image | write PNG temp; click last then; type `/`; picker visible; click last picker button; setInputFiles; `.gherkin-image-block` visible; delete temp | image.robot | 3 | ported |
+| image.spec.ts | SC-3.8.3: Drag and drop image embeds at drop position | page.evaluate: build `File` from base64 PNG, `DataTransfer`, dispatch `DragEvent("drop", {bubbles, cancelable, dataTransfer})` on `.gherkin-editor-wrapper`; `.gherkin-image-block` visible; delete temp | image.robot | 3 | ported |
 
 ## data-table.spec.ts
 
 | Playwright file | Title | Key assertions | Robot suite | Chunk | Status |
 |---|---|---|---|---|---|
-| data-table.spec.ts | SC-3.11.1: Table button shown when cursor is on step or data table — visible on Given | click first given; toolbar `Table` visible | data_table.robot | 3 | pending |
-| data-table.spec.ts | SC-3.11.1: Table button shown when cursor is on step or data table — absent on Feature | click feature; toolbar `Table` not visible | data_table.robot | 3 | pending |
-| data-table.spec.ts | SC-3.11.2: Clicking Table inserts 2×2 stub with cursor in first cell — node inserted | click first given; toolbar `Table`; `[data-gherkin-table]` visible | data_table.robot | 3 | pending |
-| data-table.spec.ts | SC-3.11.6: Add row and Add column controls available | given → `Table`; click first `[data-gherkin-table] td`; `.gherkin-table-toolbar` visible; `[data-action="insert-row-below"]` and `[data-action="insert-col-after"]` buttons visible | data_table.robot | 3 | pending |
-| data-table.spec.ts | SC-3.11.2: Clicking Table inserts 2×2 stub with cursor in first cell — first cell interactive | given → `Table`; click cell `0-0`; focused; fill `header`; text == `header` | data_table.robot | 3 | pending |
-| data-table.spec.ts | SC-3.11.4: Tab moves focus to next cell | given → `Table`; click cell `0-0`; `Tab`; cell `0-1` focused | data_table.robot | 3 | pending |
-| data-table.spec.ts | SC-3.11.5: Shift+Tab moves focus to previous cell | given → `Table`; click cell `0-1`; `Shift+Tab`; cell `0-0` focused | data_table.robot | 3 | pending |
-| data-table.spec.ts | SC-3.11.3: Slash-command picker includes Table when on step block | pressEnterAndWait scenario, given, when; type `/`; picker visible; picker button `Table` visible; `Escape` | data_table.robot | 3 | pending |
-| data-table.spec.ts | SC-3.11.7: TXT export uses pipe-delimited rows padded to column width | type feature `Login`, scenario `Table test`, given `a step with data`; toolbar `Table`; click+fill `0-0` `name`, `0-1` `age`; click `.gherkin-editor` (blur commit); download TXT; save, read, delete; content contains `\| name` and `\| age` | data_table.robot | 3 | pending |
-| data-table.spec.ts | SC-3.11.8: MD export uses header row with separator | type feature, scenario, given; `Table`; click+fill `0-0` `col`; click `.gherkin-editor` (blur); download MD; save, read, delete; content contains `\| col`; matches `\| -+` | data_table.robot | 3 | pending |
+| data-table.spec.ts | SC-3.11.1: Table button shown when cursor is on step or data table — visible on Given | click first given; toolbar `Table` visible | data_table.robot | 3 | ported |
+| data-table.spec.ts | SC-3.11.1: Table button shown when cursor is on step or data table — absent on Feature | click feature; toolbar `Table` not visible | data_table.robot | 3 | ported |
+| data-table.spec.ts | SC-3.11.2: Clicking Table inserts 2×2 stub with cursor in first cell — node inserted | click first given; toolbar `Table`; `[data-gherkin-table]` visible | data_table.robot | 3 | ported |
+| data-table.spec.ts | SC-3.11.6: Add row and Add column controls available | given → `Table`; click first `[data-gherkin-table] td`; `.gherkin-table-toolbar` visible; `[data-action="insert-row-below"]` and `[data-action="insert-col-after"]` buttons visible | data_table.robot | 3 | ported |
+| data-table.spec.ts | SC-3.11.2: Clicking Table inserts 2×2 stub with cursor in first cell — first cell interactive | given → `Table`; click cell `0-0`; focused; fill `header`; text == `header` | data_table.robot | 3 | ported |
+| data-table.spec.ts | SC-3.11.4: Tab moves focus to next cell | given → `Table`; click cell `0-0`; `Tab`; cell `0-1` focused | data_table.robot | 3 | ported |
+| data-table.spec.ts | SC-3.11.5: Shift+Tab moves focus to previous cell | given → `Table`; click cell `0-1`; `Shift+Tab`; cell `0-0` focused | data_table.robot | 3 | ported |
+| data-table.spec.ts | SC-3.11.3: Slash-command picker includes Table when on step block | pressEnterAndWait scenario, given, when; type `/`; picker visible; picker button `Table` visible; `Escape` | data_table.robot | 3 | ported |
+| data-table.spec.ts | SC-3.11.7: TXT export uses pipe-delimited rows padded to column width | type feature `Login`, scenario `Table test`, given `a step with data`; toolbar `Table`; click+fill `0-0` `name`, `0-1` `age`; click `.gherkin-editor` (blur commit); download TXT; save, read, delete; content contains `\| name` and `\| age` | data_table.robot | 3 | ported |
+| data-table.spec.ts | SC-3.11.8: MD export uses header row with separator | type feature, scenario, given; `Table`; click+fill `0-0` `col`; click `.gherkin-editor` (blur); download MD; save, read, delete; content contains `\| col`; matches `\| -+` | data_table.robot | 3 | ported |
 
 ## llm-review.spec.ts
 
