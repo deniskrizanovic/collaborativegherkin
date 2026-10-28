@@ -10,18 +10,18 @@ assertion, and never use `Sleep`.
 
 ## 0. Chunk 0: Toolchain, runner, and one smoke test
 
-- [ ] 0.1 Add `.python-version`, plus a `pyproject.toml` (`[tool.uv] package = false`) that pins `robotframework`, `robotframework-browser` (choose a version whose `Promise To Wait For Download` returns `suggestedFilename`, which resolves the design's open question), `robotframework-requests` and `websockets`. Run `uv lock` and commit `uv.lock`.
-- [ ] 0.2 Add `robot/results/` and `.venv/` to `.gitignore`.
-- [ ] 0.3 Add `scripts/mint-e2e-auth.ts`, which imports and awaits the default export of `e2e/global-setup.ts`. Verify that it writes `e2e/.auth/user.json` and `user2.json`.
-- [ ] 0.4 Add `scripts/run-robot.mjs` per design D4: mint auth, probe `:3000`, start `pnpm dev` only if it is down, run `uv run robot --outputdir robot/results robot/suites` with forwarded args, stop only a server it started, and propagate the exit code.
-- [ ] 0.5 Add `package.json` scripts: `test:robot:init` (`uv sync && uv run rfbrowser init chromium`) and `test:robot` (`node scripts/run-robot.mjs`).
-- [ ] 0.6 Create `robot/resources/common.resource`: Browser import, `${BASE_URL}`, `${OWNER_STATE}`, `${OTHER_STATE}`, `${HEADLESS}` (default True), `Set Browser Timeout 5s`, and the `Open Browser For Suite` and `Open Owner Context And Page` setup keywords (design D6).
-- [ ] 0.7 Create `robot/resources/session.resource` with the ports of `helpers.ts`: `Create Session Via API`, `Open Session`, `Press Enter And Wait For Block`, `Click Editor`, plus the shared `Block Types In Editor` (evaluateAll of `data-gherkin-type`) and `Toolbar Button` (`.gherkin-toolbar-btn:has-text(...)`) keywords.
-- [ ] 0.8 Write `robot/suites/00_smoke.robot`, heavily commented for a first-time reader. It opens a session and asserts the scaffold types are exactly `feature, scenario, given, when, then`.
-- [ ] 0.9 Write `robot/README.md`: how to install and run, Robot syntax basics (sections, 4-space cells, variables, keywords, tags, setup/teardown), how to run one chunk or test, where to read `log.html`, and the Playwright to Browser cheat-sheet from design D7.
-- [ ] 0.10 Create `robot/PARITY.md` with one row for every `test(...)`/`test.skip(...)` in `e2e/*.spec.ts`. Columns: Playwright file, title, key assertions, Robot suite, chunk, status (`pending`/`ported`).
-- [ ] 0.11 **Checkpoint**: `pnpm test:robot:init && pnpm test:robot` reports 1 test passed, and `pnpm test:e2e` is still green.
-- [ ] 0.12 **STOP for user review**: report what changed and the checkpoint results, then wait. Do not start chunk 1 until the user says to continue.
+- [x] 0.1 Add `.python-version`, plus a `pyproject.toml` (`[tool.uv] package = false`) that pins `robotframework`, `robotframework-browser` (choose a version whose `Promise To Wait For Download` returns `suggestedFilename`, which resolves the design's open question), `robotframework-requests` and `websockets`. Run `uv lock` and commit `uv.lock`.
+- [x] 0.2 Add `robot/results/` and `.venv/` to `.gitignore`.
+- [x] 0.3 Add `scripts/mint-e2e-auth.ts`, which imports and awaits the default export of `e2e/global-setup.ts`. Verify that it writes `e2e/.auth/user.json` and `user2.json`.
+- [x] 0.4 Add `scripts/run-robot.mjs` per design D4: mint auth, probe `:3000`, start `pnpm dev` only if it is down, run `uv run robot --outputdir robot/results robot/suites` with forwarded args, stop only a server it started, and propagate the exit code.
+- [x] 0.5 Add `package.json` scripts: `test:robot:init` (`uv sync && uv run rfbrowser init chromium`) and `test:robot` (`node scripts/run-robot.mjs`).
+- [x] 0.6 Create `robot/resources/common.resource`: Browser import, `${BASE_URL}`, `${OWNER_STATE}`, `${OTHER_STATE}`, `${HEADLESS}` (default True), `Set Browser Timeout 5s`, and the `Open Browser For Suite` and `Open Owner Context And Page` setup keywords (design D6).
+- [x] 0.7 Create `robot/resources/session.resource` with the ports of `helpers.ts`: `Create Session Via API`, `Open Session`, `Press Enter And Wait For Block`, `Click Editor`, plus the shared `Block Types In Editor` (evaluateAll of `data-gherkin-type`) and `Toolbar Button` (`.gherkin-toolbar-btn:has-text(...)`) keywords.
+- [x] 0.8 Write `robot/suites/00_smoke.robot`, heavily commented for a first-time reader. It opens a session and asserts the scaffold types are exactly `feature, scenario, given, when, then`.
+- [x] 0.9 Write `robot/README.md`: how to install and run, Robot syntax basics (sections, 4-space cells, variables, keywords, tags, setup/teardown), how to run one chunk or test, where to read `log.html`, and the Playwright to Browser cheat-sheet from design D7.
+- [x] 0.10 Create `robot/PARITY.md` with one row for every `test(...)`/`test.skip(...)` in `e2e/*.spec.ts`. Columns: Playwright file, title, key assertions, Robot suite, chunk, status (`pending`/`ported`).
+- [x] 0.11 **Checkpoint**: `pnpm test:robot:init && pnpm test:robot` reports 1 test passed, and `pnpm test:e2e` is still green.
+- [x] 0.12 **STOP for user review**: report what changed and the checkpoint results, then wait. Do not start chunk 1 until the user says to continue.
 
 ## 1. Chunk 1: Simple UI suites
 

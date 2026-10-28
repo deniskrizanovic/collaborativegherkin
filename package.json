@@ -16,6 +16,8 @@
     "typecheck": "tsc --noEmit",
     "test": "vitest",
     "test:e2e": "playwright test",
+    "test:robot:init": "uv sync && uv run rfbrowser init chromium",
+    "test:robot": "node scripts/run-robot.mjs",
     "test:all": "run-p lint lint:specs lint:given lint:issue-link lint:schema-parity typecheck \"test -- --run\" test:e2e",
     "seed": "tsx prisma/seed.ts",
     "db:generate:postgres": "prisma generate --config prisma/postgres/prisma.config.ts",

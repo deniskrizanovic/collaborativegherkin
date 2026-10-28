@@ -1,0 +1,18 @@
+# Python toolchain for the Robot Framework e2e suite (robot/). Managed by uv:
+#   pnpm test:robot:init   # uv sync && uv run rfbrowser init chromium
+#   pnpm test:robot        # mint auth, ensure dev server, run robot/suites
+[project]
+name = "collaborativegherkin-robot"
+version = "0.1.0"
+description = "Robot Framework e2e suite for Collaborative Gherkin"
+requires-python = ">=3.11"
+dependencies = [
+    "robotframework==7.5",
+    # >=18 returns suggestedFilename from Promise To Wait For Download.
+    "robotframework-browser==20.6.0",
+    "robotframework-requests==0.9.7",
+    "websockets==17.3",
+]
+
+[tool.uv]
+package = false

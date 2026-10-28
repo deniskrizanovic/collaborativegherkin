@@ -51,3 +51,7 @@ e2e/.auth/
 # OpenSpec skills and commands
 .claude/skills/openspec-*/
 .claude/commands/opsx/
+
+# Robot Framework output and uv virtualenv
+robot/results/
+.venv/
