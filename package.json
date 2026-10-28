@@ -2,6 +2,7 @@
   "name": "collaborativegherkin",
   "version": "0.1.0",
   "private": true,
+  "packageManager": "pnpm@12.14.0",
   "type": "module",
   "scripts": {
     "dev": "node server.js",
@@ -16,7 +17,7 @@
     "test": "vitest",
     "test:e2e": "playwright test",
     "test:all": "run-p lint lint:specs lint:given lint:issue-link lint:schema-parity typecheck \"test -- --run\" test:e2e",
-    "seed": "npx tsx prisma/seed.ts",
+    "seed": "tsx prisma/seed.ts",
     "db:generate:postgres": "prisma generate --config prisma/postgres/prisma.config.ts",
     "db:migrate:dev:postgres": "prisma migrate dev --config prisma/postgres/prisma.config.ts && prisma generate --config prisma/postgres/prisma.config.ts",
     "db:migrate:prod": "prisma migrate deploy --config prisma/postgres/prisma.config.ts",
@@ -73,6 +74,7 @@
     "lint-staged": "^16.4.0",
     "npm-run-all2": "^8.0.4",
     "prisma": "^7.8.0",
+    "tsx": "^4.23.15",
     "typescript": "^6.0.3",
     "vitest": "^4.1.7"
   }

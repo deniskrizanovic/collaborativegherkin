@@ -8,7 +8,7 @@ A custom Node server (`server.js`) serves the Next.js app over HTTP **and** the
 Y.js real-time sync WebSocket on the same origin/port. One process, one command:
 
 ```bash
-npm run dev      # HTTP + WebSocket on http://localhost:3000
+pnpm dev      # HTTP + WebSocket on http://localhost:3000
 ```
 
 Because the sync socket shares the app's origin, the browser attaches the
@@ -83,18 +83,18 @@ SQLite in dev, PostgreSQL in production, via Prisma. Prisma's `provider` is a co
 | `prisma/schema.prisma` | `sqlite` | `prisma/migrations/` |
 | `prisma/postgres/schema.prisma` | `postgresql` | `prisma/postgres/migrations/` |
 
-**Local development** — no extra steps, `prisma/schema.prisma` is the default used by `npx prisma migrate dev` and `npx prisma studio`.
+**Local development** — no extra steps, `prisma/schema.prisma` is the default used by `pnpm exec prisma migrate dev` and `pnpm exec prisma studio`.
 
 **First-time production setup** — generate the PostgreSQL migration history once against a real Postgres instance:
 
 ```bash
-DATABASE_URL="postgresql://..." npm run db:migrate:dev:postgres
+DATABASE_URL="postgresql://..." pnpm db:migrate:dev:postgres
 ```
 
 **Every production deploy** — apply pending migrations:
 
 ```bash
-DATABASE_URL="postgresql://..." npm run db:migrate:prod
+DATABASE_URL="postgresql://..." pnpm db:migrate:prod
 ```
 
 Four models: `User`, `Account`, `Session`, `VerificationToken`. The `Session` model carries optional `prompt` and `model` columns for per-session coaching configuration; both are `null` by default and fall back to the constants in `src/lib/llm-constants.ts`. The session's `content` field stores `{}` by default — actual document state lives in Y.js (in-memory in the WebSocket server), not in the database.

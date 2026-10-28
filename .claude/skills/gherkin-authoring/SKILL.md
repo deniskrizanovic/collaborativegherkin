@@ -123,3 +123,24 @@ principles** (GIVEN = known initial state, not user interaction; WHEN = one
 meaningful event; THEN = an observable outcome; concrete examples over
 implementation detail) — **not** for its literal `Feature:`/`Given`/`.feature`
 syntax reference, which does not apply to OpenSpec specs here.
+
+### Scenario scaffold (copy-paste)
+
+When authoring a new requirement in an OpenSpec spec, start each scenario from
+this stub. The `> **Tests:**` line and `- **GIVEN**` clause are mandatory —
+omitting either fails a lint gate.
+
+```markdown
+### Requirement: <name>
+The system SHALL <behavior>.
+
+#### Scenario: <name>
+> **Tests:** <!-- path/to.spec.ts — cases, or "none" -->
+- **GIVEN** <!-- known initial state -->
+- **WHEN** <!-- one meaningful event -->
+- **THEN** <!-- observable outcome -->
+```
+
+Fill placeholders before committing. Use `> **Tests:** none` when no test
+exists yet — silence is not permitted, because an absent line is
+indistinguishable from an overlooked one.

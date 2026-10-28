@@ -177,7 +177,7 @@ The **Edit prompt** button opens a modal where you can customise the system prom
 
 ```bash
 # 1. Install dependencies
-npm install
+pnpm install
 
 # 2. Set up environment variables
 cp .env.example .env.local
@@ -196,13 +196,13 @@ Edit `.env.local` and fill in:
 
 ```bash
 # 3. Run database migrations
-npx prisma migrate dev
+pnpm exec prisma migrate dev
 
 # 4. Seed the dev database
-npm run seed
+pnpm seed
 
 # 5. Start the server (HTTP + real-time sync WebSocket, one process)
-npm run dev
+pnpm dev
 ```
 
 Visit `http://localhost:3000` — you'll be redirected to the sign-in page. Enter your email and click the magic link to authenticate.
@@ -212,13 +212,13 @@ Visit `http://localhost:3000` — you'll be redirected to the sign-in page. Ente
 
 | Command                  | What it does                                   |
 | ------------------------ | ---------------------------------------------- |
-| `npm run dev`            | Start the server (Next.js HTTP + Y.js sync WebSocket, same origin) |
-| `npm run build`          | Build for production                           |
-| `npm run test`           | Run Vitest unit tests                          |
-| `npm run test:e2e`       | Run Playwright end-to-end tests                |
-| `npm run lint`           | Lint the codebase                              |
-| `npx prisma migrate dev` | Apply database migrations                      |
-| `npx prisma studio`      | Browse the database in a UI                    |
+| `pnpm dev`            | Start the server (Next.js HTTP + Y.js sync WebSocket, same origin) |
+| `pnpm build`          | Build for production                           |
+| `pnpm test`           | Run Vitest unit tests                          |
+| `pnpm test:e2e`       | Run Playwright end-to-end tests                |
+| `pnpm lint`           | Lint the codebase                              |
+| `pnpm exec prisma migrate dev` | Apply database migrations                      |
+| `pnpm exec prisma studio`      | Browse the database in a UI                    |
 
 ---
 
