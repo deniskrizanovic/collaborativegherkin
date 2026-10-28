@@ -195,7 +195,7 @@ the suite never uses `Sleep` (it is forbidden).
 | `keyboard.press("Enter")` | `Keyboard Key    press    Enter` |
 | `keyboard.type("text")` | `Keyboard Input    type    text` |
 | `mouse.click(10, 10)` | `Mouse Button    click    10    10` |
-| `click({ position: { x: 5, y: 5 } })` | `Click    ${sel}    position_x=5    position_y=5` |
+| `click({ position: { x: 5, y: 5 } })` | `Click With Options    ${sel}    position_x=5    position_y=5` |
 | `page.request.post(...)` as setup | `Http    ${BASE_URL}/api/sessions    POST    {"title": "…"}` |
 | `request.newContext({ storageState })` API test | RequestsLibrary: `Create API Session For    other    ${OTHER_STATE}` → `DELETE On Session    other    /api/sessions/${id}    expected_status=403` |
 | `Promise.all([waitForResponse(pred), action])` | `${p}=    Promise To    Wait For Response    matcher=…` → action → `${r}=    Wait For    ${p}` |
@@ -204,7 +204,7 @@ the suite never uses `Sleep` (it is forbidden).
 | `evaluate` / `evaluateAll` | `Evaluate JavaScript    ${sel}    (el) => …` (`all_elements=True` for evaluateAll) |
 | `getComputedStyle(el).x` / `toHaveCSS` | `Get Style    ${sel}    border-top-width    ==    1px` |
 | `context.grantPermissions` | `Grant Permissions    clipboard-read    clipboard-write` |
-| `page.route(...).fulfill` / held route | `routes.js` jsextension (`Fulfill Route`, `Hold Route`, `Release Route`) |
+| `page.route(...).fulfill` / held route | `routes.cjs` jsextension (`Fulfill Route`, `Hold Route`, `Release Route`) |
 | raw `ws` client | `WebSocketProbe.py` (`Probe WebSocket Upgrade`) |
 | `page.goto(url)` / `page.url()` | `Go To    ${url}` / `Get Url    *=    /sessions/` |
 

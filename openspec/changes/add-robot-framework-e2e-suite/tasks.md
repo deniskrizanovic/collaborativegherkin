@@ -57,13 +57,13 @@ assertion, and never use `Sleep`.
 
 ## 4. Chunk 4: Network interception
 
-- [ ] 4.1 Write `robot/libraries/routes.js` (Browser jsextension) exporting `fulfillRoute`, `holdRoute`, `releaseRoute` and `clearRoutes` per design D8. Load it from `common.resource`.
-- [ ] 4.2 Spike: a throwaway test proves that a held route keeps the UI in flight until `Release Route`. If the jsextension signature differs, adapt it (or fall back to built-in route keywords) and record the outcome in design.md.
-- [ ] 4.3 Port `llm-review.spec.ts` to `robot/suites/llm_review.robot` (21 tests). Cover the `Intercept Review` keyword with a configurable body, the in-flight `Reviewing…`/disabled assertions under a held route, overlay click at position 5,5, the cached result while the second request is held, and the 500 error body text.
-- [ ] 4.4 Port `SC-1.2.4` (POST-only 500 with GET passthrough) into `home.robot`.
-- [ ] 4.5 Delete the spike test. Tag `chunk4`, update PARITY.md and the baseline `> **Tests:**` citations, then run `pnpm lint:specs`.
-- [ ] 4.6 **Checkpoint**: both suites green.
-- [ ] 4.7 **STOP for user review**: report what changed and the checkpoint results, then wait. Do not start chunk 5 until the user says to continue.
+- [x] 4.1 Write `robot/libraries/routes.cjs` (Browser jsextension; `.cjs` because the root package is ESM, see the D8 spike outcome) exporting `fulfillRoute`, `holdRoute`, `releaseRoute` and `clearRoutes` per design D8. Load it from `common.resource`.
+- [x] 4.2 Spike: a throwaway test proves that a held route keeps the UI in flight until `Release Route`. If the jsextension signature differs, adapt it (or fall back to built-in route keywords) and record the outcome in design.md.
+- [x] 4.3 Port `llm-review.spec.ts` to `robot/suites/llm_review.robot` (22 tests). Cover the `Intercept Review` keyword with a configurable body, the in-flight `Reviewing…`/disabled assertions under a held route, overlay click at position 5,5, the cached result while the second request is held, and the 500 error body text.
+- [x] 4.4 Port `SC-1.2.4` (POST-only 500 with GET passthrough) into `home.robot`.
+- [x] 4.5 Delete the spike test. Tag `chunk4`, update PARITY.md and the baseline `> **Tests:**` citations, then run `pnpm lint:specs`.
+- [x] 4.6 **Checkpoint**: both suites green.
+- [x] 4.7 **STOP for user review**: report what changed and the checkpoint results, then wait. Do not start chunk 5 until the user says to continue.
 
 ## 5. Chunk 5: Multi-context and second identity
 

@@ -59,7 +59,7 @@ error message and leave the user on the home page.
 - **THEN** a validation error is displayed and no session is created
 
 #### Scenario: Server error shows error message
-> **Tests:** [`e2e/home.spec.ts`](../../../e2e/home.spec.ts)
+> **Tests:** [`e2e/home.spec.ts`](../../../e2e/home.spec.ts) · [`robot/suites/home.robot`](../../../robot/suites/home.robot)
 - **GIVEN** the user is on the home page
 - **WHEN** the server returns an error during session creation
 - **THEN** a "Network error" or server error message is shown

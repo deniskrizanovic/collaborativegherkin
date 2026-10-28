@@ -19,7 +19,7 @@ the model name; a failure MUST display an error in the modal and reset the
 button.
 
 #### Scenario: Clicking Get AI Coaching sends content and disables controls
-> **Tests:** [`e2e/llm-review.spec.ts`](../../../e2e/llm-review.spec.ts) — modal opens · button disabled in flight
+> **Tests:** [`e2e/llm-review.spec.ts`](../../../e2e/llm-review.spec.ts) · [`robot/suites/llm_review.robot`](../../../robot/suites/llm_review.robot) — modal opens · button disabled in flight
 - **GIVEN** a user is on a session page
 - **WHEN** the user clicks "Get AI Coaching"
 - **THEN** the current Gherkin content is sent to the resolved model via the OpenRouter gateway
@@ -27,7 +27,7 @@ button.
 - **AND** the model dropdown is disabled while the request is in flight
 
 #### Scenario: Successful LLM response displayed as Markdown in modal
-> **Tests:** [`e2e/llm-review.spec.ts`](../../../e2e/llm-review.spec.ts) — header shows model name · Markdown rendered
+> **Tests:** [`e2e/llm-review.spec.ts`](../../../e2e/llm-review.spec.ts) · [`robot/suites/llm_review.robot`](../../../robot/suites/llm_review.robot) — header shows model name · Markdown rendered
 - **GIVEN** the LLM returns a response
 - **WHEN** the review completes
 - **THEN** the result is displayed in a modal
@@ -35,7 +35,7 @@ button.
 - **AND** the modal header shows the name of the model that produced the result
 
 #### Scenario: LLM failure shows error in modal and resets button
-> **Tests:** [`e2e/llm-review.spec.ts`](../../../e2e/llm-review.spec.ts)
+> **Tests:** [`e2e/llm-review.spec.ts`](../../../e2e/llm-review.spec.ts) · [`robot/suites/llm_review.robot`](../../../robot/suites/llm_review.robot)
 - **GIVEN** the LLM request fails
 - **WHEN** the review completes with an error
 - **THEN** an error message is displayed in the modal
@@ -47,19 +47,19 @@ The results modal SHALL close on Escape, on a click outside the inner panel, or
 on clicking the ✕ button.
 
 #### Scenario: Escape closes results modal
-> **Tests:** [`e2e/llm-review.spec.ts`](../../../e2e/llm-review.spec.ts)
+> **Tests:** [`e2e/llm-review.spec.ts`](../../../e2e/llm-review.spec.ts) · [`robot/suites/llm_review.robot`](../../../robot/suites/llm_review.robot)
 - **GIVEN** the results modal is open
 - **WHEN** the user presses Escape
 - **THEN** the modal closes
 
 #### Scenario: Clicking outside panel closes results modal
-> **Tests:** [`e2e/llm-review.spec.ts`](../../../e2e/llm-review.spec.ts)
+> **Tests:** [`e2e/llm-review.spec.ts`](../../../e2e/llm-review.spec.ts) · [`robot/suites/llm_review.robot`](../../../robot/suites/llm_review.robot)
 - **GIVEN** the results modal is open
 - **WHEN** the user clicks outside the modal inner panel
 - **THEN** the modal closes
 
 #### Scenario: X button closes results modal
-> **Tests:** [`e2e/llm-review.spec.ts`](../../../e2e/llm-review.spec.ts)
+> **Tests:** [`e2e/llm-review.spec.ts`](../../../e2e/llm-review.spec.ts) · [`robot/suites/llm_review.robot`](../../../robot/suites/llm_review.robot)
 - **GIVEN** the results modal is open
 - **WHEN** the user clicks the ✕ button
 - **THEN** the modal closes
@@ -73,7 +73,7 @@ the next review uses it. When no model is stored the dropdown MUST default to
 `openrouter/free`.
 
 #### Scenario: Model dropdown shown pre-selected to session model or default
-> **Tests:** [`e2e/llm-review.spec.ts`](../../../e2e/llm-review.spec.ts) — button and dropdown visible · expected models listed
+> **Tests:** [`e2e/llm-review.spec.ts`](../../../e2e/llm-review.spec.ts) · [`robot/suites/llm_review.robot`](../../../robot/suites/llm_review.robot) — button and dropdown visible · expected models listed
 - **GIVEN** a user is on a session page
 - **WHEN** the page loads
 - **THEN** a model dropdown is shown alongside the "Get AI Coaching" button
@@ -101,13 +101,13 @@ button MUST be disabled when the textarea has fewer than 10 characters. Cancel,
 Escape, or an outside click MUST close the modal without saving.
 
 #### Scenario: Edit prompt button opens modal with pre-filled textarea
-> **Tests:** [`e2e/llm-review.spec.ts`](../../../e2e/llm-review.spec.ts) — button visible · modal opens with pre-filled textarea
+> **Tests:** [`e2e/llm-review.spec.ts`](../../../e2e/llm-review.spec.ts) · [`robot/suites/llm_review.robot`](../../../robot/suites/llm_review.robot) — button visible · modal opens with pre-filled textarea
 - **GIVEN** a user is on a session page
 - **WHEN** the user clicks "Edit prompt"
 - **THEN** a modal opens containing a textarea pre-filled with the current prompt
 
 #### Scenario: Saving new prompt persists to session and closes modal
-> **Tests:** [`e2e/llm-review.spec.ts`](../../../e2e/llm-review.spec.ts)
+> **Tests:** [`e2e/llm-review.spec.ts`](../../../e2e/llm-review.spec.ts) · [`robot/suites/llm_review.robot`](../../../robot/suites/llm_review.robot)
 - **GIVEN** the prompt edit modal is open
 - **WHEN** the user edits the textarea and clicks "Save"
 - **THEN** the new prompt is saved to the session record
@@ -115,13 +115,13 @@ Escape, or an outside click MUST close the modal without saving.
 - **AND** the next review in this session uses the updated prompt
 
 #### Scenario: Cancel, Escape, or outside click closes prompt modal without saving
-> **Tests:** [`e2e/llm-review.spec.ts`](../../../e2e/llm-review.spec.ts) — Cancel · Escape · click outside
+> **Tests:** [`e2e/llm-review.spec.ts`](../../../e2e/llm-review.spec.ts) · [`robot/suites/llm_review.robot`](../../../robot/suites/llm_review.robot) — Cancel · Escape · click outside
 - **GIVEN** the prompt edit modal is open
 - **WHEN** the user clicks "Cancel" or presses Escape or clicks outside the panel
 - **THEN** the modal closes without saving
 
 #### Scenario: Save disabled when textarea has fewer than 10 chars
-> **Tests:** [`e2e/llm-review.spec.ts`](../../../e2e/llm-review.spec.ts)
+> **Tests:** [`e2e/llm-review.spec.ts`](../../../e2e/llm-review.spec.ts) · [`robot/suites/llm_review.robot`](../../../robot/suites/llm_review.robot)
 - **GIVEN** the user has cleared the textarea or entered fewer than 10 characters
 - **WHEN** the prompt edit modal is open
 - **THEN** the "Save" button is disabled
@@ -248,31 +248,31 @@ review. While a new review is in flight the cached result MUST remain
 available; when the new review completes it MUST replace the cached result.
 
 #### Scenario: View last review button visible after review is closed
-> **Tests:** [`e2e/llm-review.spec.ts`](../../../e2e/llm-review.spec.ts)
+> **Tests:** [`e2e/llm-review.spec.ts`](../../../e2e/llm-review.spec.ts) · [`robot/suites/llm_review.robot`](../../../robot/suites/llm_review.robot)
 - **GIVEN** a review has completed and the result modal has been closed
 - **WHEN** the user looks at the session header
 - **THEN** a "View last review" button is visible
 
 #### Scenario: View last review reopens modal without new API call
-> **Tests:** [`e2e/llm-review.spec.ts`](../../../e2e/llm-review.spec.ts)
+> **Tests:** [`e2e/llm-review.spec.ts`](../../../e2e/llm-review.spec.ts) · [`robot/suites/llm_review.robot`](../../../robot/suites/llm_review.robot)
 - **GIVEN** the "View last review" button is visible
 - **WHEN** the user clicks it
 - **THEN** the result modal reopens showing the same result without a new API call
 
 #### Scenario: View last review button absent before first review
-> **Tests:** [`e2e/llm-review.spec.ts`](../../../e2e/llm-review.spec.ts)
+> **Tests:** [`e2e/llm-review.spec.ts`](../../../e2e/llm-review.spec.ts) · [`robot/suites/llm_review.robot`](../../../robot/suites/llm_review.robot)
 - **GIVEN** no review has been run yet
 - **WHEN** the user looks at the session header
 - **THEN** the "View last review" button is not visible
 
 #### Scenario: Cached result remains available while new review in flight
-> **Tests:** [`e2e/llm-review.spec.ts`](../../../e2e/llm-review.spec.ts)
+> **Tests:** [`e2e/llm-review.spec.ts`](../../../e2e/llm-review.spec.ts) · [`robot/suites/llm_review.robot`](../../../robot/suites/llm_review.robot)
 - **GIVEN** a review result is cached and a new review is triggered
 - **WHEN** the new review is in flight
 - **THEN** the cached result remains available via "View last review"
 
 #### Scenario: New review result replaces cached result
-> **Tests:** [`e2e/llm-review.spec.ts`](../../../e2e/llm-review.spec.ts)
+> **Tests:** [`e2e/llm-review.spec.ts`](../../../e2e/llm-review.spec.ts) · [`robot/suites/llm_review.robot`](../../../robot/suites/llm_review.robot)
 - **GIVEN** a new review completes
 - **WHEN** the result arrives
 - **THEN** the cached result is replaced with the new result

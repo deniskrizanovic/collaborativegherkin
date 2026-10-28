@@ -1,7 +1,7 @@
 *** Settings ***
 Documentation       Port of e2e/home.spec.ts — home page, session list, create form,
-...                 session header and invite link.
-...                 SC-1.2.4 (server error via a mocked route) lands in chunk 4.
+...                 session header and invite link. SC-1.2.4 mocks the
+...                 create call with the routes.cjs extension (chunk 4).
 
 Resource            ../resources/common.resource
 Resource            ../resources/session.resource
@@ -60,6 +60,15 @@ SC-1.2.3: Title over 200 chars shows validation error
     Click    ${SUBMIT}
     Wait For Elements State    .form-error    visible
     Get Url    ==    ${BASE_URL}/
+
+SC-1.2.4: Server error shows error message
+    [Tags]    -chunk1    chunk4
+    # Only POST gets the 500; the GET that lists sessions reaches the server.
+    Fulfill Route    **/api/sessions    500    {"error": "Server error"}    POST
+    Go To    ${BASE_URL}/
+    Fill Text    ${TITLE_INPUT}    My session
+    Click    ${SUBMIT}
+    Wait For Elements State    .form-error    visible
 
 SC-1.2.1: Valid title creates session and redirects
     Go To    ${BASE_URL}/

@@ -7,7 +7,6 @@ Documentation       File keywords: temp images, downloads, and their cleanup.
 ...                 the Playwright suite's `fs.unlinkSync` calls, but it also runs
 ...                 when an assertion fails half way through.
 
-Library             Browser
 Library             Collections
 Library             OperatingSystem
 Resource            common.resource

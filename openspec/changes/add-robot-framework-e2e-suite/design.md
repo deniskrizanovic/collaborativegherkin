@@ -85,7 +85,7 @@ robot/
     api.resource            # RequestsLibrary: Create API Session For (cookie from storage state)
   libraries/
     WebSocketProbe.py       # Probe WebSocket Upgrade    url    cookie=    → dict(opened, status, received_data)
-    routes.js               # Browser jsextension: hold/release/fulfil routes
+    routes.cjs               # Browser jsextension: hold/release/fulfil routes
   suites/
     00_smoke.robot
     home.robot  initial_content.robot  toolbar.robot  import.robot
@@ -117,7 +117,7 @@ the `try/finally { context2.close() }` blocks. Temp files are deleted in `[Teard
 | `locator(x, { hasText })`, `.last()`, `.nth(i)` | `x:has-text("…")`, `x >> nth=-1`, `x >> nth=${i}` |
 | `page.waitForFunction(count > before)` | `Wait For Function` with the same JS, or `Get Element Count  ${sel}  >  ${before}` |
 | `keyboard.press/type`, `mouse.click(x,y)` | `Keyboard Key    press    Enter`, `Keyboard Input    type    text`, `Mouse Button    click    10    10` |
-| `click({ position })` | `Click    ${sel}    position_x=5    position_y=5` |
+| `click({ position })` | `Click With Options    ${sel}    position_x=5    position_y=5` |
 | `page.request.post/get/delete` used as test setup | `Http    /api/sessions    POST    {"title": "…"}` (uses the current context's cookies) |
 | `request.newContext({ storageState: user2 })` API-contract tests | RequestsLibrary: `Create API Session For    other    ${OTHER_STATE}` → `DELETE On Session    other    /api/sessions/${id}    expected_status=403` (D15) |
 | `Promise.all([waitForResponse(pred), action])` | `${p}=    Promise To    Wait For Response    matcher=…` → action → `${r}=    Wait For    ${p}` → `Should Be Equal    ${r.status}    ${200}` |
@@ -126,19 +126,30 @@ the `try/finally { context2.close() }` blocks. Temp files are deleted in `[Teard
 | `evaluate` / `evaluateAll` | `Evaluate JavaScript    ${sel}    (el) => …` (with `all_elements=True` for evaluateAll) |
 | `getComputedStyle(el).x` / `toHaveCSS` | `Get Style    ${sel}    border-top-width    ==    1px` |
 | `context.grantPermissions` | `Grant Permissions    clipboard-read    clipboard-write` |
-| `page.route(...).fulfill` / held route | `routes.js` jsextension (D8) |
+| `page.route(...).fulfill` / held route | `routes.cjs` jsextension (D8) |
 | raw `ws` client | `WebSocketProbe.py` (D9) |
 
 ### D8. Routes through a Browser JS extension
 Browser's built-in keywords cover request/response *waiting* but not arbitrary
-`page.route` handlers with test-controlled release. `robot/libraries/routes.js` is
-loaded with `Library    Browser    jsextension=${CURDIR}/../libraries/routes.js` and
+`page.route` handlers with test-controlled release. `robot/libraries/routes.cjs` is
+loaded with `Library    Browser    jsextension=${CURDIR}/../libraries/routes.cjs` and
 exports `fulfillRoute(url, status, body, method, page)`, `holdRoute(url, status, body, page)`
 (stores a resolver in module scope), `releaseRoute(url)` and `clearRoutes(page)`.
 Each export becomes a keyword (`Fulfill Route`, `Hold Route`, `Release Route`).
 That gives the exact semantics of `interceptReview`, the held-promise tests, and
 the POST-only 500 in `home.spec.ts`. *Alternative:* add a server-side test hook.
 Rejected: it touches app code and would weaken the test.
+
+*Spike outcome (task 4.2):* the signature works as designed on Browser 20.6.0.
+Two adjustments: the file is `.cjs`, because the root `package.json` sets
+`"type": "module"` and Browser `require()`s extensions (a `.js` file fails with
+`module is not defined in ES module scope`); and `Browser` is imported only in
+`common.resource`, since the other resources reach it transitively and a second
+plain `Library    Browser` would differ in arguments. A spike test showed that a
+held `/api/llm-review` kept the button at `Reviewing…` and disabled, with the
+modal hidden for a 2 s window, until `Release Route`. `Release Route` with
+nothing held fails with `No held route for <url>`. `Finish Test` calls
+`Clear Routes` so a test that fails mid-hold cannot leak a handler.
 
 ### D9. WebSocket probe as a tiny Python library
 `WebSocketProbe.py` uses `websockets.sync.client.connect(url, additional_headers=…, open_timeout=3)`:
@@ -201,7 +212,7 @@ for `robot/results/`. The CI `paths` filter also gains `robot/**`, `e2e/**`, and
 | 1 | `initial-content`, `toolbar`, `home` (no route test yet), `import` | ~27 passed |
 | 2 | `enter-progression` (text rows), `block-picker`, `visual-separation` (non-export) | ~+25 |
 | 3 | `files.resource`; `export`, `image`, `data-table`, the export/image rows deferred from chunk 2, and `visual-separation` export | ~+20 |
-| 4 | `routes.js`; `llm-review`, the `home` server-error test | ~+20 |
+| 4 | `routes.cjs`; `llm-review`, the `home` server-error test | ~+20 |
 | 5 | `collaboration`, `session-access-control` (second identity, response waits) | ~+9 |
 | 6 | `WebSocketProbe.py`; `websocket-auth` | +3, PARITY complete |
 | 7 | `lint:robot`, `e2e:all`, CI wiring, artifact upload | CI green with both suites |

@@ -1,7 +1,6 @@
 *** Settings ***
 Documentation       Session and editor keywords: Robot ports of e2e/helpers.ts.
 
-Library             Browser
 Resource            common.resource
 
 

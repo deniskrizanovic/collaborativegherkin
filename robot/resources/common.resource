@@ -7,8 +7,12 @@ Documentation       Shared setup for every browser-driven Robot suite.
 ...                 closes every context and page a test opened, so extra
 ...                 contexts never leak between tests (the try/finally of the
 ...                 Playwright suite).
+...
+...                 Browser is imported here only, with the routes.cjs extension
+...                 (Fulfill Route, Hold Route, Release Route, Clear Routes).
+...                 Other resources get it by importing this file.
 
-Library             Browser
+Library             Browser    jsextension=${CURDIR}/../libraries/routes.cjs
 
 
 *** Variables ***
@@ -44,8 +48,10 @@ Open Owner Context And Page
 
 Finish Test
     [Documentation]    Test Teardown: full-page screenshot into log.html when
-    ...    ${SCREENSHOTS} is True. Browser then closes the test's contexts.
+    ...    ${SCREENSHOTS} is True, and drop any route handlers so a held
+    ...    route cannot outlive its test. Browser then closes the contexts.
     IF    ${SCREENSHOTS}    Take Screenshot    fullPage=True
+    Clear Routes
 
 Trace File For Test
     [Documentation]    Return the trace path for the current test when ${TRACE}
