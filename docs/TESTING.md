@@ -17,7 +17,7 @@ application and a different cost/confidence trade-off.
 Runs lint, typecheck, unit/API tests, and E2E tests in parallel.
 
 ```bash
-npm run test:all
+pnpm test:all
 ```
 
 ---
@@ -38,7 +38,7 @@ Covers every exported function in `gherkin.ts`:
 Runs instantly, no infrastructure needed.
 
 ```bash
-npm run test
+pnpm test
 ```
 
 ---
@@ -59,7 +59,7 @@ Calls route handler functions directly with `NextRequest` objects. `db` and
 No test database required.
 
 ```bash
-npm run test
+pnpm test
 ```
 
 ---
@@ -78,101 +78,101 @@ Both servers start automatically. If they're already running, Playwright reuses 
 #### All suites
 
 ```bash
-npm run test:e2e
+pnpm test:e2e
 ```
 
 ```bash
-npx playwright test --ui
+pnpm exec playwright test --ui
 ```
 
 #### Block picker
 
 ```bash
-npx playwright test e2e/block-picker.spec.ts
+pnpm exec playwright test e2e/block-picker.spec.ts
 ```
 
 ```bash
-npx playwright test e2e/block-picker.spec.ts --ui
+pnpm exec playwright test e2e/block-picker.spec.ts --ui
 ```
 
 #### Toolbar
 
 ```bash
-npx playwright test e2e/toolbar.spec.ts
+pnpm exec playwright test e2e/toolbar.spec.ts
 ```
 
 ```bash
-npx playwright test e2e/toolbar.spec.ts --ui
+pnpm exec playwright test e2e/toolbar.spec.ts --ui
 ```
 
 #### Enter progression
 
 ```bash
-npx playwright test e2e/enter-progression.spec.ts
+pnpm exec playwright test e2e/enter-progression.spec.ts
 ```
 
 ```bash
-npx playwright test e2e/enter-progression.spec.ts --ui
+pnpm exec playwright test e2e/enter-progression.spec.ts --ui
 ```
 
 #### Export
 
 ```bash
-npx playwright test e2e/export.spec.ts
+pnpm exec playwright test e2e/export.spec.ts
 ```
 
 ```bash
-npx playwright test e2e/export.spec.ts --ui
+pnpm exec playwright test e2e/export.spec.ts --ui
 ```
 
 #### Visual separation
 
 ```bash
-npx playwright test e2e/visual-separation.spec.ts
+pnpm exec playwright test e2e/visual-separation.spec.ts
 ```
 
 ```bash
-npx playwright test e2e/visual-separation.spec.ts --ui
+pnpm exec playwright test e2e/visual-separation.spec.ts --ui
 ```
 
 #### Collaboration
 
 ```bash
-npx playwright test e2e/collaboration.spec.ts
+pnpm exec playwright test e2e/collaboration.spec.ts
 ```
 
 ```bash
-npx playwright test e2e/collaboration.spec.ts --ui
+pnpm exec playwright test e2e/collaboration.spec.ts --ui
 ```
 
 #### Data table
 
 ```bash
-npx playwright test e2e/data-table.spec.ts
+pnpm exec playwright test e2e/data-table.spec.ts
 ```
 
 ```bash
-npx playwright test e2e/data-table.spec.ts --ui
+pnpm exec playwright test e2e/data-table.spec.ts --ui
 ```
 
 #### Import
 
 ```bash
-npx playwright test e2e/import.spec.ts
+pnpm exec playwright test e2e/import.spec.ts
 ```
 
 ```bash
-npx playwright test e2e/import.spec.ts --ui
+pnpm exec playwright test e2e/import.spec.ts --ui
 ```
 
 #### LLM review
 
 ```bash
-npx playwright test e2e/llm-review.spec.ts
+pnpm exec playwright test e2e/llm-review.spec.ts
 ```
 
 ```bash
-npx playwright test e2e/llm-review.spec.ts --ui
+pnpm exec playwright test e2e/llm-review.spec.ts --ui
 ```
 
 Covers spec §8: session page controls (button and model dropdown visibility),

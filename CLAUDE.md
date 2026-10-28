@@ -17,16 +17,16 @@ tools like Jira. The app is a workspace, not a permanent archive.
 
 ## Key commands
 ```bash
-npm run dev       # start the server (Next.js HTTP + Y.js sync WebSocket) at http://localhost:3000
-npm run build     # production build
-npm run test      # run tests with Vitest
-npm run lint      # lint with Next.js ESLint config
-npm run seed      # seed dev database with placeholder user
-npx prisma migrate dev   # run database migrations in development
-npx prisma studio        # open database browser UI
+pnpm dev       # start the server (Next.js HTTP + Y.js sync WebSocket) at http://localhost:3000
+pnpm build     # production build
+pnpm test      # run tests with Vitest
+pnpm lint      # lint with Next.js ESLint config
+pnpm seed      # seed dev database with placeholder user
+pnpm exec prisma migrate dev   # run database migrations in development
+pnpm exec prisma studio        # open database browser UI
 ```
 
-`npm run dev` runs one process serving both HTTP and the real-time sync
+`pnpm dev` runs one process serving both HTTP and the real-time sync
 WebSocket on the same origin (`http://localhost:3000`). The WebSocket upgrade is
 authenticated by the same-origin NextAuth session cookie (see `server.js`).
 
@@ -95,14 +95,14 @@ the full URL of a **real, open** issue on this repository:
 https://github.com/deniskrizanovic/collaborativegherkin/issues/N
 ```
 
-The `lint:issue-link` gate (`npm run lint:issue-link`) enforces this. Because it
+The `lint:issue-link` gate (`pnpm lint:issue-link`) enforces this. Because it
 calls the GitHub API (network + `gh` auth), it runs in the Claude Code
 `PreToolUse` commit hook and in CI (`.github/workflows/ci.yml`) — **not** in the
 git/husky pre-commit hook, which stays offline-safe. A commit that includes an
 active change with no valid open-issue link is blocked by the Claude hook; CI is
 the authoritative catch-all for commits made outside the agent.
 
-Spec traceability is a separate gate: `lint:specs` (`npm run lint:specs`) is a
+Spec traceability is a separate gate: `lint:specs` (`pnpm lint:specs`) is a
 pure filesystem check, so it runs in the husky pre-commit hook (whole spec tree,
 every commit) **and** in CI.
 

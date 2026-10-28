@@ -1,6 +1,6 @@
 /**
  * Captures screenshots of every major feature for docs/overview.md.
- * Run with: npx tsx scripts/capture-screenshots.ts
+ * Run with: pnpm exec tsx scripts/capture-screenshots.ts
  */
 
 import { chromium } from "playwright";
