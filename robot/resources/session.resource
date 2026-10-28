@@ -6,16 +6,23 @@ Resource            common.resource
 
 
 *** Keywords ***
-Create Session Via API
-    [Documentation]    POST /api/sessions using the current page's cookies and
-    ...    return the new session id. Port of helpers.ts `createSession`.
-    ...    `Http` runs fetch inside the page, so a fresh page (about:blank,
-    ...    no origin) is first pointed at the app to get a same-origin context.
-    [Arguments]    ${title}
+Call API
+    [Documentation]    Send ${method} ${path} with the current page's cookies and
+    ...    return the response dict (status, body, ...). Equivalent of
+    ...    Playwright's `page.request`. `Http` runs fetch inside the page, so a
+    ...    fresh page (about:blank, no origin) is first pointed at the app.
+    [Arguments]    ${method}    ${path}    ${body}=${None}
     ${url}=    Get Url
     IF    not $url.startswith($BASE_URL)    Go To    ${BASE_URL}
+    ${response}=    Http    ${BASE_URL}${path}    ${method}    ${body}
+    RETURN    ${response}
+
+Create Session Via API
+    [Documentation]    POST /api/sessions and return the new session id.
+    ...    Port of helpers.ts `createSession`.
+    [Arguments]    ${title}
     ${payload}=    Evaluate    json.dumps({"title": $title})    modules=json
-    ${response}=    Http    ${BASE_URL}/api/sessions    POST    ${payload}
+    ${response}=    Call API    POST    /api/sessions    ${payload}
     Should Be Equal As Integers    ${response}[status]    201
     RETURN    ${response}[body][id]
 
@@ -51,6 +58,20 @@ Block Types In Editor
     ...    (els) => els.map((el) => el.getAttribute("data-gherkin-type"))
     ...    all_elements=True
     RETURN    ${types}
+
+Texts Of All
+    [Documentation]    Return the textContent of every element matching
+    ...    ${selector} (Playwright `allTextContents`).
+    [Arguments]    ${selector}
+    ${texts}=    Evaluate JavaScript    ${selector}
+    ...    (els) => els.map((el) => el.textContent ?? "")
+    ...    all_elements=True
+    RETURN    ${texts}
+
+Toolbar Button Texts
+    [Documentation]    Return the label of every toolbar button.
+    ${texts}=    Texts Of All    .gherkin-toolbar-btn
+    RETURN    ${texts}
 
 Toolbar Button
     [Documentation]    Return the selector for the toolbar button labelled ${label}.

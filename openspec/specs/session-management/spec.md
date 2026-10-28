@@ -16,7 +16,7 @@ the user owns no sessions the list MUST be empty and only the creation form is
 shown.
 
 #### Scenario: Sessions listed newest first
-> **Tests:** [`e2e/home.spec.ts`](../../../e2e/home.spec.ts) — list visible after creating · order
+> **Tests:** [`e2e/home.spec.ts`](../../../e2e/home.spec.ts) · [`robot/suites/home.robot`](../../../robot/suites/home.robot) — list visible after creating · order
 - **GIVEN** a signed-in user visits the home page
 - **WHEN** sessions exist in the database that were created by that user
 - **THEN** the user sees a list of their sessions ordered by creation date, newest first
@@ -24,7 +24,7 @@ shown.
 - **AND** each entry is a link that navigates to that session's editor
 
 #### Scenario: No sessions shows empty state
-> **Tests:** [`e2e/home.spec.ts`](../../../e2e/home.spec.ts)
+> **Tests:** [`e2e/home.spec.ts`](../../../e2e/home.spec.ts) · [`robot/suites/home.robot`](../../../robot/suites/home.robot)
 - **GIVEN** a signed-in user visits the home page
 - **WHEN** no sessions exist in the database for that user
 - **THEN** the session list is empty and only the creation form is shown
@@ -39,21 +39,21 @@ show a validation error and create no session; a server error MUST show an
 error message and leave the user on the home page.
 
 #### Scenario: Valid title creates session and redirects
-> **Tests:** [`e2e/home.spec.ts`](../../../e2e/home.spec.ts)
+> **Tests:** [`e2e/home.spec.ts`](../../../e2e/home.spec.ts) · [`robot/suites/home.robot`](../../../robot/suites/home.robot)
 - **GIVEN** the user is on the home page
 - **WHEN** the user enters a title of between 1 and 200 characters and submits the form
 - **THEN** a new session is created in the database
 - **AND** the user is redirected to the new session's editor page
 
 #### Scenario: Empty title disables Create button
-> **Tests:** [`e2e/home.spec.ts`](../../../e2e/home.spec.ts)
+> **Tests:** [`e2e/home.spec.ts`](../../../e2e/home.spec.ts) · [`robot/suites/home.robot`](../../../robot/suites/home.robot)
 - **GIVEN** the user is on the home page
 - **WHEN** the user submits the form with an empty title
 - **THEN** a validation error is displayed and no session is created
 - **AND** the Create button remains disabled while the title field is empty
 
 #### Scenario: Title over 200 chars shows validation error
-> **Tests:** [`e2e/home.spec.ts`](../../../e2e/home.spec.ts)
+> **Tests:** [`e2e/home.spec.ts`](../../../e2e/home.spec.ts) · [`robot/suites/home.robot`](../../../robot/suites/home.robot)
 - **GIVEN** the user is on the home page
 - **WHEN** the user submits the form with a title exceeding 200 characters
 - **THEN** a validation error is displayed and no session is created
@@ -72,7 +72,7 @@ session's editor with its title in the header. A session id that does not exist
 MUST return a 404 and MUST NOT render the session page.
 
 #### Scenario: Valid session ID loads editor with title
-> **Tests:** [`e2e/home.spec.ts`](../../../e2e/home.spec.ts)
+> **Tests:** [`e2e/home.spec.ts`](../../../e2e/home.spec.ts) · [`robot/suites/home.robot`](../../../robot/suites/home.robot)
 - **GIVEN** a session exists
 - **WHEN** a user navigates directly to `/sessions/{id}`
 - **THEN** the editor loads for that session
@@ -91,7 +91,7 @@ From a session page the user SHALL be able to copy an invite link. Clicking
 change the button label to "Copied!" for 2 seconds before reverting.
 
 #### Scenario: Copy invite link copies URL and shows Copied!
-> **Tests:** [`e2e/home.spec.ts`](../../../e2e/home.spec.ts)
+> **Tests:** [`e2e/home.spec.ts`](../../../e2e/home.spec.ts) · [`robot/suites/home.robot`](../../../robot/suites/home.robot)
 - **GIVEN** a user is on a session page
 - **WHEN** the user clicks "Copy invite link"
 - **THEN** the full URL of the current page is copied to the clipboard

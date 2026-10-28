@@ -25,14 +25,14 @@ assertion, and never use `Sleep`.
 
 ## 1. Chunk 1: Simple UI suites
 
-- [ ] 1.1 Port `initial-content.spec.ts` to `robot/suites/initial_content.robot` (3 tests).
-- [ ] 1.2 Port `toolbar.spec.ts` to `robot/suites/toolbar.robot` (5 tests).
-- [ ] 1.3 Port `import.spec.ts` to `robot/suites/import.robot` (11 tests), keeping every exact `Get Element Count ==` assertion.
-- [ ] 1.4 Port `home.spec.ts` except `SC-1.2.4` to `robot/suites/home.robot`: the API-driven delete-all for the empty state, the native-value-setter `Evaluate JavaScript` for the 201-character title, `Grant Permissions` for copy-link, and the URL assertions with `Get Url`.
-- [ ] 1.5 Tag chunk-1 tests `chunk1` and update PARITY.md rows to `ported`.
-- [ ] 1.6 Add the Robot citation to the matching `> **Tests:**` lines in the baseline specs (design D12), then run `pnpm lint:specs`.
-- [ ] 1.7 **Checkpoint**: `pnpm test:robot` (≈27 passed) and `pnpm test:e2e` are green.
-- [ ] 1.8 **STOP for user review**: report what changed and the checkpoint results, then wait. Do not start chunk 2 until the user says to continue.
+- [x] 1.1 Port `initial-content.spec.ts` to `robot/suites/initial_content.robot` (3 tests).
+- [x] 1.2 Port `toolbar.spec.ts` to `robot/suites/toolbar.robot` (5 tests).
+- [x] 1.3 Port `import.spec.ts` to `robot/suites/import.robot` (11 tests), keeping every exact `Get Element Count ==` assertion.
+- [x] 1.4 Port `home.spec.ts` except `SC-1.2.4` to `robot/suites/home.robot`: the API-driven delete-all for the empty state, the native-value-setter `Evaluate JavaScript` for the 201-character title, `Grant Permissions` for copy-link, and the URL assertions with `Get Url`.
+- [x] 1.5 Tag chunk-1 tests `chunk1` and update PARITY.md rows to `ported`.
+- [x] 1.6 Add the Robot citation to the matching `> **Tests:**` lines in the baseline specs (design D12), then run `pnpm lint:specs`.
+- [x] 1.7 **Checkpoint**: `pnpm test:robot` (≈27 passed) and `pnpm test:e2e` are green.
+- [x] 1.8 **STOP for user review**: report what changed and the checkpoint results, then wait. Do not start chunk 2 until the user says to continue.
 
 ## 2. Chunk 2: Keyboard and editor-structure suites
 

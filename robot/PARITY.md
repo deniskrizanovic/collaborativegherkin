@@ -36,49 +36,49 @@ the Feature block) unless noted otherwise.
 
 | Playwright file | Title | Key assertions | Robot suite | Chunk | Status |
 |---|---|---|---|---|---|
-| initial-content.spec.ts | SC-3.1.2: New document seeded with 5 scaffold blocks once — order | evaluateAll `.gherkin-editor [data-gherkin-type]` types == exactly `[feature, scenario, given, when, then]` | initial_content.robot | 1 | pending |
-| initial-content.spec.ts | SC-3.1.2: New document seeded with 5 scaffold blocks once — empty text | evaluateAll textContent of all blocks; every text == `""` | initial_content.robot | 1 | pending |
-| initial-content.spec.ts | SC-3.1.2: New document seeded with 5 scaffold blocks once — cursor on Feature | `.gherkin-toolbar-btn` allTextContents contains `Scenario`, not contains `Feature` | initial_content.robot | 1 | pending |
+| initial-content.spec.ts | SC-3.1.2: New document seeded with 5 scaffold blocks once — order | evaluateAll `.gherkin-editor [data-gherkin-type]` types == exactly `[feature, scenario, given, when, then]` | initial_content.robot | 1 | ported |
+| initial-content.spec.ts | SC-3.1.2: New document seeded with 5 scaffold blocks once — empty text | evaluateAll textContent of all blocks; every text == `""` | initial_content.robot | 1 | ported |
+| initial-content.spec.ts | SC-3.1.2: New document seeded with 5 scaffold blocks once — cursor on Feature | `.gherkin-toolbar-btn` allTextContents contains `Scenario`, not contains `Feature` | initial_content.robot | 1 | ported |
 
 ## toolbar.spec.ts
 
 | Playwright file | Title | Key assertions | Robot suite | Chunk | Status |
 |---|---|---|---|---|---|
-| toolbar.spec.ts | SC-3.4.1: Toolbar shows valid next blocks and Image — no Feature shown on Feature block | toolbar btn texts contain `Scenario`, not `Feature` | toolbar.robot | 1 | pending |
-| toolbar.spec.ts | SC-3.4.1: Toolbar shows valid next blocks and Image — Rule, Background, Scenario after Feature | toolbar btn texts contain `Rule`, `Background`, `Scenario`; not `Feature` | toolbar.robot | 1 | pending |
-| toolbar.spec.ts | SC-3.4.2: Clicking toolbar button inserts block and moves cursor | click toolbar `Rule`; `[data-gherkin-type="rule"]` visible | toolbar.robot | 1 | pending |
-| toolbar.spec.ts | SC-3.4.2: Clicking toolbar button inserts block and moves cursor — Scenario after Feature | count scenario before; click toolbar `Scenario`; scenario count == before + 1 (auto-retry) | toolbar.robot | 1 | pending |
-| toolbar.spec.ts | SC-3.4.1: Toolbar shows valid next blocks and Image — Image present on non-Feature block | click `then` block; toolbar btn texts contain `Image` | toolbar.robot | 1 | pending |
+| toolbar.spec.ts | SC-3.4.1: Toolbar shows valid next blocks and Image — no Feature shown on Feature block | toolbar btn texts contain `Scenario`, not `Feature` | toolbar.robot | 1 | ported |
+| toolbar.spec.ts | SC-3.4.1: Toolbar shows valid next blocks and Image — Rule, Background, Scenario after Feature | toolbar btn texts contain `Rule`, `Background`, `Scenario`; not `Feature` | toolbar.robot | 1 | ported |
+| toolbar.spec.ts | SC-3.4.2: Clicking toolbar button inserts block and moves cursor | click toolbar `Rule`; `[data-gherkin-type="rule"]` visible | toolbar.robot | 1 | ported |
+| toolbar.spec.ts | SC-3.4.2: Clicking toolbar button inserts block and moves cursor — Scenario after Feature | count scenario before; click toolbar `Scenario`; scenario count == before + 1 (auto-retry) | toolbar.robot | 1 | ported |
+| toolbar.spec.ts | SC-3.4.1: Toolbar shows valid next blocks and Image — Image present on non-Feature block | click `then` block; toolbar btn texts contain `Image` | toolbar.robot | 1 | ported |
 
 ## import.spec.ts
 
 | Playwright file | Title | Key assertions | Robot suite | Chunk | Status |
 |---|---|---|---|---|---|
-| import.spec.ts | SC-7.1.1: Import button always visible in toolbar | `.gherkin-import-btn` visible | import.robot | 1 | pending |
-| import.spec.ts | SC-7.1.2: Clicking Import opens modal with textarea and buttons | click import; `.gherkin-import-modal`, `.gherkin-import-textarea`, `.gherkin-import-confirm`, `.gherkin-import-cancel` all visible | import.robot | 1 | pending |
-| import.spec.ts | SC-7.1.4: Cancel closes modal without inserting | fill `Feature: Should not appear`; cancel; modal not visible; feature count == 1 | import.robot | 1 | pending |
-| import.spec.ts | SC-7.1.3: Inserting Gherkin creates blocks, skips non-matching, clears modal — valid sequence | fill 5-line Feature/Scenario/Given/When/Then; confirm; modal not visible; feature, scenario, given, when, then counts each == 2 | import.robot | 1 | pending |
-| import.spec.ts | SC-7.1.3: Inserting Gherkin creates blocks, skips non-matching, clears modal — out-of-order inserted leniently | fill `Scenario: Orphan\nGiven context`; confirm; scenario == 2; given == 2 | import.robot | 1 | pending |
-| import.spec.ts | SC-7.1.3: Inserting Gherkin creates blocks, skips non-matching, clears modal — textarea cleared | fill `Feature: Test`; confirm; reopen import; textarea value == `""` | import.robot | 1 | pending |
-| import.spec.ts | SC-7.1.3: Inserting Gherkin creates blocks, skips non-matching, clears modal — markdown-prefixed Gherkin parsed | fill `# Feature:`/`## Scenario:`/`- Given:`/`- When:`/`- Then:` lines; confirm; modal not visible; 5 type counts each == 2 | import.robot | 1 | pending |
-| import.spec.ts | SC-7.1.3: Inserting Gherkin creates blocks, skips non-matching, clears modal — pipe rows become DataTable | fill Scenario, Given, 4 pipe rows (incl. `\| --- \| --- \|`); confirm; modal not visible; scenario == 2; given == 2; `[data-gherkin-table]` == 1 | import.robot | 1 | pending |
-| import.spec.ts | SC-7.1.3: Inserting Gherkin creates blocks, skips non-matching, clears modal — plain text skipped | count blocks before; fill plain text; confirm; modal not visible; block count == before | import.robot | 1 | pending |
-| import.spec.ts | SC-7.1.3: Inserting Gherkin creates blocks, skips non-matching, clears modal — case-insensitive with colon | count given before; fill `GIVEN: something uppercase`; confirm; given == before + 1 | import.robot | 1 | pending |
-| import.spec.ts | SC-7.1.3: Inserting Gherkin creates blocks, skips non-matching, clears modal — case-insensitive without colon | count given before; fill `Given something without a colon`; confirm; given == before + 1 | import.robot | 1 | pending |
+| import.spec.ts | SC-7.1.1: Import button always visible in toolbar | `.gherkin-import-btn` visible | import.robot | 1 | ported |
+| import.spec.ts | SC-7.1.2: Clicking Import opens modal with textarea and buttons | click import; `.gherkin-import-modal`, `.gherkin-import-textarea`, `.gherkin-import-confirm`, `.gherkin-import-cancel` all visible | import.robot | 1 | ported |
+| import.spec.ts | SC-7.1.4: Cancel closes modal without inserting | fill `Feature: Should not appear`; cancel; modal not visible; feature count == 1 | import.robot | 1 | ported |
+| import.spec.ts | SC-7.1.3: Inserting Gherkin creates blocks, skips non-matching, clears modal — valid sequence | fill 5-line Feature/Scenario/Given/When/Then; confirm; modal not visible; feature, scenario, given, when, then counts each == 2 | import.robot | 1 | ported |
+| import.spec.ts | SC-7.1.3: Inserting Gherkin creates blocks, skips non-matching, clears modal — out-of-order inserted leniently | fill `Scenario: Orphan\nGiven context`; confirm; scenario == 2; given == 2 | import.robot | 1 | ported |
+| import.spec.ts | SC-7.1.3: Inserting Gherkin creates blocks, skips non-matching, clears modal — textarea cleared | fill `Feature: Test`; confirm; reopen import; textarea value == `""` | import.robot | 1 | ported |
+| import.spec.ts | SC-7.1.3: Inserting Gherkin creates blocks, skips non-matching, clears modal — markdown-prefixed Gherkin parsed | fill `# Feature:`/`## Scenario:`/`- Given:`/`- When:`/`- Then:` lines; confirm; modal not visible; 5 type counts each == 2 | import.robot | 1 | ported |
+| import.spec.ts | SC-7.1.3: Inserting Gherkin creates blocks, skips non-matching, clears modal — pipe rows become DataTable | fill Scenario, Given, 4 pipe rows (incl. `\| --- \| --- \|`); confirm; modal not visible; scenario == 2; given == 2; `[data-gherkin-table]` == 1 | import.robot | 1 | ported |
+| import.spec.ts | SC-7.1.3: Inserting Gherkin creates blocks, skips non-matching, clears modal — plain text skipped | count blocks before; fill plain text; confirm; modal not visible; block count == before | import.robot | 1 | ported |
+| import.spec.ts | SC-7.1.3: Inserting Gherkin creates blocks, skips non-matching, clears modal — case-insensitive with colon | count given before; fill `GIVEN: something uppercase`; confirm; given == before + 1 | import.robot | 1 | ported |
+| import.spec.ts | SC-7.1.3: Inserting Gherkin creates blocks, skips non-matching, clears modal — case-insensitive without colon | count given before; fill `Given something without a colon`; confirm; given == before + 1 | import.robot | 1 | ported |
 
 ## home.spec.ts
 
 | Playwright file | Title | Key assertions | Robot suite | Chunk | Status |
 |---|---|---|---|---|---|
-| home.spec.ts | SC-1.1.2: No sessions shows empty state | API GET `/api/sessions`, DELETE each; goto `/`; `.sessions-list` not visible; `.create-form` visible | home.robot | 1 | pending |
-| home.spec.ts | SC-1.1.1: Sessions listed newest first — list visible after creating | create via API; goto `/`; first `.session-link` visible; href == `/sessions/<id>` | home.robot | 1 | pending |
-| home.spec.ts | SC-1.1.1: Sessions listed newest first — order | create `Session Alpha` then `Session Beta`; goto `/`; first `.session-name` text == `Session Beta` | home.robot | 1 | pending |
-| home.spec.ts | SC-1.2.2: Empty title disables Create button | goto `/`; `button[type="submit"]` disabled | home.robot | 1 | pending |
-| home.spec.ts | SC-1.2.3: Title over 200 chars shows validation error | native value setter on `.nsw-form__input` with 201 × `a` + dispatch `input` and `change` (bubbles); click submit; `.form-error` visible; URL == `/` | home.robot | 1 | pending |
+| home.spec.ts | SC-1.1.2: No sessions shows empty state | API GET `/api/sessions`, DELETE each; goto `/`; `.sessions-list` not visible; `.create-form` visible | home.robot | 1 | ported |
+| home.spec.ts | SC-1.1.1: Sessions listed newest first — list visible after creating | create via API; goto `/`; first `.session-link` visible; href == `/sessions/<id>` | home.robot | 1 | ported |
+| home.spec.ts | SC-1.1.1: Sessions listed newest first — order | create `Session Alpha` then `Session Beta`; goto `/`; first `.session-name` text == `Session Beta` | home.robot | 1 | ported |
+| home.spec.ts | SC-1.2.2: Empty title disables Create button | goto `/`; `button[type="submit"]` disabled | home.robot | 1 | ported |
+| home.spec.ts | SC-1.2.3: Title over 200 chars shows validation error | native value setter on `.nsw-form__input` with 201 × `a` + dispatch `input` and `change` (bubbles); click submit; `.form-error` visible; URL == `/` | home.robot | 1 | ported |
 | home.spec.ts | SC-1.2.4: Server error shows error message | route `**/api/sessions`: POST → fulfill 500 JSON `{error:"Server error"}`, other methods → continue; goto `/`; fill `My session`; submit; `.form-error` visible | home.robot | 4 | pending |
-| home.spec.ts | SC-1.2.1: Valid title creates session and redirects | goto `/`; fill `Redirect test session`; submit; URL matches `/\/sessions\//` | home.robot | 1 | pending |
-| home.spec.ts | SC-1.3.1: Valid session ID loads editor with title | create `Header title session` via API; goto session; `.session-title` text == title | home.robot | 1 | pending |
-| home.spec.ts | SC-1.4.1: Copy invite link copies URL and shows Copied! | grant `clipboard-read`, `clipboard-write`; openSession; `.copy-link-btn` visible, text == `Copy invite link`; click; text == `Copied!` | home.robot | 1 | pending |
+| home.spec.ts | SC-1.2.1: Valid title creates session and redirects | goto `/`; fill `Redirect test session`; submit; URL matches `/\/sessions\//` | home.robot | 1 | ported |
+| home.spec.ts | SC-1.3.1: Valid session ID loads editor with title | create `Header title session` via API; goto session; `.session-title` text == title | home.robot | 1 | ported |
+| home.spec.ts | SC-1.4.1: Copy invite link copies URL and shows Copied! | grant `clipboard-read`, `clipboard-write`; openSession; `.copy-link-btn` visible, text == `Copy invite link`; click; text == `Copied!` | home.robot | 1 | ported |
 
 ## enter-progression.spec.ts
 

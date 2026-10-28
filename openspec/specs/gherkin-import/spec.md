@@ -21,13 +21,13 @@ close the modal and clear the textarea. Cancel MUST close the modal without
 inserting. Keyword matching MUST be case-insensitive with optional colons.
 
 #### Scenario: Import button always visible in toolbar
-> **Tests:** [`e2e/import.spec.ts`](../../../e2e/import.spec.ts)
+> **Tests:** [`e2e/import.spec.ts`](../../../e2e/import.spec.ts) · [`robot/suites/import.robot`](../../../robot/suites/import.robot)
 - **GIVEN** a user is in a session editor
 - **WHEN** the editor renders
 - **THEN** an "Import" button with class `gherkin-import-btn` is always visible in the toolbar
 
 #### Scenario: Clicking Import opens modal with textarea and buttons
-> **Tests:** [`e2e/import.spec.ts`](../../../e2e/import.spec.ts)
+> **Tests:** [`e2e/import.spec.ts`](../../../e2e/import.spec.ts) · [`robot/suites/import.robot`](../../../robot/suites/import.robot)
 - **GIVEN** the user clicks the Import button
 - **THEN** a modal overlay with class `gherkin-import-modal` opens
 - **AND** the modal contains a textarea with class `gherkin-import-textarea`
@@ -35,7 +35,7 @@ inserting. Keyword matching MUST be case-insensitive with optional colons.
 - **AND** the modal contains a cancel button `.gherkin-import-cancel` ("Cancel")
 
 #### Scenario: Inserting Gherkin creates blocks, skips non-matching, clears modal
-> **Tests:** [`e2e/import.spec.ts`](../../../e2e/import.spec.ts) — valid sequence · out-of-order inserted leniently · textarea cleared · markdown-prefixed Gherkin parsed · pipe rows become DataTable · plain text skipped · case-insensitive with colon · case-insensitive without colon
+> **Tests:** [`e2e/import.spec.ts`](../../../e2e/import.spec.ts) · [`robot/suites/import.robot`](../../../robot/suites/import.robot) — valid sequence · out-of-order inserted leniently · textarea cleared · markdown-prefixed Gherkin parsed · pipe rows become DataTable · plain text skipped · case-insensitive with colon · case-insensitive without colon
 - **GIVEN** the user pastes or types Gherkin text into the textarea and clicks Insert
 - **THEN** each recognisable keyword line is inserted as a Gherkin block at the current cursor position
 - **AND** pipe-delimited rows (`| cell | cell |`) are grouped into DataTable blocks
@@ -44,6 +44,6 @@ inserting. Keyword matching MUST be case-insensitive with optional colons.
 - **AND** the modal closes and the textarea is cleared
 
 #### Scenario: Cancel closes modal without inserting
-> **Tests:** [`e2e/import.spec.ts`](../../../e2e/import.spec.ts)
+> **Tests:** [`e2e/import.spec.ts`](../../../e2e/import.spec.ts) · [`robot/suites/import.robot`](../../../robot/suites/import.robot)
 - **GIVEN** the user clicks Cancel
 - **THEN** the modal closes without inserting anything

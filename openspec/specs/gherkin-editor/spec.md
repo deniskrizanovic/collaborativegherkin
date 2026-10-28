@@ -32,7 +32,7 @@ the document via Y.js sync and MUST NOT trigger re-seeding.
 - **AND** the editor becomes interactive once the connection is established
 
 #### Scenario: New document seeded with 5 scaffold blocks once
-> **Tests:** [`e2e/initial-content.spec.ts`](../../../e2e/initial-content.spec.ts) — order · empty text · cursor on Feature; [`e2e/collaboration.spec.ts`](../../../e2e/collaboration.spec.ts) — second joiner does not re-seed
+> **Tests:** [`e2e/initial-content.spec.ts`](../../../e2e/initial-content.spec.ts) · [`robot/suites/initial_content.robot`](../../../robot/suites/initial_content.robot) — order · empty text · cursor on Feature; [`e2e/collaboration.spec.ts`](../../../e2e/collaboration.spec.ts) — second joiner does not re-seed
 - **GIVEN** the Y.js document is empty after synchronisation
 - **WHEN** the first user's editor finishes syncing
 - **THEN** the editor is seeded with 5 empty scaffold blocks in this order: Feature, Scenario, Given, When, Then
@@ -123,14 +123,14 @@ insert a new block of the chosen type after the current block and move the
 cursor to it.
 
 #### Scenario: Toolbar shows valid next blocks and Image
-> **Tests:** [`e2e/toolbar.spec.ts`](../../../e2e/toolbar.spec.ts) — no Feature shown on Feature block · Rule, Background, Scenario after Feature · Image present on non-Feature block
+> **Tests:** [`e2e/toolbar.spec.ts`](../../../e2e/toolbar.spec.ts) · [`robot/suites/toolbar.robot`](../../../robot/suites/toolbar.robot) — no Feature shown on Feature block · Rule, Background, Scenario after Feature · Image present on non-Feature block
 - **GIVEN** the cursor is inside a block
 - **WHEN** the editor toolbar renders
 - **THEN** the toolbar shows the block types that are valid next blocks for the current block, according to `canFollow()`
 - **AND** the toolbar always shows an Image button, regardless of the current block type
 
 #### Scenario: Clicking toolbar button inserts block and moves cursor
-> **Tests:** [`e2e/toolbar.spec.ts`](../../../e2e/toolbar.spec.ts) — node inserted · Scenario after Feature
+> **Tests:** [`e2e/toolbar.spec.ts`](../../../e2e/toolbar.spec.ts) · [`robot/suites/toolbar.robot`](../../../robot/suites/toolbar.robot) — node inserted · Scenario after Feature
 - **GIVEN** the toolbar is showing valid block types
 - **WHEN** the user clicks a toolbar button
 - **THEN** a new block of the chosen type is inserted after the current block
