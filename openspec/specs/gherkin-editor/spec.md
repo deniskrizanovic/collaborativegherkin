@@ -50,7 +50,7 @@ on an image block, Enter MUST use the auto-progression type of the most recent
 Gherkin block preceding the image.
 
 #### Scenario: Enter at end of block inserts auto-progression type
-> **Tests:** [`e2e/enter-progression.spec.ts`](../../../e2e/enter-progression.spec.ts) — feature→scenario · scenario→given · given→when · when→then · then→and · and→and · but→and · background→given · rule→scenario
+> **Tests:** [`e2e/enter-progression.spec.ts`](../../../e2e/enter-progression.spec.ts) · [`robot/suites/enter_progression.robot`](../../../robot/suites/enter_progression.robot) — feature→scenario · scenario→given · given→when · when→then · then→and · and→and · but→and · background→given · rule→scenario
 - **GIVEN** the cursor is at the end of a block
 - **WHEN** the user presses Enter
 - **THEN** a new block of the auto-progression type is inserted immediately after the current block
@@ -72,7 +72,7 @@ type and close the menu; Escape or an outside click MUST close the menu without
 inserting.
 
 #### Scenario: Typing / opens picker with valid next blocks and Image
-> **Tests:** [`e2e/block-picker.spec.ts`](../../../e2e/block-picker.spec.ts) — opens picker · only valid types shown · Image always last
+> **Tests:** [`e2e/block-picker.spec.ts`](../../../e2e/block-picker.spec.ts) · [`robot/suites/block_picker.robot`](../../../robot/suites/block_picker.robot) — opens picker · only valid types shown · Image always last
 - **GIVEN** the cursor is inside a block
 - **WHEN** the user types `/`
 - **THEN** a block picker menu opens
@@ -80,37 +80,37 @@ inserting.
 - **AND** the menu always includes `Image` as the final option, regardless of the current block type
 
 #### Scenario: Down arrow moves picker focus to next item
-> **Tests:** [`e2e/block-picker.spec.ts`](../../../e2e/block-picker.spec.ts)
+> **Tests:** [`e2e/block-picker.spec.ts`](../../../e2e/block-picker.spec.ts) · [`robot/suites/block_picker.robot`](../../../robot/suites/block_picker.robot)
 - **GIVEN** the block picker menu is open
 - **WHEN** the user presses the down arrow key
 - **THEN** focus moves to the next item in the list
 
 #### Scenario: Up arrow moves picker focus to previous item
-> **Tests:** [`e2e/block-picker.spec.ts`](../../../e2e/block-picker.spec.ts)
+> **Tests:** [`e2e/block-picker.spec.ts`](../../../e2e/block-picker.spec.ts) · [`robot/suites/block_picker.robot`](../../../robot/suites/block_picker.robot)
 - **GIVEN** the block picker menu is open
 - **WHEN** the user presses the up arrow key
 - **THEN** focus moves to the previous item in the list
 
 #### Scenario: Enter on focused picker item inserts type and closes
-> **Tests:** [`e2e/block-picker.spec.ts`](../../../e2e/block-picker.spec.ts)
+> **Tests:** [`e2e/block-picker.spec.ts`](../../../e2e/block-picker.spec.ts) · [`robot/suites/block_picker.robot`](../../../robot/suites/block_picker.robot)
 - **GIVEN** the block picker menu is open and an item is focused
 - **WHEN** the user presses Enter
 - **THEN** the focused block type is inserted and the menu closes
 
 #### Scenario: Clicking picker item inserts type and closes
-> **Tests:** [`e2e/block-picker.spec.ts`](../../../e2e/block-picker.spec.ts)
+> **Tests:** [`e2e/block-picker.spec.ts`](../../../e2e/block-picker.spec.ts) · [`robot/suites/block_picker.robot`](../../../robot/suites/block_picker.robot)
 - **GIVEN** the block picker menu is open and an item is focused
 - **WHEN** the user clicks the item
 - **THEN** the clicked block type is inserted and the menu closes
 
 #### Scenario: Escape closes picker without inserting
-> **Tests:** [`e2e/block-picker.spec.ts`](../../../e2e/block-picker.spec.ts)
+> **Tests:** [`e2e/block-picker.spec.ts`](../../../e2e/block-picker.spec.ts) · [`robot/suites/block_picker.robot`](../../../robot/suites/block_picker.robot)
 - **GIVEN** the block picker menu is open
 - **WHEN** the user presses Escape
 - **THEN** the menu closes without inserting a block
 
 #### Scenario: Clicking outside picker closes without inserting
-> **Tests:** [`e2e/block-picker.spec.ts`](../../../e2e/block-picker.spec.ts)
+> **Tests:** [`e2e/block-picker.spec.ts`](../../../e2e/block-picker.spec.ts) · [`robot/suites/block_picker.robot`](../../../robot/suites/block_picker.robot)
 - **GIVEN** the block picker menu is open
 - **WHEN** the user clicks outside the menu
 - **THEN** the menu closes without inserting a block
@@ -144,13 +144,13 @@ separation is purely visual and MUST NOT affect document structure or export
 output.
 
 #### Scenario: Given after then/and/but gets top border (visual only)
-> **Tests:** [`e2e/visual-separation.spec.ts`](../../../e2e/visual-separation.spec.ts) — after then · after and · after but · first given after scenario has no border · separator not in export
+> **Tests:** [`e2e/visual-separation.spec.ts`](../../../e2e/visual-separation.spec.ts) · [`robot/suites/visual_separation.robot`](../../../robot/suites/visual_separation.robot) — after then · after and · after but · first given after scenario has no border · separator not in export
 - **GIVEN** a `given` block immediately follows a `then`, `and`, or `but` block
 - **THEN** a horizontal rule and vertical space are rendered above the `given` block
 - **AND** this separation is purely visual and does not affect the document structure or export output
 
 #### Scenario: Scenario after then/and/but gets top border (visual only)
-> **Tests:** [`e2e/visual-separation.spec.ts`](../../../e2e/visual-separation.spec.ts) — after then · after and · after but
+> **Tests:** [`e2e/visual-separation.spec.ts`](../../../e2e/visual-separation.spec.ts) · [`robot/suites/visual_separation.robot`](../../../robot/suites/visual_separation.robot) — after then · after and · after but
 - **GIVEN** a `scenario` block immediately follows a `then`, `and`, or `but` block
 - **THEN** a horizontal rule and vertical space are rendered above the `scenario` block
 - **AND** this separation is purely visual and does not affect the document structure or export output

@@ -59,6 +59,13 @@ Block Types In Editor
     ...    all_elements=True
     RETURN    ${types}
 
+Last Index Of
+    [Documentation]    Return the index of the last ${value} in ${list}
+    ...    (JavaScript `lastIndexOf`), or -1 when absent.
+    [Arguments]    ${list}    ${value}
+    ${index}=    Evaluate    len($list) - 1 - $list[::-1].index($value) if $value in $list else -1
+    RETURN    ${index}
+
 Texts Of All
     [Documentation]    Return the textContent of every element matching
     ...    ${selector} (Playwright `allTextContents`).

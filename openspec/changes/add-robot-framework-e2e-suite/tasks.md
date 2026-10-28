@@ -36,12 +36,12 @@ assertion, and never use `Sleep`.
 
 ## 2. Chunk 2: Keyboard and editor-structure suites
 
-- [ ] 2.1 Port `enter-progression.spec.ts`, all 9 text rows of `SC-3.2.1`, to `robot/suites/enter_progression.robot`. Keep the mix of plain `End`/`Enter` and `Press Enter And Wait For Block` exactly as in the original. The `SC-3.2.2` image row is deferred to 3.4.
-- [ ] 2.2 Port `block-picker.spec.ts` to `robot/suites/block_picker.robot` (9 tests). This includes the `Get Style … background *= rgba(0, 38, 100, 0.06)` focus checks, `Mouse Button click 10 10`, and the "Image always last" check in both contexts.
-- [ ] 2.3 Port the 7 non-export tests of `visual-separation.spec.ts` to `robot/suites/visual_separation.robot`, asserting `border-top-width` `1px`/`0px` through `Get Style`.
-- [ ] 2.4 Tag `chunk2`, update PARITY.md and the baseline `> **Tests:**` citations, then run `pnpm lint:specs`.
-- [ ] 2.5 **Checkpoint**: both suites green.
-- [ ] 2.6 **STOP for user review**: report what changed and the checkpoint results, then wait. Do not start chunk 3 until the user says to continue.
+- [x] 2.1 Port `enter-progression.spec.ts`, all 9 text rows of `SC-3.2.1`, to `robot/suites/enter_progression.robot`. Keep the mix of plain `End`/`Enter` and `Press Enter And Wait For Block` exactly as in the original. The `SC-3.2.2` image row is deferred to 3.4.
+- [x] 2.2 Port `block-picker.spec.ts` to `robot/suites/block_picker.robot` (9 tests). This includes the `Get Style … background *= rgba(0, 38, 100, 0.06)` focus checks, `Mouse Button click 10 10`, and the "Image always last" check in both contexts.
+- [x] 2.3 Port the 7 non-export tests of `visual-separation.spec.ts` to `robot/suites/visual_separation.robot`, asserting `border-top-width` `1px`/`0px` through `Get Style`.
+- [x] 2.4 Tag `chunk2`, update PARITY.md and the baseline `> **Tests:**` citations, then run `pnpm lint:specs`.
+- [x] 2.5 **Checkpoint**: both suites green.
+- [x] 2.6 **STOP for user review**: report what changed and the checkpoint results, then wait. Do not start chunk 3 until the user says to continue.
 
 ## 3. Chunk 3: Download and file suites
 
