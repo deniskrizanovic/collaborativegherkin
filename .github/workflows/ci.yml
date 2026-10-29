@@ -77,6 +77,9 @@ jobs:
       - name: Lint robot (no Sleep)
         run: pnpm run lint:robot
 
+      - name: Lint robot (spec steps)
+        run: pnpm run lint:robot-steps
+
       - name: Type check
         run: pnpm run typecheck
 

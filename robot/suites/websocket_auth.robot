@@ -29,7 +29,7 @@ unauthenticated upgrade is refused with 401 — no room joined, no data sent
     ${id}=    Create Session Via API    WS auth negative test
     ${result}=    Probe WebSocket Upgrade    ${WS_BASE}/session-${id}
     Should Not Be True    ${result}[opened]    msg=upgrade must not open without a session cookie
-    Should Be Equal As Integers    ${result}[status]    401
+    Should Be Equal As Integers    ${result}[status]    401    msg=expected a 401 refusal, got status ${result}[status] (${result}[error])
     Should Not Be True    ${result}[received_data]    msg=no document/awareness state may be sent
 
 authenticated upgrade to a valid room succeeds
@@ -37,7 +37,7 @@ authenticated upgrade to a valid room succeeds
     # Reuse the browser context's authenticated session cookie on the raw socket.
     ${cookie}=    Cookie Header From Context
     ${result}=    Probe WebSocket Upgrade    ${WS_BASE}/session-${id}    ${cookie}
-    Should Be True    ${result}[opened]    msg=a valid session cookie must be accepted
+    Should Be True    ${result}[opened]    msg=a valid session cookie must be accepted (${result}[error])
     # Sync step 1 is sent immediately on connect, so authenticated clients get data.
     Should Be True    ${result}[received_data]
 
@@ -45,4 +45,4 @@ authenticated upgrade to a malformed room is refused
     ${cookie}=    Cookie Header From Context
     ${result}=    Probe WebSocket Upgrade    ${WS_BASE}/default    ${cookie}
     Should Not Be True    ${result}[opened]    msg=a malformed room name must be refused even when authenticated
-    Should Be Equal As Integers    ${result}[status]    401
+    Should Be Equal As Integers    ${result}[status]    401    msg=expected a 401 refusal, got status ${result}[status] (${result}[error])

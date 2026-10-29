@@ -44,11 +44,12 @@ Open Owner Context And Page
     New Page
 
 Finish Test
-    [Documentation]    Test Teardown: full-page screenshot into log.html when
-    ...    ${SCREENSHOTS} is True, and drop any route handlers so a held
-    ...    route cannot outlive its test. Browser then closes the contexts.
-    IF    ${SCREENSHOTS}    Take Screenshot    fullPage=True
+    [Documentation]    Test Teardown: drop any route handlers so a held route
+    ...    cannot outlive its test, then a full-page screenshot into log.html
+    ...    when ${SCREENSHOTS} is True. Routes are cleared first so cleanup
+    ...    never depends on the screenshot. Browser then closes the contexts.
     Clear Routes
+    IF    ${SCREENSHOTS}    Take Screenshot    fullPage=True
 
 Trace File For Test
     [Documentation]    Return the trace path for the current test when ${TRACE}

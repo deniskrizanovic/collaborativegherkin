@@ -8,8 +8,8 @@
 //   3. Clears robot/results/ so no stale screenshots or traces survive, then
 //      runs `uv run robot --outputdir robot/results robot/suites`, forwarding
 //      any extra CLI args (e.g. `--include chunk1`, `--test "SC-7.1.4*"`).
-//   4. Stops the server only if this script started it, then exits with
-//      Robot's exit code.
+//   4. Stops the server only if this script started it (also on SIGINT and
+//      SIGTERM), then exits with Robot's exit code.
 //
 // See openspec/changes/add-robot-framework-e2e-suite (design D4).
 
@@ -74,6 +74,18 @@ function stopServer(server) {
   }
 }
 
+// The server this script started, if any. Module-level so the signal handlers
+// below can stop it: the server runs in its own process group, so a Ctrl-C in
+// the terminal (or a cancelled CI job) never reaches it directly.
+let server = null;
+
+for (const [signal, code] of [["SIGINT", 130], ["SIGTERM", 143]]) {
+  process.on(signal, () => {
+    stopServer(server);
+    process.exit(code);
+  });
+}
+
 async function main() {
   const authCode = await run("pnpm", ["exec", "tsx", "scripts/mint-e2e-auth.ts"]);
   if (authCode !== 0) {
@@ -81,7 +93,6 @@ async function main() {
     return authCode;
   }
 
-  let server = null;
   if (!(await isServerUp())) {
     console.log(`run-robot: no server at ${BASE_URL}, starting pnpm dev`);
     server = startServer();

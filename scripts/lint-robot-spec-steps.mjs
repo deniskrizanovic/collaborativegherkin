@@ -2,8 +2,9 @@
 // Spec-step lint for business-language Robot suites (draft).
 //
 // Pilot of docs/robot-framework-evaluation.md §6.7. A Robot suite opts in with
-// the `bdd` tag in its `Test Tags` setting. Every test in such a suite is
-// matched to the OpenSpec scenario with the same title (the test name minus
+// the `bdd` tag in its `Test Tags` (or `Force Tags` / `Default Tags`) setting,
+// and a single test with `bdd` in its `[Tags]`; `...` continuation lines count.
+// Every business-language test is matched to the OpenSpec scenario with the same title (the test name minus
 // its `SC-x.y.z:` prefix and any ` — variant` suffix), and the gate fails when:
 //
 //   - no scenario in `openspec/specs/**` has that title, or more than one does
@@ -17,7 +18,9 @@
 // Text is compared case-insensitively with backticks dropped and whitespace
 // collapsed. A step may refine its spec line by appending words: `the cursor
 // is inside a block on a new line after Feature` matches `the cursor is inside
-// a block`. Step order is not checked. Offline-safe (pure filesystem).
+// a block`. A step is credited to the exact spec line if there is one, else to
+// the longest spec line it refines. Trailing `#` comments are ignored. Step
+// order is not checked. Offline-safe (pure filesystem).
 
 import { readdirSync, readFileSync } from "node:fs";
 import { join, relative } from "node:path";
@@ -31,6 +34,8 @@ const SPEC_STEP_RE = /^-\s+\*\*(GIVEN|WHEN|THEN|AND|BUT)\*\*\s+(.*?)\s*$/;
 const ROBOT_STEP_RE = /^(given|when|then|and|but)\s+(.*)$/i;
 const TEST_ID_RE = /^SC-[\d.]+:\s*/;
 const VARIANT_SEPARATOR = " — ";
+const TRAILING_COMMENT_RE = /(?:\s{2,}|\t)#.*$/;
+const SUITE_TAG_SETTINGS = new Set(["testtags", "forcetags", "defaulttags"]);
 
 /** Normalize step text for comparison. */
 export function normalizeStep(text) {
@@ -115,11 +120,17 @@ export function parseSpecScenarios(content, file = "<memory>") {
   return scenarios;
 }
 
+/** True when one of `cells` is the `bdd` tag (Robot tags ignore case and spaces). */
+function hasBddTag(cells) {
+  return cells.some((cell) => normalizeSection(cell) === "bdd");
+}
+
 /**
- * Parse a Robot suite: whether it opts in with the `bdd` tag, and its tests.
+ * Parse a Robot suite: whether it opts in with the `bdd` tag, and its tests
+ * (each with its own `bdd` flag from `[Tags]`).
  * @param {string} content
  * @param {string} [file]
- * @returns {{ bdd: boolean, tests: { name: string, file: string, line: number, steps: { word: string, kind: string, text: string, line: number }[], other: { text: string, line: number }[] }[] }}
+ * @returns {{ bdd: boolean, tests: { name: string, file: string, line: number, bdd: boolean, steps: { word: string, kind: string, text: string, line: number }[], other: { text: string, line: number }[] }[] }}
  */
 export function parseRobotSuite(content, file = "<memory>") {
   const lines = content.split(/\r?\n/);
@@ -127,6 +138,7 @@ export function parseRobotSuite(content, file = "<memory>") {
   let section = "";
   let bdd = false;
   let current = null;
+  let setting = ""; // the setting a `...` line continues
 
   for (let i = 0; i < lines.length; i++) {
     const raw = lines[i];
@@ -134,30 +146,37 @@ export function parseRobotSuite(content, file = "<memory>") {
     if (header) {
       section = normalizeSection(header[1]);
       current = null;
+      setting = "";
       continue;
     }
+
+    const line = raw.trim().replace(TRAILING_COMMENT_RE, "");
+    if (line === "" || line.startsWith("#")) continue;
+    const cells = line.split(CELL_SEPARATOR_RE);
 
     if (section === "settings") {
-      const cells = raw.trim().split(CELL_SEPARATOR_RE);
-      if (normalizeSection(cells[0]) === "testtags" && cells.slice(1).includes("bdd")) bdd = true;
+      if (cells[0] !== "...") setting = normalizeSection(cells[0]);
+      if (SUITE_TAG_SETTINGS.has(setting) && hasBddTag(cells.slice(1))) bdd = true;
       continue;
     }
-    if (section !== "testcases" || raw.trim() === "" || raw.trim().startsWith("#")) continue;
+    if (section !== "testcases") continue;
 
     if (!/^\s/.test(raw)) {
-      current = { name: raw.trim(), file, line: i + 1, steps: [], other: [] };
+      current = { name: line, file, line: i + 1, bdd: false, steps: [], other: [] };
       tests.push(current);
+      setting = "";
       continue;
     }
     if (!current) continue;
 
-    const cell = raw.trim().split(CELL_SEPARATOR_RE)[0];
-    if (cell.startsWith("[") || cell === "...") continue; // test settings, continuations
-    const step = ROBOT_STEP_RE.exec(raw.trim());
+    if (cells[0] !== "...") setting = cells[0].startsWith("[") ? normalizeSection(cells[0]) : "";
+    if (setting === "[tags]" && hasBddTag(cells.slice(1))) current.bdd = true;
+    if (cells[0].startsWith("[") || cells[0] === "...") continue; // test settings, continuations
+    const step = ROBOT_STEP_RE.exec(line);
     if (step) {
       current.steps.push({ word: step[1], text: step[2], line: i + 1 });
     } else {
-      current.other.push({ text: raw.trim(), line: i + 1 });
+      current.other.push({ text: line, line: i + 1 });
     }
   }
 
@@ -173,11 +192,23 @@ export function scenarioTitleOf(testName) {
   return testName.replace(TEST_ID_RE, "").split(VARIANT_SEPARATOR)[0].trim();
 }
 
-/** True when a test step states, or refines, a spec line. */
-function stepMatches(testText, specText) {
+/**
+ * Index of the spec line a test step states or refines: the exact line if
+ * there is one, else the longest line the step starts with. -1 when none.
+ * @param {string} testText
+ * @param {{ text: string }[]} specSteps
+ * @returns {number}
+ */
+export function matchSpecStep(testText, specSteps) {
   const t = normalizeStep(testText);
-  const s = normalizeStep(specText);
-  return t === s || t.startsWith(`${s} `);
+  const specs = specSteps.map((spec) => normalizeStep(spec.text));
+  const exact = specs.indexOf(t);
+  if (exact !== -1) return exact;
+  let best = -1;
+  specs.forEach((s, i) => {
+    if (t.startsWith(`${s} `) && (best === -1 || s.length > specs[best].length)) best = i;
+  });
+  return best;
 }
 
 /**
@@ -200,9 +231,9 @@ export function lintSpecSteps(specs, suites) {
 
   for (const { file, content } of suites) {
     const suite = parseRobotSuite(content, file);
-    if (!suite.bdd) continue;
 
     for (const test of suite.tests) {
+      if (!suite.bdd && !test.bdd) continue;
       const title = scenarioTitleOf(test.name);
       const matches = byTitle.get(normalizeStep(title)) ?? [];
       if (matches.length !== 1) {
@@ -227,7 +258,7 @@ export function lintSpecSteps(specs, suites) {
       }
 
       for (const step of test.steps) {
-        const index = scenario.steps.findIndex((s) => stepMatches(step.text, s.text));
+        const index = matchSpecStep(step.text, scenario.steps);
         if (index === -1) {
           violations.push({
             file,
@@ -269,7 +300,10 @@ function main() {
   const read = (file) => ({ file, content: readFileSync(file, "utf8") });
   const specs = collectFiles(join(root, "openspec", "specs"), [".md"]).map(read);
   const suites = collectFiles(join(root, "robot", "suites"), [".robot"]).map(read);
-  const bddCount = suites.filter((s) => parseRobotSuite(s.content, s.file).bdd).length;
+  const bddCount = suites.filter((s) => {
+    const suite = parseRobotSuite(s.content, s.file);
+    return suite.bdd || suite.tests.some((t) => t.bdd);
+  }).length;
   const violations = lintSpecSteps(specs, suites);
 
   if (violations.length === 0) {

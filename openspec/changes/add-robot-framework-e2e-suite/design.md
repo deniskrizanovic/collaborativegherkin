@@ -185,8 +185,9 @@ because those calls ride on the open page's cookies.
 
 ### D10. No-sleep gate
 `scripts/lint-robot-no-sleep.mjs` (same shape as `lint-spec-traceability.mjs`,
-with a Vitest test) fails on any `Sleep` keyword call in `robot/suites/**` or
-`robot/resources/**`. Wired as `pnpm lint:robot` into the husky pre-commit hook,
+with a Vitest test) fails on any `Sleep` keyword call or inline Python/JS delay
+(`time.sleep(`, `setTimeout(`, `waitForTimeout(`) in `robot/suites/**` or
+`robot/resources/**`, and on any such delay call in `robot/libraries/**`. Wired as `pnpm lint:robot` into the husky pre-commit hook,
 `test:all`, and CI. It is offline-safe.
 
 ### D11. Naming, tags, and timeouts

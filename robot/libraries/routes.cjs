@@ -12,8 +12,15 @@
 // `Library    Browser    jsextension=...`. See
 // openspec/changes/add-robot-framework-e2e-suite (design D8).
 
-// url -> resolver of the promise a held route handler awaits.
+// page -> (url -> resolver of the promise a held route handler awaits). Keyed
+// by page so two pages or contexts can each hold the same URL.
 const held = new Map();
+
+/** The held-route map of `page`, created on first use. */
+function heldFor(page) {
+  if (!held.has(page)) held.set(page, new Map());
+  return held.get(page);
+}
 
 /**
  * Fulfill every request to `url` with `status` and the JSON string `body`.
@@ -37,8 +44,9 @@ fulfillRoute.rfdoc =
  * fulfilling, so the UI stays in its in-flight state until then.
  */
 async function holdRoute(url, status, body, page) {
-  if (held.has(url)) throw new Error(`A route for ${url} is already held`);
-  const release = new Promise((resolve) => held.set(url, resolve));
+  const routes = heldFor(page);
+  if (routes.has(url)) throw new Error(`A route for ${url} is already held`);
+  const release = new Promise((resolve) => routes.set(url, resolve));
   await page.route(url, async (route) => {
     await release;
     try {
@@ -51,23 +59,29 @@ async function holdRoute(url, status, body, page) {
 holdRoute.rfdoc =
   "Hold requests to ``url`` until `Release Route`, then fulfill them with ``status`` and JSON ``body``.";
 
-/** Let a route registered with `holdRoute` fulfill its requests. */
-async function releaseRoute(url) {
-  const resolve = held.get(url);
+/** Let a route registered with `holdRoute` on the active page fulfill its requests. */
+async function releaseRoute(url, page) {
+  const routes = heldFor(page);
+  const resolve = routes.get(url);
   if (!resolve) throw new Error(`No held route for ${url}`);
-  held.delete(url);
+  routes.delete(url);
   resolve();
 }
 releaseRoute.rfdoc = "Release the route held with `Hold Route` for ``url``.";
 
 /**
- * Remove every route handler from the active page and forget held routes, so
- * a test that failed before `Release Route` cannot leak into the next one.
+ * Release every held route (on every page, so no handler is left awaiting a
+ * promise nothing will resolve), then remove every route handler from the
+ * active page. A test that failed before `Release Route` cannot leak into the
+ * next one.
  */
 async function clearRoutes(page) {
+  for (const routes of held.values()) {
+    for (const resolve of routes.values()) resolve();
+  }
   held.clear();
   if (page) await page.unrouteAll({ behavior: "ignoreErrors" });
 }
-clearRoutes.rfdoc = "Remove all route handlers from the active page and forget held routes.";
+clearRoutes.rfdoc = "Release every held route, then remove all route handlers from the active page.";
 
 module.exports = { fulfillRoute, holdRoute, releaseRoute, clearRoutes };

@@ -7,7 +7,7 @@ reports how the upgrade ended.
 
 import time
 
-from websockets.exceptions import ConnectionClosed, InvalidStatus
+from websockets.exceptions import ConnectionClosed, InvalidHandshake, InvalidStatus
 from websockets.sync.client import connect
 
 # Safety backstop so a hung socket cannot stall the test. Covers the upgrade
@@ -17,16 +17,19 @@ BACKSTOP_SECONDS = 3.0
 
 def probe_websocket_upgrade(url, cookie=None):
     """Connect to ``url`` (sending ``cookie`` as the Cookie header, if given)
-    and return a dictionary with three keys:
+    and return a dictionary with four keys:
 
     - ``opened``: the HTTP upgrade succeeded.
     - ``status``: the HTTP status of a refused upgrade (e.g. 401), else None.
     - ``received_data``: the server sent at least one message.
+    - ``error``: why the upgrade failed without a status (connection reset,
+      malformed or truncated response, timeout), else None. Lets a test that
+      expects a status report the real cause instead of ``None != 401``.
 
     On success the server sends Y.js sync-step-1 immediately, so the first
     message is the terminal signal. A refusal, close or timeout is terminal too.
     """
-    result = {"opened": False, "status": None, "received_data": False}
+    result = {"opened": False, "status": None, "received_data": False, "error": None}
     headers = {"Cookie": cookie} if cookie else None
     deadline = time.monotonic() + BACKSTOP_SECONDS
     try:
@@ -34,7 +37,10 @@ def probe_websocket_upgrade(url, cookie=None):
     except InvalidStatus as exc:
         result["status"] = exc.response.status_code
         return result
-    except (OSError, TimeoutError, ConnectionClosed):
+    except (InvalidHandshake, OSError, EOFError, TimeoutError, ConnectionClosed) as exc:
+        # InvalidHandshake covers a malformed or truncated response
+        # (InvalidMessage); OSError covers ConnectionResetError.
+        result["error"] = f"{type(exc).__name__}: {exc}"
         return result
     try:
         result["opened"] = True

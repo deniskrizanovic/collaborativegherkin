@@ -82,7 +82,7 @@ Robot suite and test name, and MUST be updated in the same chunk that ports the 
 Robot tests SHALL keep every robustness technique of the Playwright test they port.
 They MUST NOT replace one with a weaker form. In particular:
 
-- **No fixed sleeps.** Waits MUST use Browser's auto-waiting assertions (`Get Element Count`, `Get Text`, `Get Attribute` with an assertion operator), `Wait For Elements State`, `Wait For Condition`, or `Wait For Function`. `Sleep` is forbidden in `robot/suites/**` and `robot/resources/**`.
+- **No fixed sleeps.** Waits MUST use Browser's auto-waiting assertions (`Get Element Count`, `Get Text`, `Get Attribute` with an assertion operator), `Wait For Elements State`, `Wait For Condition`, or `Wait For Function`. `Sleep` and inline delays (`time.sleep(`, `setTimeout(`, `waitForTimeout(`) are forbidden in `robot/suites/**` and `robot/resources/**`, and fixed delays are forbidden in the keyword libraries under `robot/libraries/**`.
 - **Wait for a count to grow before acting**, as `pressEnterAndWait` does, rather than assuming a keypress has taken effect.
 - **Click the editor block before sending keyboard input**, because Tiptap focus differs from DOM focus.
 - **Isolated browser contexts** for multi-user sync tests, so `BroadcastChannel` cannot bridge them and sync has to go through the WebSocket server.

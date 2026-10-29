@@ -13,7 +13,7 @@ You never need to activate a virtualenv; `uv` manages `.venv/` for you.
 
 ```bash
 pnpm test:robot:init    # once, and after pyproject.toml / uv.lock change:
-                        #   uv sync && uv run rfbrowser init chromium
+                        #   uv sync --locked && uv run rfbrowser init chromium
 pnpm test:robot         # run every suite under robot/suites/
 ```
 
@@ -182,8 +182,9 @@ Browser's `Get ...` keywords take an optional assertion
 (`Get Text    .title    ==    Hello`). With an assertion they **retry until
 the 5 s browser timeout**, exactly like Playwright's `expect(...)`. That is why
 the suite never uses `Sleep`: it is forbidden, and `pnpm lint:robot` (run by the
-pre-commit hook and CI) fails on any `Sleep` call in `robot/suites/` or
-`robot/resources/`.
+pre-commit hook and CI) fails on any `Sleep` call or inline delay
+(`time.sleep(`, `setTimeout(`, `waitForTimeout(`) in `robot/suites/` or
+`robot/resources/`, and on any such delay in `robot/libraries/`.
 
 ## Playwright → Browser cheat-sheet
 

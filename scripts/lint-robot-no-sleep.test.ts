@@ -2,7 +2,13 @@ import { describe, it, expect, beforeEach, afterEach } from "vitest";
 import { mkdtempSync, mkdirSync, writeFileSync, rmSync } from "node:fs";
 import { join } from "node:path";
 import { tmpdir } from "node:os";
-import { findSleepCalls, collectRobotFiles, lintFiles } from "./lint-robot-no-sleep.mjs";
+import {
+  findSleepCalls,
+  findLibraryDelays,
+  collectRobotFiles,
+  collectLibraryFiles,
+  lintFiles,
+} from "./lint-robot-no-sleep.mjs";
 
 const clean = `*** Settings ***
 Documentation       Waits use auto-waiting assertions. Sleep is forbidden.
@@ -56,6 +62,20 @@ Wrapped
     expect(findSleepCalls(wrapped).map((v) => v.line)).toEqual([2, 6]);
   });
 
+  it("catches inline Python and JavaScript delays and a Sleep stored in a variable", () => {
+    const inline = `*** Variables ***
+\${KW}    Sleep
+
+*** Test Cases ***
+Inline
+    Evaluate    time.sleep(2)    modules=time
+    Evaluate JavaScript    \${None}    () => new Promise((r) => setTimeout(r, 1000))
+    \${kw}=    Set Variable    Sleep
+    Run Keyword    \${kw}    1s
+`;
+    expect(findSleepCalls(inline).map((v) => v.line)).toEqual([2, 6, 7, 8]);
+  });
+
   it("ignores the *** Comments *** section and keywords that merely contain the word", () => {
     const harmless = `*** Comments ***
 Sleep    1s
@@ -65,6 +85,24 @@ Sleep Until Ready
     Wait For Condition    Element Count    .ready    ==    1
 `;
     expect(findSleepCalls(harmless)).toEqual([]);
+  });
+});
+
+describe("findLibraryDelays", () => {
+  it("flags delay calls in Python and JS libraries, not in comments", () => {
+    const py = `import time
+# time.sleep(1) is forbidden
+def wait():
+    time.sleep(1)
+    asyncio.sleep(0.5)
+`;
+    expect(findLibraryDelays(py).map((v) => v.line)).toEqual([4, 5]);
+    const js = `// never setTimeout(r, 100)
+async function x(page) {
+  await page.waitForTimeout(500);
+}
+`;
+    expect(findLibraryDelays(js).map((v) => v.line)).toEqual([3]);
   });
 });
 
@@ -100,6 +138,22 @@ describe("collectRobotFiles / lintFiles", () => {
     expect(violations.map((v) => [v.file.slice(root.length + 1), v.line]).sort()).toEqual([
       [join("resources", "c.resource"), 4],
       [join("suites", "nested", "b.robot"), 4],
+    ]);
+  });
+
+  it("scans Python and JS files under libraries/ for delays", () => {
+    mkdirSync(join(root, "libraries"), { recursive: true });
+    writeFileSync(join(root, "libraries", "probe.py"), "import time\ntime.sleep(1)\n");
+    writeFileSync(join(root, "libraries", "routes.cjs"), "module.exports = {};\n");
+    writeFileSync(join(root, "libraries", "notes.md"), "time.sleep(1)\n");
+
+    const files = collectLibraryFiles(root);
+    expect(files.map((f) => f.slice(root.length + 1)).sort()).toEqual([
+      join("libraries", "probe.py"),
+      join("libraries", "routes.cjs"),
+    ]);
+    expect(lintFiles(files).map((v) => [v.file.slice(root.length + 1), v.line])).toEqual([
+      [join("libraries", "probe.py"), 2],
     ]);
   });
 

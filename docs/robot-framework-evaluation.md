@@ -856,7 +856,7 @@ without help. Plus a draft spec-step lint. That is now built:
 - `robot/resources/editor_domain.resource`: 18 domain keywords
   (lower-case sentences) on top of 5 technical helpers (Title Case).
 - `scripts/lint-robot-spec-steps.mjs` (`pnpm lint:robot-steps`, in
-  `test:all`), with unit tests. Details in §6.7.4.
+  `test:all`, the pre-commit hook and CI), with unit tests. Details in §6.7.4.
 
 `block_picker.robot` is untouched, and both suites pass. A full
 `pnpm test:robot` run is 116 tests: 115 passed, 1 skipped.
@@ -907,7 +907,9 @@ vocabulary lacks, because that means writing a keyword with selectors in it.
 
 #### 6.7.4 The spec-step lint
 
-A suite opts in with the `bdd` tag. For each test, the lint finds the spec
+A suite opts in with the `bdd` tag in `Test Tags` (or `Force Tags` /
+`Default Tags`), and a single test with `bdd` in its `[Tags]`; tags on `...`
+continuation lines count. For each such test, the lint finds the spec
 scenario with the same title (the test name without `SC-x.y.z:` and without any
 ` — variant` suffix) in `openspec/specs/**`, and fails when:
 
@@ -919,9 +921,12 @@ scenario with the same title (the test name without `SC-x.y.z:` and without any
   step to the spec fails the lint until a test covers it
 
 Text is compared without case, backticks or extra whitespace, so
-``the user types `/` `` matches `the user types /`. Step order isn't checked
-yet. A step may *refine* its spec line by adding words at the end (see
-§6.7.5).
+``the user types `/` `` matches `the user types /`, and a trailing `# comment`
+on a step is ignored. Step order isn't checked yet. A step may *refine* its
+spec line by adding words at the end (see §6.7.5). A step is credited to the
+spec line it equals; failing that, to the longest line it refines, so `the
+menu closes` and `the menu closes without inserting a block` can share a
+scenario.
 
 #### 6.7.5 What the pilot showed
 

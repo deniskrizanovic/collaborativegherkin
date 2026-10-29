@@ -17,3 +17,8 @@ pnpm run lint:schema-parity
 # Robot no-sleep gate — no `Sleep` keyword calls in robot/suites/** or
 # robot/resources/**. Pure filesystem check, no network; sibling of lint:specs.
 pnpm run lint:robot
+
+# Robot spec-step gate — business-language (`bdd`) Robot tests must repeat
+# their spec scenario's GIVEN/WHEN/THEN lines. Whole-tree, pure filesystem,
+# no network; sibling of lint:specs.
+pnpm run lint:robot-steps

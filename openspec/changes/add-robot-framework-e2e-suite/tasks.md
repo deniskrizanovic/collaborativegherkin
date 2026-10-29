@@ -97,6 +97,6 @@ assertion, and never use `Sleep`.
 ## 8. Follow-up: business-language pilot (evaluation doc §6.7)
 
 - [x] 8.1 Write `robot/resources/editor_domain.resource` (block-picker Given/When/Then keywords named after the spec lines) and `robot/suites/block_picker_bdd.robot` (the 9 block-picker tests as spec steps, tagged `pilot bdd block-picker`). Keep `block_picker.robot` unchanged.
-- [x] 8.2 Write `scripts/lint-robot-spec-steps.mjs` plus `scripts/lint-robot-spec-steps.test.ts` (draft spec-step lint for `bdd` suites). Add a `lint:robot-steps` script and add it to `test:all`.
+- [x] 8.2 Write `scripts/lint-robot-spec-steps.mjs` plus `scripts/lint-robot-spec-steps.test.ts` (draft spec-step lint for `bdd` suites). Add a `lint:robot-steps` script and add it to `test:all`, `.husky/pre-commit` and CI.
 - [x] 8.3 Cite `block_picker_bdd.robot` in the baseline `> **Tests:**` lines of the block-picker scenarios, add the pilot section to PARITY.md, and record the measurements in `docs/robot-framework-evaluation.md` §6.7.
 - [x] 8.4 Deferred, not done: have a non-developer write a block-picker test from the vocabulary, then decide whether to keep the layer. Closed for this change at the user's request; carried as next step 1 in `docs/robot-framework-evaluation.md` §6.7.6.

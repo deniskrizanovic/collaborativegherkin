@@ -1,6 +1,7 @@
 import { describe, it, expect } from "vitest";
 import {
   lintSpecSteps,
+  matchSpecStep,
   normalizeStep,
   parseRobotSuite,
   parseSpecScenarios,
@@ -75,6 +76,21 @@ describe("parsers", () => {
     expect(parseRobotSuite(suite("x\n    Click    .y", "chunk2")).bdd).toBe(false);
   });
 
+  it("detects bdd on a continuation line, in Force Tags, and per test in [Tags]", () => {
+    expect(parseRobotSuite(suite("x\n    Click    .y", "pilot\n...                 bdd")).bdd).toBe(true);
+    expect(parseRobotSuite("*** Settings ***\nForce Tags    BDD\n").bdd).toBe(true);
+    const perTest = parseRobotSuite(
+      suite("A\n    [Tags]    smoke\n    ...    bdd\n    Given x\n\nB\n    Given y", "chunk2")
+    );
+    expect(perTest.bdd).toBe(false);
+    expect(perTest.tests.map((t) => t.bdd)).toEqual([true, false]);
+  });
+
+  it("drops a trailing comment from a step", () => {
+    const [test] = parseRobotSuite(suite("A\n    Given the block picker menu is open    # opens on Feature")).tests;
+    expect(test.steps[0].text).toBe("the block picker menu is open");
+  });
+
   it("strips the SC id and variant suffix from test names", () => {
     expect(scenarioTitleOf("SC-3.3.1: Typing / opens picker — Image always last")).toBe("Typing / opens picker");
   });
@@ -84,9 +100,25 @@ describe("parsers", () => {
   });
 });
 
+describe("matchSpecStep", () => {
+  const lines = [{ text: "the menu closes" }, { text: "the menu closes without inserting a block" }];
+
+  it("prefers an exact line, then the longest line the step refines", () => {
+    expect(matchSpecStep("the menu closes", lines)).toBe(0);
+    expect(matchSpecStep("the menu closes without inserting a block", lines)).toBe(1);
+    expect(matchSpecStep("the menu closes without inserting a block at all", lines)).toBe(1);
+    expect(matchSpecStep("the menu stays open", lines)).toBe(-1);
+  });
+});
+
 describe("lintSpecSteps", () => {
   it("passes when every step states or refines a spec line and every line is covered", () => {
     expect(lint(passing)).toEqual([]);
+  });
+
+  it("checks a single test tagged bdd in a suite without the tag", () => {
+    const content = suite("SC-9.9.9: Unknown scenario\n    [Tags]    bdd\n    Given anything\n\nOther\n    Click    .x", "chunk2");
+    expect(lint(content)).toEqual([["s.robot", 6, 'no spec scenario titled "Unknown scenario"']]);
   });
 
   it("ignores suites without the bdd tag", () => {
