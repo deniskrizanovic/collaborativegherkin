@@ -56,3 +56,4 @@ e2e/.auth/
 robot/results/
 playwright-log.txt
 .venv/
+__pycache__/

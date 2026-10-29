@@ -31,20 +31,20 @@ even for an authenticated caller.
 - **THEN** the upgrade is accepted, the Y.js document synchronises, and the editor becomes interactive
 
 #### Scenario: Unauthenticated connection is rejected
-> **Tests:** [`e2e/websocket-auth.spec.ts`](../../../e2e/websocket-auth.spec.ts) — unauthenticated upgrade refused with 401, no data sent; [`src/lib/wsAuth.test.ts`](../../../src/lib/wsAuth.test.ts) — missing/invalid/bad-secret token → `unauthenticated`
+> **Tests:** [`e2e/websocket-auth.spec.ts`](../../../e2e/websocket-auth.spec.ts) · [`robot/suites/websocket_auth.robot`](../../../robot/suites/websocket_auth.robot) — unauthenticated upgrade refused with 401, no data sent; [`src/lib/wsAuth.test.ts`](../../../src/lib/wsAuth.test.ts) — missing/invalid/bad-secret token → `unauthenticated`
 - **GIVEN** a client with no valid `authjs.session-token` cookie
 - **WHEN** it attempts to open the sync WebSocket to any `session-{sessionId}` room
 - **THEN** the upgrade is refused before the sync handshake, no room is joined, and no document or awareness state is sent
 - **AND** a content-free security log event is emitted via the Pino logger
 
 #### Scenario: Authenticated holder of the session id is authorized
-> **Tests:** [`e2e/websocket-auth.spec.ts`](../../../e2e/websocket-auth.spec.ts) — authenticated upgrade to a valid room succeeds; [`src/lib/wsAuth.test.ts`](../../../src/lib/wsAuth.test.ts) — valid JWT accepted for a well-formed room
+> **Tests:** [`e2e/websocket-auth.spec.ts`](../../../e2e/websocket-auth.spec.ts) · [`robot/suites/websocket_auth.robot`](../../../robot/suites/websocket_auth.robot) — authenticated upgrade to a valid room succeeds; [`src/lib/wsAuth.test.ts`](../../../src/lib/wsAuth.test.ts) — valid JWT accepted for a well-formed room
 - **GIVEN** a signed-in user who holds a session id (the capability URL) but does not own the session
 - **WHEN** the editor opens the sync WebSocket to that `session-{sessionId}` room
 - **THEN** the connection is authorized and syncs, with no ownership lookup performed
 
 #### Scenario: Malformed room name is rejected
-> **Tests:** [`e2e/websocket-auth.spec.ts`](../../../e2e/websocket-auth.spec.ts) — authenticated upgrade to a malformed room is refused; [`src/lib/wsAuth.test.ts`](../../../src/lib/wsAuth.test.ts) — valid session on malformed room → `malformed-room`
+> **Tests:** [`e2e/websocket-auth.spec.ts`](../../../e2e/websocket-auth.spec.ts) · [`robot/suites/websocket_auth.robot`](../../../robot/suites/websocket_auth.robot) — authenticated upgrade to a malformed room is refused; [`src/lib/wsAuth.test.ts`](../../../src/lib/wsAuth.test.ts) — valid session on malformed room → `malformed-room`
 - **GIVEN** a signed-in user with a valid session cookie
 - **WHEN** it attempts to open the sync WebSocket to a room name that is not of the form `session-{sessionId}`
 - **THEN** the connection is rejected and no room is created or joined

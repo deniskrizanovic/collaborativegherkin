@@ -219,6 +219,7 @@ the suite never uses `Sleep` (it is forbidden).
 | `clickEditor(page)` | `Click Editor` |
 | `evaluateAll(data-gherkin-type)` | `${types}=    Block Types In Editor` |
 | `.gherkin-toolbar-btn` with text | `${btn}=    Toolbar Button    Scenario` |
+| `context.cookies()` joined `name=value; …` | `${cookie}=    Cookie Header From Context` |
 
 Always click the target block before sending keyboard input: Tiptap's focus
 is not the DOM's focus.

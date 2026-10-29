@@ -210,9 +210,9 @@ API block uses a separate `request` context with `user2.json` (non-owner); dispo
 
 | Playwright file | Title | Key assertions | Robot suite | Chunk | Status |
 |---|---|---|---|---|---|
-| websocket-auth.spec.ts | unauthenticated upgrade is refused with 401 — no room joined, no data sent | create session via API; raw WS to `ws://localhost:3000/session-<id>` with **no cookie**; opened == false; status == 401; receivedData == false | websocket_auth.robot | 6 | pending |
-| websocket-auth.spec.ts | authenticated upgrade to a valid room succeeds | create session; Cookie header = context cookies joined `name=value; …`; raw WS to `session-<id>`; opened == true; receivedData == true | websocket_auth.robot | 6 | pending |
-| websocket-auth.spec.ts | authenticated upgrade to a malformed room is refused | Cookie header from context; raw WS to `ws://localhost:3000/default`; opened == false; status == 401 | websocket_auth.robot | 6 | pending |
+| websocket-auth.spec.ts | unauthenticated upgrade is refused with 401 — no room joined, no data sent | create session via API; raw WS to `ws://localhost:3000/session-<id>` with **no cookie**; opened == false; status == 401; receivedData == false | websocket_auth.robot | 6 | ported |
+| websocket-auth.spec.ts | authenticated upgrade to a valid room succeeds | create session; Cookie header = context cookies joined `name=value; …`; raw WS to `session-<id>`; opened == true; receivedData == true | websocket_auth.robot | 6 | ported |
+| websocket-auth.spec.ts | authenticated upgrade to a malformed room is refused | Cookie header from context; raw WS to `ws://localhost:3000/default`; opened == false; status == 401 | websocket_auth.robot | 6 | ported |
 
 ## Robot-only
 

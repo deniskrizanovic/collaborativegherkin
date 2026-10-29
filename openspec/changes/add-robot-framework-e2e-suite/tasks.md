@@ -78,12 +78,12 @@ assertion, and never use `Sleep`.
 
 ## 6. Chunk 6: Raw WebSocket auth
 
-- [ ] 6.1 Write `robot/libraries/WebSocketProbe.py` with a `Probe WebSocket Upgrade` keyword (url, optional cookie) that returns `opened`, `status` and `received_data`, with a 3 s backstop (design D9).
-- [ ] 6.2 Add a `Cookie Header From Context` keyword (join `Get Cookies` as `name=value; …`).
-- [ ] 6.3 Port `websocket-auth.spec.ts` to `robot/suites/websocket_auth.robot` (3 tests): no-cookie → not opened, 401, no data; valid cookie → opened, data received; malformed room → not opened, 401.
-- [ ] 6.4 Tag `chunk6`, update the baseline `> **Tests:**` citations, then run `pnpm lint:specs`.
-- [ ] 6.5 **Checkpoint**: both suites green, and every PARITY.md row reads `ported` (or `skip` for `SC-3.5.2`), with no `pending` rows.
-- [ ] 6.6 **STOP for user review**: report what changed and the checkpoint results, then wait. Do not start chunk 7 until the user says to continue.
+- [x] 6.1 Write `robot/libraries/WebSocketProbe.py` with a `Probe WebSocket Upgrade` keyword (url, optional cookie) that returns `opened`, `status` and `received_data`, with a 3 s backstop (design D9).
+- [x] 6.2 Add a `Cookie Header From Context` keyword (join `Get Cookies` as `name=value; …`).
+- [x] 6.3 Port `websocket-auth.spec.ts` to `robot/suites/websocket_auth.robot` (3 tests): no-cookie → not opened, 401, no data; valid cookie → opened, data received; malformed room → not opened, 401.
+- [x] 6.4 Tag `chunk6`, update the baseline `> **Tests:**` citations, then run `pnpm lint:specs`.
+- [x] 6.5 **Checkpoint**: both suites green, and every PARITY.md row reads `ported` (or `skip` for `SC-3.5.2`), with no `pending` rows.
+- [x] 6.6 **STOP for user review**: report what changed and the checkpoint results, then wait. Do not start chunk 7 until the user says to continue.
 
 ## 7. Chunk 7: Gates and CI
 

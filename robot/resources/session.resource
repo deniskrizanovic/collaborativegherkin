@@ -104,6 +104,14 @@ Open Second Context
     Switch Page    ${first}[0]    context=ALL
     RETURN    ${second}[page_id]
 
+Cookie Header From Context
+    [Documentation]    Return the current context's cookies as one `Cookie`
+    ...    header value, `name=value; …`. Port of the
+    ...    `cookies.map(...).join("; ")` in websocket-auth.spec.ts.
+    ${cookies}=    Get Cookies
+    ${header}=    Evaluate    "; ".join(f"{c['name']}={c['value']}" for c in $cookies)
+    RETURN    ${header}
+
 Expect Response Status
     [Documentation]    Run ${action} with @{args} and assert the response to
     ...    ${method} on a URL containing ${url_part} has ${status}. Port of

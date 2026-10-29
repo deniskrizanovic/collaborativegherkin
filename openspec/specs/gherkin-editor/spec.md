@@ -24,7 +24,7 @@ Then — with the cursor at the start of the Feature block. Subsequent users rec
 the document via Y.js sync and MUST NOT trigger re-seeding.
 
 #### Scenario: Editor establishes WebSocket and becomes interactive
-> **Tests:** [`e2e/websocket-auth.spec.ts`](../../../e2e/websocket-auth.spec.ts) — authenticated upgrade to a valid room succeeds and receives sync state; [`e2e/collaboration.spec.ts`](../../../e2e/collaboration.spec.ts) · [`robot/suites/collaboration.robot`](../../../robot/suites/collaboration.robot) — editor becomes interactive and syncs over the authenticated socket
+> **Tests:** [`e2e/websocket-auth.spec.ts`](../../../e2e/websocket-auth.spec.ts) · [`robot/suites/websocket_auth.robot`](../../../robot/suites/websocket_auth.robot) — authenticated upgrade to a valid room succeeds and receives sync state; [`e2e/collaboration.spec.ts`](../../../e2e/collaboration.spec.ts) · [`robot/suites/collaboration.robot`](../../../robot/suites/collaboration.robot) — editor becomes interactive and syncs over the authenticated socket
 - **GIVEN** a signed-in user opens a session
 - **WHEN** the editor mounts
 - **THEN** an authenticated WebSocket connection is established to the same-origin sync URL in the room `session-{sessionId}`
