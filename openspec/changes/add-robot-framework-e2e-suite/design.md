@@ -231,6 +231,7 @@ one or two new Robot concepts.
 
 - [Browser `jsextension` handler signature or route API differs from assumption] → Chunk 4 starts with a spike test that proves `Hold Route`/`Release Route` before porting `llm-review`. Fallback: `Route URL`/`Unroute` keywords if the installed Browser version provides them.
 - [`rfbrowser init` downloads its own Playwright and Node deps (~large, slow in CI)] → Cache `~/.cache/ms-playwright` and the Browser `wrapper/node_modules` keyed on `uv.lock`.
+  *Chunk 7 outcome:* `rfbrowser init` runs `npm ci`, which wipes `wrapper/node_modules` (and the browsers it holds by default) on every run, so caching that directory buys nothing. Instead CI exports `PLAYWRIGHT_BROWSERS_PATH=$HOME/.cache/ms-playwright`, so Browser installs into the same directory as the app's Playwright, and caches that plus `~/.npm`, keyed on `uv.lock` and `pnpm-lock.yaml`. The `paths` filter also gains `uv.lock`, so a lockfile-only bump still triggers CI.
 - [Two Playwright versions (the app's `@playwright/test` and Browser's bundled one) behave slightly differently] → Accepted. Parity is behavioural, and both run the same Chromium channel.
 - [Shared DB state between suites (e.g. `home` deletes all sessions)] → Strictly serial runs (D13). Every test creates its own session, as the TS suite does.
 - [CI e2e time roughly doubles] → Accepted by keeping both suites. Revisit with `pabot` later if needed.

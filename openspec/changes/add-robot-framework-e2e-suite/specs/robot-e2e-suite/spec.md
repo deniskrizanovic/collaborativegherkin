@@ -112,7 +112,7 @@ They MUST NOT replace one with a weaker form. In particular:
 - **THEN** the upgrade does not open, the response status is 401, and no data is received
 
 #### Scenario: A fixed sleep is rejected
-> **Tests:** none
+> **Tests:** [`scripts/lint-robot-no-sleep.test.ts`](../../../../../scripts/lint-robot-no-sleep.test.ts) — fails on a Sleep call and reports file and line
 - **GIVEN** a Robot suite or resource file that contains a `Sleep` keyword call
 - **WHEN** the Robot lint check runs
 - **THEN** it fails and names the file and line

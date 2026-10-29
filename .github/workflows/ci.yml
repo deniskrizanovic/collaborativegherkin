@@ -8,6 +8,10 @@ on:
       - 'openspec/**'
       - 'prisma/**'
       - 'scripts/**'
+      - 'robot/**'
+      - 'e2e/**'
+      - 'pyproject.toml'
+      - 'uv.lock'
   pull_request:
     branches: [main]
     paths:
@@ -15,6 +19,10 @@ on:
       - 'openspec/**'
       - 'prisma/**'
       - 'scripts/**'
+      - 'robot/**'
+      - 'e2e/**'
+      - 'pyproject.toml'
+      - 'uv.lock'
 
 jobs:
   ci:
@@ -66,14 +74,50 @@ jobs:
       - name: Lint schema parity
         run: pnpm run lint:schema-parity
 
+      - name: Lint robot (no Sleep)
+        run: pnpm run lint:robot
+
       - name: Type check
         run: pnpm run typecheck
 
       - name: Unit tests
         run: pnpm run test -- --run
 
+      # Python + Robot Framework toolchain for the Robot e2e suite (robot/).
+      # uv installs the Python pinned in .python-version.
+      - uses: astral-sh/setup-uv@v10.3.3
+        with:
+          enable-cache: true
+
+      # Point Robot's Browser library at the same browser directory Playwright
+      # uses, so the cache below covers both. (`rfbrowser init` otherwise puts
+      # browsers inside its wrapper node_modules, which `npm ci` wipes each run.)
+      - name: Share Playwright browser path
+        run: echo "PLAYWRIGHT_BROWSERS_PATH=$HOME/.cache/ms-playwright" >> "$GITHUB_ENV"
+
+      - name: Cache browser and Browser-library downloads
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cache/ms-playwright
+            ~/.npm
+          key: browsers-${{ runner.os }}-${{ hashFiles('uv.lock', 'pnpm-lock.yaml') }}
+
       - name: Install Playwright browsers
         run: pnpm exec playwright install --with-deps chromium
 
+      - name: Install Robot toolchain
+        run: pnpm run test:robot:init
+
       - name: E2e tests
         run: pnpm run test:e2e
+
+      - name: Robot e2e tests
+        run: pnpm run test:robot
+
+      - name: Upload Robot report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: robot-results
+          path: robot/results/

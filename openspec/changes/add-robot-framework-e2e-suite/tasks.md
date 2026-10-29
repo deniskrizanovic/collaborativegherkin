@@ -87,9 +87,9 @@ assertion, and never use `Sleep`.
 
 ## 7. Chunk 7: Gates and CI
 
-- [ ] 7.1 Write `scripts/lint-robot-no-sleep.mjs` plus `scripts/lint-robot-no-sleep.test.ts` (it passes on clean files, fails on a `Sleep` call, and reports file and line). Add a `lint:robot` script.
-- [ ] 7.2 Add `pnpm run lint:robot` to `.husky/pre-commit` and `test:all`.
-- [ ] 7.3 Add an `e2e:all` script (`run-s test:e2e test:robot`). In `test:all`, replace `test:e2e` with `e2e:all` so the suites never run concurrently.
-- [ ] 7.4 Update `.github/workflows/ci.yml`: add `robot/**`, `e2e/**` and `pyproject.toml` to both `paths` filters. Add `astral-sh/setup-uv`, cache Browser/Playwright downloads keyed on `uv.lock`, `pnpm test:robot:init`, a Lint robot step, `pnpm test:robot` after the e2e step, and `actions/upload-artifact` for `robot/results/` with `if: always()`.
+- [x] 7.1 Write `scripts/lint-robot-no-sleep.mjs` plus `scripts/lint-robot-no-sleep.test.ts` (it passes on clean files, fails on a `Sleep` call, and reports file and line). Add a `lint:robot` script.
+- [x] 7.2 Add `pnpm run lint:robot` to `.husky/pre-commit` and `test:all`.
+- [x] 7.3 Add an `e2e:all` script (`run-s test:e2e test:robot`). In `test:all`, replace `test:e2e` with `e2e:all` so the suites never run concurrently.
+- [x] 7.4 Update `.github/workflows/ci.yml`: add `robot/**`, `e2e/**` and `pyproject.toml` to both `paths` filters. Add `astral-sh/setup-uv`, cache Browser/Playwright downloads keyed on `uv.lock`, `pnpm test:robot:init`, a Lint robot step, `pnpm test:robot` after the e2e step, and `actions/upload-artifact` for `robot/results/` with `if: always()`.
 - [ ] 7.5 **Checkpoint**: push a feature branch (only once the user asks for a commit) and confirm the CI job is green with both suites and the Robot report artifact attached.
 - [ ] 7.6 **STOP for user review**: report what changed and the checkpoint results, then wait. This is the final chunk. Wait for the user's sign-off before any archive or commit.

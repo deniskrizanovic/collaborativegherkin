@@ -13,3 +13,7 @@ pnpm run lint:given
 # define the same models/fields. Pure filesystem check, no network; sibling
 # of lint:specs.
 pnpm run lint:schema-parity
+
+# Robot no-sleep gate — no `Sleep` keyword calls in robot/suites/** or
+# robot/resources/**. Pure filesystem check, no network; sibling of lint:specs.
+pnpm run lint:robot

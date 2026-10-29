@@ -179,7 +179,9 @@ of the test, so second-user contexts never leak.
 Browser's `Get ...` keywords take an optional assertion
 (`Get Text    .title    ==    Hello`). With an assertion they **retry until
 the 5 s browser timeout**, exactly like Playwright's `expect(...)`. That is why
-the suite never uses `Sleep` (it is forbidden).
+the suite never uses `Sleep`: it is forbidden, and `pnpm lint:robot` (run by the
+pre-commit hook and CI) fails on any `Sleep` call in `robot/suites/` or
+`robot/resources/`.
 
 ## Playwright → Browser cheat-sheet
 
