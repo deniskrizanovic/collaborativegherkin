@@ -221,3 +221,22 @@ Tests with no Playwright counterpart. Not counted in the totals above.
 | Playwright file | Title | Key assertions | Robot suite | Chunk | Status |
 |---|---|---|---|---|---|
 | — | Smoke: new session shows the scaffold blocks in order | Open Session; block types == exactly `[feature, scenario, given, when, then]` | 00_smoke.robot | 0 | ported |
+
+## Business-language pilot
+
+`block_picker_bdd.robot` restates the 9 `block-picker.spec.ts` tests as the
+GIVEN/WHEN/THEN lines of their spec scenarios (evaluation doc §6.7). It is
+checked against behaviour, not line by line, and is not counted in the totals
+above. Differences from the rows in `## block-picker.spec.ts`:
+
+- **Opens picker**: waits for the picker itself, not the first `text=Scenario`
+  (which the seeded Scenario block also matches).
+- **Menu open** (SC-3.3.2, 3.3.3, 3.3.6, 3.3.7): always opened on a new line
+  after Feature (insert mode). On the Feature block itself the picker lists only
+  `Feature`, and in replace mode a wrong insertion would not change the count.
+- **Closes without inserting**: block count *and* the full block-type list are
+  unchanged.
+- **Arrow keys**: the new item gains the focus background *and* the old item
+  loses it.
+- **Enter / click inserts**: the target block's new type equals the focused
+  item's label, as well as being different from `scenario`.

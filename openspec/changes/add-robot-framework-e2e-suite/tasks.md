@@ -91,5 +91,12 @@ assertion, and never use `Sleep`.
 - [x] 7.2 Add `pnpm run lint:robot` to `.husky/pre-commit` and `test:all`.
 - [x] 7.3 Add an `e2e:all` script (`run-s test:e2e test:robot`). In `test:all`, replace `test:e2e` with `e2e:all` so the suites never run concurrently.
 - [x] 7.4 Update `.github/workflows/ci.yml`: add `robot/**`, `e2e/**` and `pyproject.toml` to both `paths` filters. Add `astral-sh/setup-uv`, cache Browser/Playwright downloads keyed on `uv.lock`, `pnpm test:robot:init`, a Lint robot step, `pnpm test:robot` after the e2e step, and `actions/upload-artifact` for `robot/results/` with `if: always()`.
-- [ ] 7.5 **Checkpoint**: push a feature branch (only once the user asks for a commit) and confirm the CI job is green with both suites and the Robot report artifact attached.
-- [ ] 7.6 **STOP for user review**: report what changed and the checkpoint results, then wait. This is the final chunk. Wait for the user's sign-off before any archive or commit.
+- [x] 7.5 **Checkpoint**: push a feature branch (only once the user asks for a commit) and confirm the CI job is green with both suites and the Robot report artifact attached.
+- [x] 7.6 **STOP for user review**: report what changed and the checkpoint results, then wait. This is the final chunk. Wait for the user's sign-off before any archive or commit.
+
+## 8. Follow-up: business-language pilot (evaluation doc §6.7)
+
+- [x] 8.1 Write `robot/resources/editor_domain.resource` (block-picker Given/When/Then keywords named after the spec lines) and `robot/suites/block_picker_bdd.robot` (the 9 block-picker tests as spec steps, tagged `pilot bdd block-picker`). Keep `block_picker.robot` unchanged.
+- [x] 8.2 Write `scripts/lint-robot-spec-steps.mjs` plus `scripts/lint-robot-spec-steps.test.ts` (draft spec-step lint for `bdd` suites). Add a `lint:robot-steps` script and add it to `test:all`.
+- [x] 8.3 Cite `block_picker_bdd.robot` in the baseline `> **Tests:**` lines of the block-picker scenarios, add the pilot section to PARITY.md, and record the measurements in `docs/robot-framework-evaluation.md` §6.7.
+- [x] 8.4 Deferred, not done: have a non-developer write a block-picker test from the vocabulary, then decide whether to keep the layer. Closed for this change at the user's request; carried as next step 1 in `docs/robot-framework-evaluation.md` §6.7.6.

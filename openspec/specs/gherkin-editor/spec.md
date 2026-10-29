@@ -72,7 +72,7 @@ type and close the menu; Escape or an outside click MUST close the menu without
 inserting.
 
 #### Scenario: Typing / opens picker with valid next blocks and Image
-> **Tests:** [`e2e/block-picker.spec.ts`](../../../e2e/block-picker.spec.ts) · [`robot/suites/block_picker.robot`](../../../robot/suites/block_picker.robot) — opens picker · only valid types shown · Image always last
+> **Tests:** [`e2e/block-picker.spec.ts`](../../../e2e/block-picker.spec.ts) · [`robot/suites/block_picker.robot`](../../../robot/suites/block_picker.robot) · [`robot/suites/block_picker_bdd.robot`](../../../robot/suites/block_picker_bdd.robot) — opens picker · only valid types shown · Image always last
 - **GIVEN** the cursor is inside a block
 - **WHEN** the user types `/`
 - **THEN** a block picker menu opens
@@ -80,37 +80,37 @@ inserting.
 - **AND** the menu always includes `Image` as the final option, regardless of the current block type
 
 #### Scenario: Down arrow moves picker focus to next item
-> **Tests:** [`e2e/block-picker.spec.ts`](../../../e2e/block-picker.spec.ts) · [`robot/suites/block_picker.robot`](../../../robot/suites/block_picker.robot)
+> **Tests:** [`e2e/block-picker.spec.ts`](../../../e2e/block-picker.spec.ts) · [`robot/suites/block_picker.robot`](../../../robot/suites/block_picker.robot) · [`robot/suites/block_picker_bdd.robot`](../../../robot/suites/block_picker_bdd.robot)
 - **GIVEN** the block picker menu is open
 - **WHEN** the user presses the down arrow key
 - **THEN** focus moves to the next item in the list
 
 #### Scenario: Up arrow moves picker focus to previous item
-> **Tests:** [`e2e/block-picker.spec.ts`](../../../e2e/block-picker.spec.ts) · [`robot/suites/block_picker.robot`](../../../robot/suites/block_picker.robot)
+> **Tests:** [`e2e/block-picker.spec.ts`](../../../e2e/block-picker.spec.ts) · [`robot/suites/block_picker.robot`](../../../robot/suites/block_picker.robot) · [`robot/suites/block_picker_bdd.robot`](../../../robot/suites/block_picker_bdd.robot)
 - **GIVEN** the block picker menu is open
 - **WHEN** the user presses the up arrow key
 - **THEN** focus moves to the previous item in the list
 
 #### Scenario: Enter on focused picker item inserts type and closes
-> **Tests:** [`e2e/block-picker.spec.ts`](../../../e2e/block-picker.spec.ts) · [`robot/suites/block_picker.robot`](../../../robot/suites/block_picker.robot)
+> **Tests:** [`e2e/block-picker.spec.ts`](../../../e2e/block-picker.spec.ts) · [`robot/suites/block_picker.robot`](../../../robot/suites/block_picker.robot) · [`robot/suites/block_picker_bdd.robot`](../../../robot/suites/block_picker_bdd.robot)
 - **GIVEN** the block picker menu is open and an item is focused
 - **WHEN** the user presses Enter
 - **THEN** the focused block type is inserted and the menu closes
 
 #### Scenario: Clicking picker item inserts type and closes
-> **Tests:** [`e2e/block-picker.spec.ts`](../../../e2e/block-picker.spec.ts) · [`robot/suites/block_picker.robot`](../../../robot/suites/block_picker.robot)
+> **Tests:** [`e2e/block-picker.spec.ts`](../../../e2e/block-picker.spec.ts) · [`robot/suites/block_picker.robot`](../../../robot/suites/block_picker.robot) · [`robot/suites/block_picker_bdd.robot`](../../../robot/suites/block_picker_bdd.robot)
 - **GIVEN** the block picker menu is open and an item is focused
 - **WHEN** the user clicks the item
 - **THEN** the clicked block type is inserted and the menu closes
 
 #### Scenario: Escape closes picker without inserting
-> **Tests:** [`e2e/block-picker.spec.ts`](../../../e2e/block-picker.spec.ts) · [`robot/suites/block_picker.robot`](../../../robot/suites/block_picker.robot)
+> **Tests:** [`e2e/block-picker.spec.ts`](../../../e2e/block-picker.spec.ts) · [`robot/suites/block_picker.robot`](../../../robot/suites/block_picker.robot) · [`robot/suites/block_picker_bdd.robot`](../../../robot/suites/block_picker_bdd.robot)
 - **GIVEN** the block picker menu is open
 - **WHEN** the user presses Escape
 - **THEN** the menu closes without inserting a block
 
 #### Scenario: Clicking outside picker closes without inserting
-> **Tests:** [`e2e/block-picker.spec.ts`](../../../e2e/block-picker.spec.ts) · [`robot/suites/block_picker.robot`](../../../robot/suites/block_picker.robot)
+> **Tests:** [`e2e/block-picker.spec.ts`](../../../e2e/block-picker.spec.ts) · [`robot/suites/block_picker.robot`](../../../robot/suites/block_picker.robot) · [`robot/suites/block_picker_bdd.robot`](../../../robot/suites/block_picker_bdd.robot)
 - **GIVEN** the block picker menu is open
 - **WHEN** the user clicks outside the menu
 - **THEN** the menu closes without inserting a block

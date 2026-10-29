@@ -80,8 +80,10 @@ robot/
   resources/         shared keywords and variables (*.resource)
     common.resource  Browser import, variables, suite/test setup
     session.resource ports of e2e/helpers.ts (Open Session, ...)
+    editor_domain.resource  Given/When/Then keywords for block_picker_bdd.robot
   libraries/         Python / JS keyword libraries
-  suites/            one *.robot file per e2e/*.spec.ts
+  suites/            one *.robot file per e2e/*.spec.ts, plus the
+                     business-language pilot block_picker_bdd.robot
   results/           output (git-ignored)
 ```
 
