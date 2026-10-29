@@ -12,6 +12,16 @@ on:
       - 'e2e/**'
       - 'pyproject.toml'
       - 'uv.lock'
+      - 'package.json'
+      - 'pnpm-lock.yaml'
+      - 'pnpm-workspace.yaml'
+      - '.github/**'
+      - 'eslint.config.mjs'
+      - 'tsconfig.json'
+      - 'next.config.*'
+      - 'vitest.config.*'
+      - 'playwright.config.*'
+      - 'server.js'
   pull_request:
     branches: [main]
     paths:
@@ -23,6 +33,16 @@ on:
       - 'e2e/**'
       - 'pyproject.toml'
       - 'uv.lock'
+      - 'package.json'
+      - 'pnpm-lock.yaml'
+      - 'pnpm-workspace.yaml'
+      - '.github/**'
+      - 'eslint.config.mjs'
+      - 'tsconfig.json'
+      - 'next.config.*'
+      - 'vitest.config.*'
+      - 'playwright.config.*'
+      - 'server.js'
 
 jobs:
   ci:
@@ -73,6 +93,9 @@ jobs:
 
       - name: Lint schema parity
         run: pnpm run lint:schema-parity
+
+      - name: Lint Dependabot config
+        run: pnpm run lint:dependabot
 
       - name: Lint robot (no Sleep)
         run: pnpm run lint:robot

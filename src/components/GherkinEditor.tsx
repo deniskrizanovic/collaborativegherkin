@@ -134,7 +134,7 @@ function GherkinEditor({ sessionId, wsUrl }, ref) {
   const seededRef = useRef(false);
 
   useEffect(() => {
-    if (!editor) return;
+    if (!editor || !provider) return;
     const typedProvider = provider as unknown as {
       synced?: boolean;
       on(event: string, handler: () => void): void;

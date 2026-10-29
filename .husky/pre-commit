@@ -22,3 +22,8 @@ pnpm run lint:robot
 # their spec scenario's GIVEN/WHEN/THEN lines. Whole-tree, pure filesystem,
 # no network; sibling of lint:specs.
 pnpm run lint:robot-steps
+
+# Dependabot config gate — .github/dependabot.yml must parse, assign the owner,
+# and only ignore dependencies documented in ADR 0004. Pure filesystem check,
+# no network; sibling of lint:specs.
+pnpm run lint:dependabot
