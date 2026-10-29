@@ -30,7 +30,7 @@ authenticated caller with a valid id → 200.
 - **THEN** the API responds with 200 and the session body (including `prompt` and `model`), regardless of whether the caller is the session's creator
 
 #### Scenario: A non-owner collaborator reads a shared session
-> **Tests:** [`e2e/session-access-control.spec.ts`](../../../../../e2e/session-access-control.spec.ts) — non-owner can GET a session they hold the id for (200); a second user opens the shared link: no error banner, settings load
+> **Tests:** [`e2e/session-access-control.spec.ts`](../../../../../e2e/session-access-control.spec.ts) · [`robot/suites/session_access_control_api.robot`](../../../robot/suites/session_access_control_api.robot) · [`robot/suites/session_access_control.robot`](../../../robot/suites/session_access_control.robot) — non-owner can GET a session they hold the id for (200); a second user opens the shared link: no error banner, settings load
 - **GIVEN** an authenticated user who is **not** the session's creator and a session created by a different user
 - **WHEN** the user requests `GET /api/sessions/{id}`
 - **THEN** the API responds with 200 and the session body, and the session page shows no error banner (the invite-link collaboration path)
@@ -64,7 +64,7 @@ not found → 404; authenticated caller with a valid body and existing id → 20
 - **THEN** the API responds with 200 and the update is applied, regardless of whether the caller is the session's creator
 
 #### Scenario: A non-owner collaborator edits a shared session's settings
-> **Tests:** [`e2e/session-access-control.spec.ts`](../../../../../e2e/session-access-control.spec.ts) — non-owner can PATCH a session's settings (200); a second user can change the model and it persists; a second user can save a new prompt
+> **Tests:** [`e2e/session-access-control.spec.ts`](../../../../../e2e/session-access-control.spec.ts) · [`robot/suites/session_access_control_api.robot`](../../../robot/suites/session_access_control_api.robot) · [`robot/suites/session_access_control.robot`](../../../robot/suites/session_access_control.robot) — non-owner can PATCH a session's settings (200); a second user can change the model and it persists; a second user can save a new prompt
 - **GIVEN** an authenticated user who is **not** the session's creator and a session created by a different user
 - **WHEN** the user changes the model or saves a prompt
 - **THEN** the API responds with 200, the change persists across a reload, and the UI shows no error banner (no false-success, no silently-swallowed 403)
@@ -98,7 +98,7 @@ authenticated non-owner → 403; owner → 204.
 - **THEN** the API responds with 401 and makes no change
 
 #### Scenario: Non-owner is forbidden
-> **Tests:** [`src/app/api/sessions/[id]/route.test.ts`](../../../../../src/app/api/sessions/[id]/route.test.ts) — DELETE returns 403 when authenticated user does not own the session; [`e2e/session-access-control.spec.ts`](../../../../../e2e/session-access-control.spec.ts) — non-owner cannot DELETE a session (403), deletion stays owner-only
+> **Tests:** [`src/app/api/sessions/[id]/route.test.ts`](../../../../../src/app/api/sessions/[id]/route.test.ts) — DELETE returns 403 when authenticated user does not own the session; [`e2e/session-access-control.spec.ts`](../../../../../e2e/session-access-control.spec.ts) · [`robot/suites/session_access_control_api.robot`](../../../robot/suites/session_access_control_api.robot) — non-owner cannot DELETE a session (403), deletion stays owner-only
 - **GIVEN** an authenticated user and a session whose `userId` is a different user
 - **WHEN** the user sends `DELETE /api/sessions/{id}`
 - **THEN** the API responds with 403 and the session is not deleted (the owner can still read it afterwards)

@@ -26,6 +26,10 @@ const eslintConfig = [
       // does not race Playwright creating/removing these dirs under `run-p`.
       "test-results/**",
       "playwright-report/**",
+      // Robot Framework toolchain (uv venv, incl. the Browser library's bundled
+      // Node wrapper) and its run output. Both gitignored.
+      ".venv/**",
+      "robot/results/**",
     ],
   },
 ];

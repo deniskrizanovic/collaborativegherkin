@@ -24,7 +24,7 @@ Then — with the cursor at the start of the Feature block. Subsequent users rec
 the document via Y.js sync and MUST NOT trigger re-seeding.
 
 #### Scenario: Editor establishes WebSocket and becomes interactive
-> **Tests:** [`e2e/websocket-auth.spec.ts`](../../../e2e/websocket-auth.spec.ts) — authenticated upgrade to a valid room succeeds and receives sync state; [`e2e/collaboration.spec.ts`](../../../e2e/collaboration.spec.ts) — editor becomes interactive and syncs over the authenticated socket
+> **Tests:** [`e2e/websocket-auth.spec.ts`](../../../e2e/websocket-auth.spec.ts) · [`robot/suites/websocket_auth.robot`](../../../robot/suites/websocket_auth.robot) — authenticated upgrade to a valid room succeeds and receives sync state; [`e2e/collaboration.spec.ts`](../../../e2e/collaboration.spec.ts) · [`robot/suites/collaboration.robot`](../../../robot/suites/collaboration.robot) — editor becomes interactive and syncs over the authenticated socket
 - **GIVEN** a signed-in user opens a session
 - **WHEN** the editor mounts
 - **THEN** an authenticated WebSocket connection is established to the same-origin sync URL in the room `session-{sessionId}`
@@ -32,7 +32,7 @@ the document via Y.js sync and MUST NOT trigger re-seeding.
 - **AND** the editor becomes interactive once the connection is established
 
 #### Scenario: New document seeded with 5 scaffold blocks once
-> **Tests:** [`e2e/initial-content.spec.ts`](../../../e2e/initial-content.spec.ts) — order · empty text · cursor on Feature; [`e2e/collaboration.spec.ts`](../../../e2e/collaboration.spec.ts) — second joiner does not re-seed
+> **Tests:** [`e2e/initial-content.spec.ts`](../../../e2e/initial-content.spec.ts) · [`robot/suites/initial_content.robot`](../../../robot/suites/initial_content.robot) — order · empty text · cursor on Feature; [`e2e/collaboration.spec.ts`](../../../e2e/collaboration.spec.ts) · [`robot/suites/collaboration.robot`](../../../robot/suites/collaboration.robot) — second joiner does not re-seed
 - **GIVEN** the Y.js document is empty after synchronisation
 - **WHEN** the first user's editor finishes syncing
 - **THEN** the editor is seeded with 5 empty scaffold blocks in this order: Feature, Scenario, Given, When, Then
@@ -50,14 +50,14 @@ on an image block, Enter MUST use the auto-progression type of the most recent
 Gherkin block preceding the image.
 
 #### Scenario: Enter at end of block inserts auto-progression type
-> **Tests:** [`e2e/enter-progression.spec.ts`](../../../e2e/enter-progression.spec.ts) — feature→scenario · scenario→given · given→when · when→then · then→and · and→and · but→and · background→given · rule→scenario
+> **Tests:** [`e2e/enter-progression.spec.ts`](../../../e2e/enter-progression.spec.ts) · [`robot/suites/enter_progression.robot`](../../../robot/suites/enter_progression.robot) — feature→scenario · scenario→given · given→when · when→then · then→and · and→and · but→and · background→given · rule→scenario
 - **GIVEN** the cursor is at the end of a block
 - **WHEN** the user presses Enter
 - **THEN** a new block of the auto-progression type is inserted immediately after the current block
 - **AND** the cursor is placed at the start of the new block's text
 
 #### Scenario: Enter on image block uses prevType context
-> **Tests:** [`e2e/enter-progression.spec.ts`](../../../e2e/enter-progression.spec.ts)
+> **Tests:** [`e2e/enter-progression.spec.ts`](../../../e2e/enter-progression.spec.ts) · [`robot/suites/enter_progression.robot`](../../../robot/suites/enter_progression.robot)
 - **GIVEN** the cursor is on an image block
 - **WHEN** the user presses Enter
 - **THEN** a new block is inserted after the image using the auto-progression type of the most recent Gherkin block that precedes the image
@@ -72,7 +72,7 @@ type and close the menu; Escape or an outside click MUST close the menu without
 inserting.
 
 #### Scenario: Typing / opens picker with valid next blocks and Image
-> **Tests:** [`e2e/block-picker.spec.ts`](../../../e2e/block-picker.spec.ts) — opens picker · only valid types shown · Image always last
+> **Tests:** [`e2e/block-picker.spec.ts`](../../../e2e/block-picker.spec.ts) · [`robot/suites/block_picker.robot`](../../../robot/suites/block_picker.robot) · [`robot/suites/block_picker_bdd.robot`](../../../robot/suites/block_picker_bdd.robot) — opens picker · only valid types shown · Image always last
 - **GIVEN** the cursor is inside a block
 - **WHEN** the user types `/`
 - **THEN** a block picker menu opens
@@ -80,37 +80,37 @@ inserting.
 - **AND** the menu always includes `Image` as the final option, regardless of the current block type
 
 #### Scenario: Down arrow moves picker focus to next item
-> **Tests:** [`e2e/block-picker.spec.ts`](../../../e2e/block-picker.spec.ts)
+> **Tests:** [`e2e/block-picker.spec.ts`](../../../e2e/block-picker.spec.ts) · [`robot/suites/block_picker.robot`](../../../robot/suites/block_picker.robot) · [`robot/suites/block_picker_bdd.robot`](../../../robot/suites/block_picker_bdd.robot)
 - **GIVEN** the block picker menu is open
 - **WHEN** the user presses the down arrow key
 - **THEN** focus moves to the next item in the list
 
 #### Scenario: Up arrow moves picker focus to previous item
-> **Tests:** [`e2e/block-picker.spec.ts`](../../../e2e/block-picker.spec.ts)
+> **Tests:** [`e2e/block-picker.spec.ts`](../../../e2e/block-picker.spec.ts) · [`robot/suites/block_picker.robot`](../../../robot/suites/block_picker.robot) · [`robot/suites/block_picker_bdd.robot`](../../../robot/suites/block_picker_bdd.robot)
 - **GIVEN** the block picker menu is open
 - **WHEN** the user presses the up arrow key
 - **THEN** focus moves to the previous item in the list
 
 #### Scenario: Enter on focused picker item inserts type and closes
-> **Tests:** [`e2e/block-picker.spec.ts`](../../../e2e/block-picker.spec.ts)
+> **Tests:** [`e2e/block-picker.spec.ts`](../../../e2e/block-picker.spec.ts) · [`robot/suites/block_picker.robot`](../../../robot/suites/block_picker.robot) · [`robot/suites/block_picker_bdd.robot`](../../../robot/suites/block_picker_bdd.robot)
 - **GIVEN** the block picker menu is open and an item is focused
 - **WHEN** the user presses Enter
 - **THEN** the focused block type is inserted and the menu closes
 
 #### Scenario: Clicking picker item inserts type and closes
-> **Tests:** [`e2e/block-picker.spec.ts`](../../../e2e/block-picker.spec.ts)
+> **Tests:** [`e2e/block-picker.spec.ts`](../../../e2e/block-picker.spec.ts) · [`robot/suites/block_picker.robot`](../../../robot/suites/block_picker.robot) · [`robot/suites/block_picker_bdd.robot`](../../../robot/suites/block_picker_bdd.robot)
 - **GIVEN** the block picker menu is open and an item is focused
 - **WHEN** the user clicks the item
 - **THEN** the clicked block type is inserted and the menu closes
 
 #### Scenario: Escape closes picker without inserting
-> **Tests:** [`e2e/block-picker.spec.ts`](../../../e2e/block-picker.spec.ts)
+> **Tests:** [`e2e/block-picker.spec.ts`](../../../e2e/block-picker.spec.ts) · [`robot/suites/block_picker.robot`](../../../robot/suites/block_picker.robot) · [`robot/suites/block_picker_bdd.robot`](../../../robot/suites/block_picker_bdd.robot)
 - **GIVEN** the block picker menu is open
 - **WHEN** the user presses Escape
 - **THEN** the menu closes without inserting a block
 
 #### Scenario: Clicking outside picker closes without inserting
-> **Tests:** [`e2e/block-picker.spec.ts`](../../../e2e/block-picker.spec.ts)
+> **Tests:** [`e2e/block-picker.spec.ts`](../../../e2e/block-picker.spec.ts) · [`robot/suites/block_picker.robot`](../../../robot/suites/block_picker.robot) · [`robot/suites/block_picker_bdd.robot`](../../../robot/suites/block_picker_bdd.robot)
 - **GIVEN** the block picker menu is open
 - **WHEN** the user clicks outside the menu
 - **THEN** the menu closes without inserting a block
@@ -123,14 +123,14 @@ insert a new block of the chosen type after the current block and move the
 cursor to it.
 
 #### Scenario: Toolbar shows valid next blocks and Image
-> **Tests:** [`e2e/toolbar.spec.ts`](../../../e2e/toolbar.spec.ts) — no Feature shown on Feature block · Rule, Background, Scenario after Feature · Image present on non-Feature block
+> **Tests:** [`e2e/toolbar.spec.ts`](../../../e2e/toolbar.spec.ts) · [`robot/suites/toolbar.robot`](../../../robot/suites/toolbar.robot) — no Feature shown on Feature block · Rule, Background, Scenario after Feature · Image present on non-Feature block
 - **GIVEN** the cursor is inside a block
 - **WHEN** the editor toolbar renders
 - **THEN** the toolbar shows the block types that are valid next blocks for the current block, according to `canFollow()`
 - **AND** the toolbar always shows an Image button, regardless of the current block type
 
 #### Scenario: Clicking toolbar button inserts block and moves cursor
-> **Tests:** [`e2e/toolbar.spec.ts`](../../../e2e/toolbar.spec.ts) — node inserted · Scenario after Feature
+> **Tests:** [`e2e/toolbar.spec.ts`](../../../e2e/toolbar.spec.ts) · [`robot/suites/toolbar.robot`](../../../robot/suites/toolbar.robot) — node inserted · Scenario after Feature
 - **GIVEN** the toolbar is showing valid block types
 - **WHEN** the user clicks a toolbar button
 - **THEN** a new block of the chosen type is inserted after the current block
@@ -144,13 +144,13 @@ separation is purely visual and MUST NOT affect document structure or export
 output.
 
 #### Scenario: Given after then/and/but gets top border (visual only)
-> **Tests:** [`e2e/visual-separation.spec.ts`](../../../e2e/visual-separation.spec.ts) — after then · after and · after but · first given after scenario has no border · separator not in export
+> **Tests:** [`e2e/visual-separation.spec.ts`](../../../e2e/visual-separation.spec.ts) · [`robot/suites/visual_separation.robot`](../../../robot/suites/visual_separation.robot) — after then · after and · after but · first given after scenario has no border · separator not in export
 - **GIVEN** a `given` block immediately follows a `then`, `and`, or `but` block
 - **THEN** a horizontal rule and vertical space are rendered above the `given` block
 - **AND** this separation is purely visual and does not affect the document structure or export output
 
 #### Scenario: Scenario after then/and/but gets top border (visual only)
-> **Tests:** [`e2e/visual-separation.spec.ts`](../../../e2e/visual-separation.spec.ts) — after then · after and · after but
+> **Tests:** [`e2e/visual-separation.spec.ts`](../../../e2e/visual-separation.spec.ts) · [`robot/suites/visual_separation.robot`](../../../robot/suites/visual_separation.robot) — after then · after and · after but
 - **GIVEN** a `scenario` block immediately follows a `then`, `and`, or `but` block
 - **THEN** a horizontal rule and vertical space are rendered above the `scenario` block
 - **AND** this separation is purely visual and does not affect the document structure or export output
@@ -164,21 +164,21 @@ current block; drag-and-drop embeds at the drop position. An image block MUST be
 displayed inline at full available width and MAY appear after any keyword block.
 
 #### Scenario: Image toolbar button opens file picker and embeds image
-> **Tests:** [`e2e/image.spec.ts`](../../../e2e/image.spec.ts)
+> **Tests:** [`e2e/image.spec.ts`](../../../e2e/image.spec.ts) · [`robot/suites/image.robot`](../../../robot/suites/image.robot)
 - **GIVEN** a user is in a session editor
 - **WHEN** the user clicks the Image toolbar button
 - **THEN** a file picker opens
 - **AND** selecting an image file embeds it as an image block immediately after the current block
 
 #### Scenario: Slash-command Image selection opens file picker and embeds image
-> **Tests:** [`e2e/image.spec.ts`](../../../e2e/image.spec.ts)
+> **Tests:** [`e2e/image.spec.ts`](../../../e2e/image.spec.ts) · [`robot/suites/image.robot`](../../../robot/suites/image.robot)
 - **GIVEN** a user is in a session editor
 - **WHEN** the user types `/` and selects Image from the block picker
 - **THEN** a file picker opens
 - **AND** selecting an image file embeds it as an image block immediately after the current block
 
 #### Scenario: Drag and drop image embeds at drop position
-> **Tests:** [`e2e/image.spec.ts`](../../../e2e/image.spec.ts)
+> **Tests:** [`e2e/image.spec.ts`](../../../e2e/image.spec.ts) · [`robot/suites/image.robot`](../../../robot/suites/image.robot)
 - **GIVEN** a user is in a session editor
 - **WHEN** the user drags an image file onto the editor
 - **THEN** the image is embedded as an image block at the drop position
@@ -222,35 +222,35 @@ cells, and "Add row"/"Add column" controls MUST be available. (Data table
 export formatting is specified in `gherkin-export`.)
 
 #### Scenario: Table button shown when cursor is on step or data table
-> **Tests:** [`e2e/data-table.spec.ts`](../../../e2e/data-table.spec.ts) — visible on Given · absent on Feature
+> **Tests:** [`e2e/data-table.spec.ts`](../../../e2e/data-table.spec.ts) · [`robot/suites/data_table.robot`](../../../robot/suites/data_table.robot) — visible on Given · absent on Feature
 - **GIVEN** the cursor is on a step block (`given`, `when`, `then`, `and`, or `but`) or on a data table block that follows a step
 - **THEN** the toolbar shows a "Table" button
 
 #### Scenario: Clicking Table inserts 2×2 stub with cursor in first cell
-> **Tests:** [`e2e/data-table.spec.ts`](../../../e2e/data-table.spec.ts) — node inserted · first cell interactive
+> **Tests:** [`e2e/data-table.spec.ts`](../../../e2e/data-table.spec.ts) · [`robot/suites/data_table.robot`](../../../robot/suites/data_table.robot) — node inserted · first cell interactive
 - **GIVEN** the toolbar shows a "Table" button
 - **WHEN** the user clicks it
 - **THEN** a 2×2 data table stub with empty cells is inserted immediately after the current block
 - **AND** the cursor is placed inside the first cell
 
 #### Scenario: Slash-command picker includes Table when on step block
-> **Tests:** [`e2e/data-table.spec.ts`](../../../e2e/data-table.spec.ts)
+> **Tests:** [`e2e/data-table.spec.ts`](../../../e2e/data-table.spec.ts) · [`robot/suites/data_table.robot`](../../../robot/suites/data_table.robot)
 - **GIVEN** the user types `/` and the current/previous block is a step type
 - **THEN** the block picker includes "Table" as an option
 
 #### Scenario: Tab moves focus to next cell
-> **Tests:** [`e2e/data-table.spec.ts`](../../../e2e/data-table.spec.ts)
+> **Tests:** [`e2e/data-table.spec.ts`](../../../e2e/data-table.spec.ts) · [`robot/suites/data_table.robot`](../../../robot/suites/data_table.robot)
 - **GIVEN** a data table is in the document
 - **WHEN** the user presses Tab inside a cell
 - **THEN** focus moves to the next cell (left to right, top to bottom)
 
 #### Scenario: Shift+Tab moves focus to previous cell
-> **Tests:** [`e2e/data-table.spec.ts`](../../../e2e/data-table.spec.ts)
+> **Tests:** [`e2e/data-table.spec.ts`](../../../e2e/data-table.spec.ts) · [`robot/suites/data_table.robot`](../../../robot/suites/data_table.robot)
 - **GIVEN** a data table is in the document
 - **WHEN** the user presses Shift+Tab inside a cell
 - **THEN** focus moves to the previous cell
 
 #### Scenario: Add row and Add column controls available
-> **Tests:** [`e2e/data-table.spec.ts`](../../../e2e/data-table.spec.ts)
+> **Tests:** [`e2e/data-table.spec.ts`](../../../e2e/data-table.spec.ts) · [`robot/suites/data_table.robot`](../../../robot/suites/data_table.robot)
 - **GIVEN** a data table is in the document
 - **THEN** "Add row" and "Add column" controls are available within the table UI
