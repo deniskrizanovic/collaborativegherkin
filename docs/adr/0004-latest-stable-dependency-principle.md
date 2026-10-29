@@ -23,6 +23,14 @@ E2E test `SC-3.5.2: Remote user cursors visible in distinct colour` (`e2e/collab
 
 `next-auth` is pinned to `5.0.0-beta.31`. v5 was adopted while still in beta; v4 was the correct stable choice at the time. Rolling back to v4 now would require rewriting the entire auth configuration — the migration cost exceeds the benefit. This exception should be revisited when NextAuth v5 reaches a stable release.
 
+`@auth/core` and `@auth/prisma-adapter` are held in lockstep with `next-auth`. `next-auth` depends on an exact `@auth/core` version, and so does `@auth/prisma-adapter`; bumping either on its own installs a second copy of `@auth/core`, so `next-auth` and the WebSocket JWT decode in `src/lib/wsAuth.ts` would run on different cores. All three are declared at exact versions in `package.json`, Dependabot ignores `@auth/core` and `@auth/prisma-adapter` entirely, and they move only together with a `next-auth` upgrade.
+
+### Exception: `eslint`
+
+`eslint` is held at 9.x. `eslint-config-next` pulls in `eslint-plugin-react`, `eslint-plugin-import` and `eslint-plugin-jsx-a11y`, which still declare `eslint` peer ranges that stop at `^9`, so ESLint 10 fails CI (Dependabot PR #18). Dependabot ignores `eslint` semver-major updates; minor and patch 9.x updates keep flowing.
+
+Re-check signal: every plugin `eslint-config-next` depends on (`eslint-plugin-react`, `eslint-plugin-import`, `eslint-plugin-jsx-a11y`, `eslint-plugin-react-hooks`, `typescript-eslint`, `@next/eslint-plugin-next`) declares an `eslint` peer range that includes `^10`. When it does, remove the Dependabot ignore and take ESLint 10 as an atomic major upgrade.
+
 ## Consequences
 
 - The Dependabot major-version exception for `@tiptap/*` packages (added in commit `5025cb1`) is removed — it contradicts this principle.

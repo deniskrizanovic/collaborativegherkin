@@ -6,13 +6,20 @@ updates:
       interval: "weekly"
       day: "monday"
     open-pull-requests-limit: 10
-    reviewers:
+    assignees:
       - "deniskrizanovic"
     groups:
       minor-and-patch:
         update-types:
-          - "minor"W
+          - "minor"
           - "patch"
+    # Every entry below must be a documented exception in
+    # docs/adr/0004-latest-stable-dependency-principle.md (enforced by lint:dependabot).
     ignore:
       - dependency-name: "next-auth"
         update-types: ["version-update:semver-major"]
+      - dependency-name: "eslint"
+        update-types: ["version-update:semver-major"]
+      # Held in lockstep with the exact next-auth pin; moved by hand with it.
+      - dependency-name: "@auth/core"
+      - dependency-name: "@auth/prisma-adapter"
