@@ -25,7 +25,7 @@ ownership or membership lookup is performed. The room name MUST match the
 even for an authenticated caller.
 
 #### Scenario: Authenticated user connects and syncs
-> **Tests:** [`e2e/collaboration.spec.ts`](../../../e2e/collaboration.spec.ts)
+> **Tests:** [`e2e/collaboration.spec.ts`](../../../e2e/collaboration.spec.ts) · [`robot/suites/collaboration.robot`](../../../robot/suites/collaboration.robot)
 - **GIVEN** a signed-in user with a valid session cookie opens a session URL
 - **WHEN** the editor opens the sync WebSocket to `session-{sessionId}`
 - **THEN** the upgrade is accepted, the Y.js document synchronises, and the editor becomes interactive
@@ -57,13 +57,13 @@ Each remote user's cursor position MUST be visible, displayed in a distinct
 colour.
 
 #### Scenario: Change by one user is visible to all in real time
-> **Tests:** [`e2e/collaboration.spec.ts`](../../../e2e/collaboration.spec.ts)
+> **Tests:** [`e2e/collaboration.spec.ts`](../../../e2e/collaboration.spec.ts) · [`robot/suites/collaboration.robot`](../../../robot/suites/collaboration.robot)
 - **GIVEN** two or more users have the same session URL open
 - **WHEN** one user types or inserts a block
 - **THEN** all other connected users see the change reflected in their editors in real time
 
 #### Scenario: Remote user cursors visible in distinct colour
-> **Tests:** [`e2e/collaboration.spec.ts`](../../../e2e/collaboration.spec.ts)
+> **Tests:** [`e2e/collaboration.spec.ts`](../../../e2e/collaboration.spec.ts) · [`robot/suites/collaboration.robot`](../../../robot/suites/collaboration.robot) — skipped until a Tiptap 3 collaboration-cursor release
 - **GIVEN** two or more users are in the same session
 - **WHEN** the editor renders
 - **THEN** each remote user's cursor position is visible, displayed in a distinct colour

@@ -67,14 +67,14 @@ assertion, and never use `Sleep`.
 
 ## 5. Chunk 5: Multi-context and second identity
 
-- [ ] 5.1 Add `Open Second Context` (storage state argument, own page, switched back explicitly) and `Expect Response Status` (Promise To `Wait For Response` matcher on URL and method, then action, then status assertion) keywords to `session.resource`.
-- [ ] 5.1a Write `robot/resources/api.resource` with `Create API Session For    ${alias}    ${storage_state}`, which reads the storage-state JSON, extracts the `authjs.session-token` cookie, and calls RequestsLibrary `Create Session` against `${BASE_URL}` (design D15).
-- [ ] 5.2 Port `collaboration.spec.ts` to `robot/suites/collaboration.robot`: `SC-3.5.1`, `SC-3.1.2` (no re-seed, asserted in both contexts with `timeout=5s`), and `SC-3.5.2` tagged `skip` with the original reason.
-- [ ] 5.3 Port the API-contract block of `session-access-control.spec.ts` to `robot/suites/session_access_control_api.robot` (3 tests, RequestsLibrary only, no browser). The owner creates the session over `POST On Session`. The `user2` session asserts `expected_status=200` for GET (with body `id` matching), 200 for PATCH, and 403 for DELETE, and the owner's follow-up GET returns 200.
-- [ ] 5.3a Port the UX block to `robot/suites/session_access_control.robot` (3 tests): GET 200 on load, `.form-error` count 0, the PATCH 200 on model change plus persistence after `Reload`, and the PATCH 200 on prompt save.
-- [ ] 5.4 Tag `chunk5`, update PARITY.md and the baseline `> **Tests:**` citations, then run `pnpm lint:specs`.
-- [ ] 5.5 **Checkpoint**: both suites green, and a deliberately broken assertion (local only, then reverted) proves the second context really fails independently.
-- [ ] 5.6 **STOP for user review**: report what changed and the checkpoint results, then wait. Do not start chunk 6 until the user says to continue.
+- [x] 5.1 Add `Open Second Context` (storage state argument, own page, switched back explicitly) and `Expect Response Status` (Promise To `Wait For Response` matcher on URL and method, then action, then status assertion) keywords to `session.resource`.
+- [x] 5.1a Write `robot/resources/api.resource` with `Create API Session For    ${alias}    ${storage_state}`, which reads the storage-state JSON, extracts the `authjs.session-token` cookie, and calls RequestsLibrary `Create Session` against `${BASE_URL}` (design D15).
+- [x] 5.2 Port `collaboration.spec.ts` to `robot/suites/collaboration.robot`: `SC-3.5.1`, `SC-3.1.2` (no re-seed, asserted in both contexts with `timeout=5s`), and `SC-3.5.2` tagged `skip` with the original reason.
+- [x] 5.3 Port the API-contract block of `session-access-control.spec.ts` to `robot/suites/session_access_control_api.robot` (3 tests, RequestsLibrary only, no browser). The owner creates the session over `POST On Session`. The `user2` session asserts `expected_status=200` for GET (with body `id` matching), 200 for PATCH, and 403 for DELETE, and the owner's follow-up GET returns 200.
+- [x] 5.3a Port the UX block to `robot/suites/session_access_control.robot` (3 tests): GET 200 on load, `.form-error` count 0, the PATCH 200 on model change plus persistence after `Reload`, and the PATCH 200 on prompt save.
+- [x] 5.4 Tag `chunk5`, update PARITY.md and the baseline `> **Tests:**` citations, then run `pnpm lint:specs`.
+- [x] 5.5 **Checkpoint**: both suites green, and a deliberately broken assertion (local only, then reverted) proves the second context really fails independently.
+- [x] 5.6 **STOP for user review**: report what changed and the checkpoint results, then wait. Do not start chunk 6 until the user says to continue.
 
 ## 6. Chunk 6: Raw WebSocket auth
 

@@ -13,13 +13,10 @@ Documentation       Shared setup for every browser-driven Robot suite.
 ...                 Other resources get it by importing this file.
 
 Library             Browser    jsextension=${CURDIR}/../libraries/routes.cjs
+Resource            variables.resource
 
 
 *** Variables ***
-${BASE_URL}         http://localhost:3000
-# Storage states minted by e2e/global-setup.ts (via scripts/mint-e2e-auth.ts).
-${OWNER_STATE}      ${CURDIR}/../../e2e/.auth/user.json
-${OTHER_STATE}      ${CURDIR}/../../e2e/.auth/user2.json
 # Override with: pnpm test:robot --variable HEADLESS:False
 ${HEADLESS}         True
 # Screenshot at the end of every test, pass or fail (failures always get one).

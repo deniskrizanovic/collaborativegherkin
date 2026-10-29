@@ -141,8 +141,9 @@ A line starting with `...` continues the previous line.
 | `${resp}[body][id]` | index into a dict / list |
 | `${CURDIR}` | directory of the current file |
 
-Globals live in `common.resource`: `${BASE_URL}`, `${OWNER_STATE}`,
-`${OTHER_STATE}`, `${HEADLESS}`.
+Globals live in `variables.resource` (`${BASE_URL}`, `${OWNER_STATE}`,
+`${OTHER_STATE}`), shared by `common.resource` (browser suites, adds
+`${HEADLESS}`) and `api.resource` (browser-free RequestsLibrary suites).
 
 ### Keywords
 

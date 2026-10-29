@@ -24,7 +24,7 @@ Then — with the cursor at the start of the Feature block. Subsequent users rec
 the document via Y.js sync and MUST NOT trigger re-seeding.
 
 #### Scenario: Editor establishes WebSocket and becomes interactive
-> **Tests:** [`e2e/websocket-auth.spec.ts`](../../../e2e/websocket-auth.spec.ts) — authenticated upgrade to a valid room succeeds and receives sync state; [`e2e/collaboration.spec.ts`](../../../e2e/collaboration.spec.ts) — editor becomes interactive and syncs over the authenticated socket
+> **Tests:** [`e2e/websocket-auth.spec.ts`](../../../e2e/websocket-auth.spec.ts) — authenticated upgrade to a valid room succeeds and receives sync state; [`e2e/collaboration.spec.ts`](../../../e2e/collaboration.spec.ts) · [`robot/suites/collaboration.robot`](../../../robot/suites/collaboration.robot) — editor becomes interactive and syncs over the authenticated socket
 - **GIVEN** a signed-in user opens a session
 - **WHEN** the editor mounts
 - **THEN** an authenticated WebSocket connection is established to the same-origin sync URL in the room `session-{sessionId}`
@@ -32,7 +32,7 @@ the document via Y.js sync and MUST NOT trigger re-seeding.
 - **AND** the editor becomes interactive once the connection is established
 
 #### Scenario: New document seeded with 5 scaffold blocks once
-> **Tests:** [`e2e/initial-content.spec.ts`](../../../e2e/initial-content.spec.ts) · [`robot/suites/initial_content.robot`](../../../robot/suites/initial_content.robot) — order · empty text · cursor on Feature; [`e2e/collaboration.spec.ts`](../../../e2e/collaboration.spec.ts) — second joiner does not re-seed
+> **Tests:** [`e2e/initial-content.spec.ts`](../../../e2e/initial-content.spec.ts) · [`robot/suites/initial_content.robot`](../../../robot/suites/initial_content.robot) — order · empty text · cursor on Feature; [`e2e/collaboration.spec.ts`](../../../e2e/collaboration.spec.ts) · [`robot/suites/collaboration.robot`](../../../robot/suites/collaboration.robot) — second joiner does not re-seed
 - **GIVEN** the Y.js document is empty after synchronisation
 - **WHEN** the first user's editor finishes syncing
 - **THEN** the editor is seeded with 5 empty scaffold blocks in this order: Feature, Scenario, Given, When, Then

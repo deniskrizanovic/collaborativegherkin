@@ -165,7 +165,14 @@ follow-up GET 200) use RequestsLibrary, Robot's standard REST library, chosen by
 user. `robot/resources/api.resource` provides
 `Create API Session For    ${alias}    ${storage_state}`. It reads the storage-state
 JSON (`Get File` + `Evaluate    json.loads(...)`), picks the `authjs.session-token`
-cookie, and calls `Create Session    ${alias}    ${BASE_URL}    cookies=${cookies}`.
+cookie, and calls `Create Session    ${alias}    ${BASE_URL}    headers=${headers}`
+with a `Cookie: authjs.session-token=…` header. *Chunk 5 outcome:* the planned
+`cookies=` argument is unsafe. RequestsLibrary 0.9.7 stores it in one
+library-wide slot (`self.cookies`) that every request falls back to, so the
+last `Create Session` signs in every alias: `owner` silently became `user2`,
+and the DELETE test got 204 instead of 403. Session headers are per alias.
+Globals (`${BASE_URL}`, the storage states) moved to `variables.resource`, so
+`api.resource` can share them without importing Browser.
 Tests then call `POST On Session` / `GET On Session` / `PATCH On Session` /
 `DELETE On Session` with `expected_status=` set to the exact code, and check bodies
 with `${resp.json()}[id]`. `session_access_control_api.robot` imports only

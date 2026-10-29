@@ -89,3 +89,29 @@ Toolbar Button
     [Documentation]    Return the selector for the toolbar button labelled ${label}.
     [Arguments]    ${label}
     RETURN    .gherkin-toolbar-btn:has-text("${label}")
+
+Open Second Context
+    [Documentation]    Open a second, isolated context signed in as the user in
+    ...    ${storage_state}, with its own page, and return that page's id. The
+    ...    first page is switched back to before returning, so the caller always
+    ...    names the page it acts on with `Switch Page    <id>    context=ALL`.
+    ...    Browser closes this context at the end of the test (design D6).
+    [Arguments]    ${storage_state}
+    ${first}=    Get Page Ids    CURRENT    CURRENT    CURRENT
+    ${tracing}=    Trace File For Test    -second
+    New Context    storageState=${storage_state}    baseURL=${BASE_URL}    tracing=${tracing}
+    ${second}=    New Page
+    Switch Page    ${first}[0]    context=ALL
+    RETURN    ${second}[page_id]
+
+Expect Response Status
+    [Documentation]    Run ${action} with @{args} and assert the response to
+    ...    ${method} on a URL containing ${url_part} has ${status}. Port of
+    ...    `Promise.all([page.waitForResponse(pred), action])`: the wait starts
+    ...    before the action, so a fast response cannot be missed.
+    [Arguments]    ${url_part}    ${method}    ${status}    ${action}    @{args}
+    ${promise}=    Promise To    Wait For Response
+    ...    matcher=(r) => r.url().includes("${url_part}") && r.request().method() === "${method}"
+    Run Keyword    ${action}    @{args}
+    ${response}=    Wait For    ${promise}
+    Should Be Equal As Integers    ${response}[status]    ${status}

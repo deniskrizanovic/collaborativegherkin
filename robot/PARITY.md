@@ -187,9 +187,9 @@ the Feature block) unless noted otherwise.
 
 | Playwright file | Title | Key assertions | Robot suite | Chunk | Status |
 |---|---|---|---|---|---|
-| collaboration.spec.ts | SC-3.5.1: Change by one user is visible to all in real time | create via API (no openSession); page1 goto + wait feature; **second isolated context** (`user.json`) page2 goto + wait feature; page1 click feature, type `Shared feature`; page2 feature contains `Shared feature` (timeout 5 s); context2 closed in finally | collaboration.robot | 5 | pending |
-| collaboration.spec.ts | SC-3.1.2: New document seeded with 5 scaffold blocks once — second joiner does not re-seed | create via API; page1 goto, wait, click feature, type `Do not wipe me`; **second context** (`user.json`) goto + wait; page2 feature contains text (5 s); page1 feature still contains text (5 s); context2 closed in finally | collaboration.robot | 5 | pending |
-| collaboration.spec.ts | SC-3.5.2: Remote user cursors visible in distinct colour | **skip** (`@tiptap/extension-collaboration-cursor has no Tiptap 3 stable release yet`). Body: two contexts; page2 clicks feature; page1 `.collaboration-cursor__caret` visible (5 s) | collaboration.robot | 5 | pending |
+| collaboration.spec.ts | SC-3.5.1: Change by one user is visible to all in real time | create via API (no openSession); page1 goto + wait feature; **second isolated context** (`user.json`) page2 goto + wait feature; page1 click feature, type `Shared feature`; page2 feature contains `Shared feature` (timeout 5 s); context2 closed in finally | collaboration.robot | 5 | ported |
+| collaboration.spec.ts | SC-3.1.2: New document seeded with 5 scaffold blocks once — second joiner does not re-seed | create via API; page1 goto, wait, click feature, type `Do not wipe me`; **second context** (`user.json`) goto + wait; page2 feature contains text (5 s); page1 feature still contains text (5 s); context2 closed in finally | collaboration.robot | 5 | ported |
+| collaboration.spec.ts | SC-3.5.2: Remote user cursors visible in distinct colour | **skip** (`@tiptap/extension-collaboration-cursor has no Tiptap 3 stable release yet`). Body: two contexts; page2 clicks feature; page1 `.collaboration-cursor__caret` visible (5 s) | collaboration.robot | 5 | skip |
 
 ## session-access-control.spec.ts
 
@@ -197,12 +197,12 @@ API block uses a separate `request` context with `user2.json` (non-owner); dispo
 
 | Playwright file | Title | Key assertions | Robot suite | Chunk | Status |
 |---|---|---|---|---|---|
-| session-access-control.spec.ts | non-owner can GET a session they hold the id for (200) | owner creates session; user2 GET `/api/sessions/<id>` status == 200; body matches `{id: <id>}` | session_access_control_api.robot | 5 | pending |
-| session-access-control.spec.ts | non-owner can PATCH a session's settings (200) | owner creates; user2 PATCH `{prompt: "A collaborator-supplied prompt that is long enough."}` status == 200 | session_access_control_api.robot | 5 | pending |
-| session-access-control.spec.ts | non-owner cannot DELETE a session (403) — deletion stays owner-only | owner creates; user2 DELETE status == 403; owner GET status == 200 | session_access_control_api.robot | 5 | pending |
-| session-access-control.spec.ts | a second user opens the shared link: no error banner, settings load | owner creates; user2 context; **waitForResponse** URL includes `/api/sessions/<id>` and method GET, paired with goto; status == 200; wait feature; `.form-error` count == 0; `.session-model-select` visible | session_access_control.robot | 5 | pending |
-| session-access-control.spec.ts | a second user can change the model and it persists (PATCH 200, no banner) | owner creates; user2 context goto + wait; read current value, option values; target != current exists (truthy); **waitForResponse** PATCH paired with selectOption; status == 200; `.form-error` count == 0; reload; wait feature; select value == target | session_access_control.robot | 5 | pending |
-| session-access-control.spec.ts | a second user can save a new prompt (modal closes, no banner) | owner creates; user2 context goto + wait; edit prompt; modal visible; fill long prompt; **waitForResponse** PATCH paired with save click; status == 200; prompt modal not visible; `.form-error` count == 0 | session_access_control.robot | 5 | pending |
+| session-access-control.spec.ts | non-owner can GET a session they hold the id for (200) | owner creates session; user2 GET `/api/sessions/<id>` status == 200; body matches `{id: <id>}` | session_access_control_api.robot | 5 | ported |
+| session-access-control.spec.ts | non-owner can PATCH a session's settings (200) | owner creates; user2 PATCH `{prompt: "A collaborator-supplied prompt that is long enough."}` status == 200 | session_access_control_api.robot | 5 | ported |
+| session-access-control.spec.ts | non-owner cannot DELETE a session (403) — deletion stays owner-only | owner creates; user2 DELETE status == 403; owner GET status == 200 | session_access_control_api.robot | 5 | ported |
+| session-access-control.spec.ts | a second user opens the shared link: no error banner, settings load | owner creates; user2 context; **waitForResponse** URL includes `/api/sessions/<id>` and method GET, paired with goto; status == 200; wait feature; `.form-error` count == 0; `.session-model-select` visible | session_access_control.robot | 5 | ported |
+| session-access-control.spec.ts | a second user can change the model and it persists (PATCH 200, no banner) | owner creates; user2 context goto + wait; read current value, option values; target != current exists (truthy); **waitForResponse** PATCH paired with selectOption; status == 200; `.form-error` count == 0; reload; wait feature; select value == target | session_access_control.robot | 5 | ported |
+| session-access-control.spec.ts | a second user can save a new prompt (modal closes, no banner) | owner creates; user2 context goto + wait; edit prompt; modal visible; fill long prompt; **waitForResponse** PATCH paired with save click; status == 200; prompt modal not visible; `.form-error` count == 0 | session_access_control.robot | 5 | ported |
 
 ## websocket-auth.spec.ts
 
