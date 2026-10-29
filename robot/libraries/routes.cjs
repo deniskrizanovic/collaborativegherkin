@@ -10,7 +10,7 @@
 // Browser loads extensions with require(). Loaded from
 // robot/resources/common.resource via
 // `Library    Browser    jsextension=...`. See
-// openspec/changes/add-robot-framework-e2e-suite (design D8).
+// openspec/changes/archive/2026-10-29-add-robot-framework-e2e-suite (design D8).
 
 // page -> (url -> resolver of the promise a held route handler awaits). Keyed
 // by page so two pages or contexts can each hold the same URL.

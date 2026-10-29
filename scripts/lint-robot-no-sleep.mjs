@@ -21,7 +21,7 @@
 // a name built at run time is not. The `*** Comments ***` section is skipped. It is a tripwire, not a full Robot parser. Offline-safe
 // (pure filesystem), so it runs in `test:all`, CI, and the husky pre-commit hook.
 //
-// See openspec/changes/add-robot-framework-e2e-suite (design D10).
+// See openspec/changes/archive/2026-10-29-add-robot-framework-e2e-suite (design D10).
 
 import { readdirSync, readFileSync } from "node:fs";
 import { join, relative } from "node:path";

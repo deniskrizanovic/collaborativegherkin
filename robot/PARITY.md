@@ -2,7 +2,7 @@
 
 One row per `test(...)` / `test.skip(...)` in `e2e/*.spec.ts`. The Robot port
 must have exactly one test case per row, with assertions at least as strong as
-the ones listed here (see `openspec/changes/add-robot-framework-e2e-suite`).
+the ones listed here (see `openspec/changes/archive/2026-10-29-add-robot-framework-e2e-suite`).
 
 Columns:
 

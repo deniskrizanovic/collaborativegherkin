@@ -11,7 +11,7 @@
 //   4. Stops the server only if this script started it (also on SIGINT and
 //      SIGTERM), then exits with Robot's exit code.
 //
-// See openspec/changes/add-robot-framework-e2e-suite (design D4).
+// See openspec/changes/archive/2026-10-29-add-robot-framework-e2e-suite (design D4).
 
 import { spawn } from "node:child_process";
 import { rmSync } from "node:fs";
