@@ -21,7 +21,7 @@ E2E test `SC-3.5.2: Remote user cursors visible in distinct colour` (`e2e/collab
 
 ### Exception: `next-auth`
 
-`next-auth` is pinned to `5.0.0-beta.31`. v5 was adopted while still in beta; v4 was the correct stable choice at the time. Rolling back to v4 now would require rewriting the entire auth configuration — the migration cost exceeds the benefit. This exception should be revisited when NextAuth v5 reaches a stable release.
+`next-auth` is pinned to `5.0.0-beta.32`. v5 was adopted while still in beta; v4 was the correct stable choice at the time. Rolling back to v4 now would require rewriting the entire auth configuration — the migration cost exceeds the benefit. This exception should be revisited when NextAuth v5 reaches a stable release.
 
 `@auth/core` and `@auth/prisma-adapter` are held in lockstep with `next-auth`. `next-auth` depends on an exact `@auth/core` version, and so does `@auth/prisma-adapter`; bumping either on its own installs a second copy of `@auth/core`, so `next-auth` and the WebSocket JWT decode in `src/lib/wsAuth.ts` would run on different cores. All three are declared at exact versions in `package.json`, Dependabot ignores `@auth/core` and `@auth/prisma-adapter` entirely, and they move only together with a `next-auth` upgrade.
 
