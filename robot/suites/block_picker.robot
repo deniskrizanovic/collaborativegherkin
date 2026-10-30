@@ -4,6 +4,7 @@ Documentation       Port of e2e/block-picker.spec.ts — spec §3.3 slash-comman
 Library             Collections
 Resource            ../resources/common.resource
 Resource            ../resources/session.resource
+Resource            ../resources/editor.resource
 
 Suite Setup         Open Browser For Suite
 Test Setup          Open Owner Context And Page
@@ -12,17 +13,10 @@ Test Teardown       Finish Test
 Test Tags           chunk2    block-picker
 
 
-*** Variables ***
-${PICKER}           [style*="position: fixed"]
-${BLOCKS}           .gherkin-editor [data-gherkin-type]
-# Background of the focused picker item.
-${FOCUSED_BG}       rgba(0, 38, 100, 0.06)
-
-
 *** Test Cases ***
 SC-3.3.1: Typing / opens picker with valid next blocks and Image
     Open Session
-    Click    [data-gherkin-type="feature"]
+    Click    ${BLOCK_TYPE}[feature]
     Keyboard Input    type    /
     # After Feature: Rule, Background, Scenario are valid.
     Wait For Elements State    text=Scenario >> nth=0    visible
@@ -56,7 +50,7 @@ SC-3.3.3: Up arrow moves picker focus to previous item
 SC-3.3.4: Enter on focused picker item inserts type and closes
     Open Session
     # Typing / on the seeded Scenario block: replace mode changes its type.
-    Click    [data-gherkin-type="scenario"]
+    Click    ${BLOCK_TYPE}[scenario]
     Keyboard Input    type    /
     Wait For Elements State    ${PICKER}    visible
     Keyboard Key    press    Enter
@@ -68,7 +62,7 @@ SC-3.3.4: Enter on focused picker item inserts type and closes
 
 SC-3.3.5: Clicking picker item inserts type and closes
     Open Session
-    Click    [data-gherkin-type="scenario"]
+    Click    ${BLOCK_TYPE}[scenario]
     Keyboard Input    type    /
     Wait For Elements State    ${PICKER}    visible
     Click    ${PICKER} >> button >> nth=0
@@ -80,7 +74,7 @@ SC-3.3.5: Clicking picker item inserts type and closes
 SC-3.3.6: Escape closes picker without inserting
     Open Session
     ${before}=    Get Element Count    ${BLOCKS}
-    Click    [data-gherkin-type="feature"]
+    Click    ${BLOCK_TYPE}[feature]
     Keyboard Input    type    /
     Wait For Elements State    ${PICKER}    visible
     Keyboard Key    press    Escape
@@ -90,7 +84,7 @@ SC-3.3.6: Escape closes picker without inserting
 SC-3.3.7: Clicking outside picker closes without inserting
     Open Session
     ${before}=    Get Element Count    ${BLOCKS}
-    Click    [data-gherkin-type="feature"]
+    Click    ${BLOCK_TYPE}[feature]
     Keyboard Input    type    /
     Wait For Elements State    ${PICKER}    visible
     Mouse Button    click    10    10
@@ -101,10 +95,10 @@ SC-3.3.1: Typing / opens picker with valid next blocks and Image — Image alway
     Open Session
     # Context 1: after Scenario. End+Enter on Feature, then End+Enter on the new
     # Scenario gives an untyped line whose prevType is scenario.
-    Click    [data-gherkin-type="feature"]
+    Click    ${BLOCK_TYPE}[feature]
     Keyboard Key    press    End
     Keyboard Key    press    Enter
-    Click    [data-gherkin-type="scenario"] >> nth=-1
+    Click    ${BLOCK_TYPE}[scenario] >> nth=-1
     Keyboard Key    press    End
     Keyboard Key    press    Enter
     Keyboard Input    type    /
@@ -112,7 +106,7 @@ SC-3.3.1: Typing / opens picker with valid next blocks and Image — Image alway
     Last Picker Item Should Be Image
     Keyboard Key    press    Escape
     # Context 2: after Then — Enter from the seeded then block.
-    Click    [data-gherkin-type="then"] >> nth=-1
+    Click    ${BLOCK_TYPE}[then] >> nth=-1
     Keyboard Key    press    End
     Keyboard Key    press    Enter
     Keyboard Input    type    /
@@ -125,7 +119,7 @@ SC-3.3.1: Typing / opens picker with valid next blocks and Image — Image alway
 Open Picker On New Line After Feature
     [Documentation]    End+Enter on the Feature block, type "/" on the new
     ...    untyped line, and wait for the picker.
-    Click    [data-gherkin-type="feature"]
+    Click    ${BLOCK_TYPE}[feature]
     Keyboard Key    press    End
     Keyboard Key    press    Enter
     Keyboard Input    type    /

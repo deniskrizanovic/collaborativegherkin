@@ -14,7 +14,7 @@ line each in the format `Keyword: text`; image blocks appear as one line each
 containing the full base64 data-URI; all lines appear in document order.
 
 #### Scenario: Export downloads plain-text file in document order
-> **Tests:** [`e2e/export.spec.ts`](../../../e2e/export.spec.ts) · [`robot/suites/export.robot`](../../../robot/suites/export.robot) — correct content · block order · image data-URI included
+> **Tests:** [`e2e/export.spec.ts`](../../../e2e/export.spec.ts) · [`robot/suites/export.robot`](../../../robot/suites/export.robot) · [`robot/suites/export_bdd.robot`](../../../robot/suites/export_bdd.robot) — correct content · block order · image data-URI included
 - **GIVEN** a user is in a session editor
 - **WHEN** the user clicks the Export button
 - **THEN** a plain-text file is downloaded
@@ -31,7 +31,7 @@ blocks appear as inline images using `![alt](src)`; all blocks appear in
 document order.
 
 #### Scenario: Export MD downloads markdown file in document order
-> **Tests:** [`e2e/export.spec.ts`](../../../e2e/export.spec.ts) · [`robot/suites/export.robot`](../../../robot/suites/export.robot)
+> **Tests:** [`e2e/export.spec.ts`](../../../e2e/export.spec.ts) · [`robot/suites/export.robot`](../../../robot/suites/export.robot); [`robot/suites/export_bdd.robot`](../../../robot/suites/export_bdd.robot) — all keyword types · image inline
 - **GIVEN** a user is in a session editor
 - **WHEN** the user clicks the Export MD button
 - **THEN** a markdown file `gherkin.md` is downloaded
@@ -48,13 +48,13 @@ the first row is the header row, followed by a `| --- | --- |` separator row,
 then the remaining rows in order.
 
 #### Scenario: TXT export uses pipe-delimited rows padded to column width
-> **Tests:** [`e2e/data-table.spec.ts`](../../../e2e/data-table.spec.ts) · [`robot/suites/data_table.robot`](../../../robot/suites/data_table.robot)
+> **Tests:** [`e2e/data-table.spec.ts`](../../../e2e/data-table.spec.ts) · [`robot/suites/data_table.robot`](../../../robot/suites/data_table.robot) · [`robot/suites/export_bdd.robot`](../../../robot/suites/export_bdd.robot)
 - **GIVEN** a data table block is present
 - **WHEN** the user exports as TXT
 - **THEN** each row appears as one line in `| cell | cell |` format with cells padded to column width
 
 #### Scenario: MD export uses header row with separator
-> **Tests:** [`e2e/data-table.spec.ts`](../../../e2e/data-table.spec.ts) · [`robot/suites/data_table.robot`](../../../robot/suites/data_table.robot)
+> **Tests:** [`e2e/data-table.spec.ts`](../../../e2e/data-table.spec.ts) · [`robot/suites/data_table.robot`](../../../robot/suites/data_table.robot) · [`robot/suites/export_bdd.robot`](../../../robot/suites/export_bdd.robot)
 - **GIVEN** a data table block is present
 - **WHEN** the user exports as MD
 - **THEN** the first row is the header row

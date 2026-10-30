@@ -4,6 +4,7 @@ Documentation       Port of e2e/toolbar.spec.ts — spec §3.4 toolbar.
 Library             Collections
 Resource            ../resources/common.resource
 Resource            ../resources/session.resource
+Resource            ../resources/editor.resource
 
 Suite Setup         Open Browser For Suite
 Test Setup          Open Owner Context And Page
@@ -30,19 +31,17 @@ SC-3.4.1: Toolbar shows valid next blocks and Image — Rule, Background, Scenar
 
 SC-3.4.2: Clicking toolbar button inserts block and moves cursor
     Open Session
-    ${rule}=    Toolbar Button    Rule
-    Click    ${rule}
-    Wait For Elements State    [data-gherkin-type="rule"]    visible
+    Click Toolbar Button    Rule
+    Wait For Elements State    ${BLOCK_TYPE}[rule]    visible
 
 SC-3.4.2: Clicking toolbar button inserts block and moves cursor — Scenario after Feature
     Open Session
-    ${before}=    Get Element Count    [data-gherkin-type="scenario"]
-    ${scenario}=    Toolbar Button    Scenario
-    Click    ${scenario}
-    Get Element Count    [data-gherkin-type="scenario"]    ==    ${before + 1}
+    ${before}=    Get Element Count    ${BLOCK_TYPE}[scenario]
+    Click Toolbar Button    Scenario
+    Get Element Count    ${BLOCK_TYPE}[scenario]    ==    ${before + 1}
 
 SC-3.4.1: Toolbar shows valid next blocks and Image — Image present on non-Feature block
     Open Session
-    Click    [data-gherkin-type="then"]
+    Click    ${BLOCK_TYPE}[then]
     ${texts}=    Toolbar Button Texts
     List Should Contain Value    ${texts}    Image

@@ -861,6 +861,9 @@ without help. Plus a draft spec-step lint. That is now built:
 `block_picker.robot` is untouched, and both suites pass. A full
 `pnpm test:robot` run is 116 tests: 115 passed, 1 skipped.
 
+The layer has since been extended to every editor suite, and
+`editor_domain.resource` split into `robot/resources/steps/` (§6.7.7).
+
 SC-3.3.6 now reads exactly as the spec does:
 
 ```robot
@@ -948,7 +951,7 @@ count.
 
 **The rewrite made assertions stronger.** Writing each Then step from the
 spec sentence, rather than copying the Playwright lines, raised the bar in
-four places (listed in `robot/PARITY.md`, "Business-language pilot"):
+four places (listed in `robot/PARITY.md`, "Business-language suites"):
 
 - `a block picker menu opens` waits for the picker. The technical test waits
   for the first `text=Scenario`, which the seeded Scenario block in the editor
@@ -987,6 +990,98 @@ steps read awkwardly once arguments are filled in
 4. If the pilot is kept: add step-order checking to the lint, wire it into
    husky and CI, and consider Scenario Outlines in the spec for steps like
    `the cursor is inside a block`.
+
+#### 6.7.7 All editor suites
+
+The OpenSpec change `add-bdd-robot-editor-suites` (issue #52) gave each
+editor-area suite a `*_bdd.robot` twin, next to its technical suite. It also
+moved the steps into one resource per spec capability
+(`robot/resources/steps/`), moved the editor helpers out of `session.resource`
+into `editor.resource`, and wrote the conventions down in `robot/README.md`
+("Writing a business-language test").
+
+**Counts.** 11 business-language suites, 89 tests and 287 steps, against the 91
+tests of the same 11 technical suites. A full `pnpm test:robot` run is 199
+tests: 198 passed, 1 skipped (SC-3.5.2, as before). Eleven technical tests have
+no twin (`robot/PARITY.md`, "Exclusions"). Five have no spec line of their own
+or are covered by another twin. One checks something the browser cannot see
+(SC-8.4.2). One is skipped (SC-3.5.2). Four, over three scenarios, test spec
+lines the app does not satisfy (#53, #54, #55). Writing the Then steps from the
+spec found those three. The technical tests never checked those lines. Seven
+twins have no technical test, because a spec line has a branch the technical
+suite skipped.
+
+**Keyword reuse.** The 281 steps call 147 step keywords, 1.91 uses each (the
+pilot: 1.8). 89 of the 147 are used once (61%, the same share as the pilot).
+
+| Steps file | Keywords | Uses | Uses each | Used once |
+|---|---|---|---|---|
+| `gherkin_editor.resource` | 51 | 129 | 2.5 | 21 |
+| `gherkin_export.resource` | 20 | 30 | 1.5 | 13 |
+| `gherkin_import.resource` | 14 | 24 | 1.7 | 12 |
+| `llm_review.resource` | 54 | 75 | 1.4 | 39 |
+| `realtime_collaboration.resource` | 4 | 6 | 1.5 | 2 |
+| `shared.resource` | 4 | 17 | 4.3 | 2 |
+
+The most used are `the user presses ${key:Escape|Enter}` (12, in 3 suites), and
+the Enter-progression trio `the cursor is at the end of a block of type …`,
+`a new block of the auto-progression type is inserted …` and `the cursor is
+placed at the start of the new block's text` (9 each). Only 3 keywords are used
+by more than one suite. Reuse comes from variants of one scenario (the nine
+progressions, the three ways to close a modal), not from scenarios sharing
+steps. `llm_review`, which §6.7.6 item 2 picked as the test of whether reuse
+grows, has the lowest figure: its scenarios each describe a different control,
+so most of its Then steps are used once.
+
+Counted from `robot/results/output.xml`: every keyword a `bdd` test body calls,
+resolved to the keyword definition it runs.
+
+**Lines of code per layer**, before the change (`main`) and after:
+
+| Layer | Before | After |
+|---|---|---|
+| Technical suites (all 16) | 1,536 | 1,443 |
+| Of which the 11 with a twin: test-body lines | 664 | 639 |
+| Business-language suites | 71 (1) | 823 (11) |
+| Business-language test-body lines | 33 | 287 |
+| Step keywords (`editor_domain.resource`; then `steps/`) | 191 | 2,011 |
+| Helper resources (`common`, `variables`, `api`, `files`, `session`, `editor`) | 309 | 682 |
+| JS/Python libraries | 145 | 210 |
+
+The technical suites shrank by 93 lines once they used the shared helpers
+(`Build Scaffold To Then`, `Insert Image After Block`, `Click Toolbar Button`)
+and the selectors of `editor.resource` (`${PICKER}`, `&{BLOCK_TYPE}`, the
+export and image selectors) instead of their own. Their assertions are
+unchanged. `editor.resource` (351 lines) is new. Of the 2,011 step-keyword
+lines, 276 are the step inventory in
+`shared.resource` (a comment), and about 540 are documentation, including the
+`Sets:`/`Reads:` lines. The business-language layer is now 2,834 lines
+(suites plus steps) for 89 tests: about 32 lines per test, against 13 per
+technical test. §6.7.1 found the total nearly doubled for one area. Across all
+areas it more than doubles.
+
+**What changed in the conventions.** The §6.5 hidden-state cost now has a
+contract: each step's documentation lists the variables it `Sets:` and
+`Reads:`, and a step that reads state starts with `Require Step State`. If the
+setting step did not run, that fails with `"<step>" must run before this step
+(${NAME} is not set)`, not with Robot's generic error. Refinement has one rule (a
+plain phrase, or ` — detail` after a full clause), and expected values are test
+data, never rules copied from `gherkin.ts`. "Without a new API call" is asserted
+by counting route requests (`Route Request Count`), since a fixed wait is
+banned.
+
+**§6.7.6, item by item.**
+
+1. Not answered. A non-developer still has to try it. The README section is
+   the guide they would start from.
+2. Answered. Reuse did not grow: 1.91 overall and 1.4 for `llm_review`.
+3. Not decided, but listed. `robot/PARITY.md` names every assertion where a
+   twin checks more than its technical test. There are 39, for example
+   the cursor position after Enter, the full TXT and MD export, and "closes
+   without saving".
+4. In part. The lint was already in husky and CI. Step-order checking and
+   Scenario Outlines are still open. The refinement rule covers steps like
+   `the cursor is inside a block` for now.
 
 ---
 

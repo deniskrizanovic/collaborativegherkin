@@ -7,6 +7,7 @@ Documentation       Port of e2e/enter-progression.spec.ts — spec §3.2, the 9 
 
 Resource            ../resources/common.resource
 Resource            ../resources/session.resource
+Resource            ../resources/editor.resource
 Resource            ../resources/files.resource
 
 Suite Setup         Open Browser For Suite
@@ -19,7 +20,7 @@ Test Tags           chunk2    enter-progression
 *** Test Cases ***
 SC-3.2.1: Enter at end of block inserts auto-progression type — feature → scenario
     Open Session
-    Click    [data-gherkin-type="feature"]
+    Click    ${BLOCK_TYPE}[feature]
     Keyboard Key    press    End
     Keyboard Key    press    Enter
     ${types}=    Block Types In Editor
@@ -27,9 +28,9 @@ SC-3.2.1: Enter at end of block inserts auto-progression type — feature → sc
 
 SC-3.2.1: Enter at end of block inserts auto-progression type — scenario → given
     Open Session
-    Click    [data-gherkin-type="feature"]
+    Click    ${BLOCK_TYPE}[feature]
     Keyboard Key    press    Enter    # feature → scenario (inserted after the seed's scenario)
-    Click    [data-gherkin-type="scenario"] >> nth=-1
+    Click    ${BLOCK_TYPE}[scenario] >> nth=-1
     Keyboard Key    press    End
     Keyboard Key    press    Enter
     ${types}=    Block Types In Editor
@@ -38,11 +39,11 @@ SC-3.2.1: Enter at end of block inserts auto-progression type — scenario → g
 
 SC-3.2.1: Enter at end of block inserts auto-progression type — given → when
     Open Session
-    Click    [data-gherkin-type="feature"]
+    Click    ${BLOCK_TYPE}[feature]
     Keyboard Key    press    Enter    # feature → scenario
-    Click    [data-gherkin-type="scenario"] >> nth=-1
+    Click    ${BLOCK_TYPE}[scenario] >> nth=-1
     Keyboard Key    press    Enter    # scenario → given
-    Click    [data-gherkin-type="given"] >> nth=-1
+    Click    ${BLOCK_TYPE}[given] >> nth=-1
     Keyboard Key    press    End
     Keyboard Key    press    Enter
     ${types}=    Block Types In Editor
@@ -51,13 +52,13 @@ SC-3.2.1: Enter at end of block inserts auto-progression type — given → when
 
 SC-3.2.1: Enter at end of block inserts auto-progression type — when → then
     Open Session
-    Click    [data-gherkin-type="feature"]
+    Click    ${BLOCK_TYPE}[feature]
     Keyboard Key    press    Enter    # → scenario
-    Click    [data-gherkin-type="scenario"] >> nth=-1
+    Click    ${BLOCK_TYPE}[scenario] >> nth=-1
     Keyboard Key    press    Enter    # → given
-    Click    [data-gherkin-type="given"] >> nth=-1
+    Click    ${BLOCK_TYPE}[given] >> nth=-1
     Keyboard Key    press    Enter    # → when
-    Click    [data-gherkin-type="when"] >> nth=-1
+    Click    ${BLOCK_TYPE}[when] >> nth=-1
     Keyboard Key    press    End
     Keyboard Key    press    Enter
     ${types}=    Block Types In Editor
@@ -66,10 +67,7 @@ SC-3.2.1: Enter at end of block inserts auto-progression type — when → then
 
 SC-3.2.1: Enter at end of block inserts auto-progression type — then → and
     Open Session
-    Press Enter And Wait For Block    scenario
-    Press Enter And Wait For Block    given
-    Press Enter And Wait For Block    when
-    Press Enter And Wait For Block    then
+    Build Scaffold To Then
     Press Enter And Wait For Block    and
     ${types}=    Block Types In Editor
     # A "then" immediately followed by "and".
@@ -82,9 +80,8 @@ SC-3.2.1: Enter at end of block inserts auto-progression type — and → and
     Press Enter And Wait For Block    scenario
     Press Enter And Wait For Block    given
     # Insert an 'and' block via toolbar.
-    ${and}=    Toolbar Button    And
-    Click    ${and}
-    Click    [data-gherkin-type="and"] >> nth=-1
+    Click Toolbar Button    And
+    Click    ${BLOCK_TYPE}[and] >> nth=-1
     Keyboard Key    press    End
     ${before}=    Block Types In Editor
     ${i}=    Last Index Of    ${before}    and
@@ -96,9 +93,8 @@ SC-3.2.1: Enter at end of block inserts auto-progression type — but → and
     Open Session
     Press Enter And Wait For Block    scenario
     Press Enter And Wait For Block    given
-    ${but}=    Toolbar Button    But
-    Click    ${but}
-    Click    [data-gherkin-type="but"] >> nth=-1
+    Click Toolbar Button    But
+    Click    ${BLOCK_TYPE}[but] >> nth=-1
     Keyboard Key    press    End
     ${before}=    Block Types In Editor
     ${i}=    Last Index Of    ${before}    but
@@ -108,10 +104,9 @@ SC-3.2.1: Enter at end of block inserts auto-progression type — but → and
 
 SC-3.2.1: Enter at end of block inserts auto-progression type — background → given
     Open Session
-    Click    [data-gherkin-type="feature"]
-    ${background}=    Toolbar Button    Background
-    Click    ${background}
-    Click    [data-gherkin-type="background"]
+    Click    ${BLOCK_TYPE}[feature]
+    Click Toolbar Button    Background
+    Click    ${BLOCK_TYPE}[background]
     Keyboard Key    press    End
     Keyboard Key    press    Enter
     ${types}=    Block Types In Editor
@@ -120,10 +115,9 @@ SC-3.2.1: Enter at end of block inserts auto-progression type — background →
 
 SC-3.2.1: Enter at end of block inserts auto-progression type — rule → scenario
     Open Session
-    Click    [data-gherkin-type="feature"]
-    ${rule}=    Toolbar Button    Rule
-    Click    ${rule}
-    Click    [data-gherkin-type="rule"]
+    Click    ${BLOCK_TYPE}[feature]
+    Click Toolbar Button    Rule
+    Click    ${BLOCK_TYPE}[rule]
     Keyboard Key    press    End
     Keyboard Key    press    Enter
     ${types}=    Block Types In Editor
@@ -134,24 +128,16 @@ SC-3.2.2: Enter on image block uses prevType context
     [Tags]    chunk3
     [Teardown]    Remove Temp Files
     Open Session
-    # Build: feature → scenario → given → when → then
-    Press Enter And Wait For Block    scenario
-    Press Enter And Wait For Block    given
-    Press Enter And Wait For Block    when
-    Press Enter And Wait For Block    then
+    Build Scaffold To Then
     # Insert an image after the 'then' block via the toolbar Image button.
-    ${png}=    Write Tiny PNG
-    Click    [data-gherkin-type="then"] >> nth=-1
-    ${image_button}=    Toolbar Button    Image
-    Click    ${image_button}
-    Upload File By Selector    input[type="file"]    ${png}
-    Wait For Elements State    .gherkin-image-block    visible
+    Insert Image After Block    then
+    Wait For Elements State    ${IMAGE_BLOCK}    visible
     # Select the image block, then press Enter.
-    Click    .gherkin-image-block
+    Click    ${IMAGE_BLOCK}
     ${types_before}=    Block Types In Editor
     ${count_before}=    Get Length    ${types_before}
     Keyboard Key    press    Enter
-    Get Element Count    [data-gherkin-type]    >    ${count_before}
+    Get Element Count    ${BLOCKS}    >    ${count_before}
     # prevType is 'then', so the new block after the image is 'and'.
     ${types_after}=    Block Types In Editor
     Should Be Equal    ${types_after}[-1]    and

@@ -4,6 +4,7 @@ Documentation       Port of e2e/initial-content.spec.ts — spec §3.1 initial s
 Library             Collections
 Resource            ../resources/common.resource
 Resource            ../resources/session.resource
+Resource            ../resources/editor.resource
 
 Suite Setup         Open Browser For Suite
 Test Setup          Open Owner Context And Page
@@ -21,7 +22,7 @@ SC-3.1.2: New document seeded with 5 scaffold blocks once — order
 
 SC-3.1.2: New document seeded with 5 scaffold blocks once — empty text
     Open Session
-    ${texts}=    Texts Of All    .gherkin-editor [data-gherkin-type]
+    ${texts}=    Texts Of All    ${BLOCKS}
     Should Be True    all(t == "" for t in $texts)    Not every scaffold block is empty: ${texts}
 
 SC-3.1.2: New document seeded with 5 scaffold blocks once — cursor on Feature

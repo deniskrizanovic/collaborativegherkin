@@ -225,12 +225,22 @@ Tests with no Playwright counterpart. Not counted in the totals above.
 |---|---|---|---|---|---|
 | — | Smoke: new session shows the scaffold blocks in order | Open Session; block types == exactly `[feature, scenario, given, when, then]` | 00_smoke.robot | 0 | ported |
 
-## Business-language pilot
+## Business-language suites
 
-`block_picker_bdd.robot` restates the 9 `block-picker.spec.ts` tests as the
-GIVEN/WHEN/THEN lines of their spec scenarios (evaluation doc §6.7). It is
-checked against behaviour, not line by line, and is not counted in the totals
-above. Differences from the rows in `## block-picker.spec.ts`:
+Each editor-area suite has a `*_bdd.robot` twin (tag `bdd`) that restates its
+tests as the GIVEN/WHEN/THEN lines of their spec scenarios (evaluation doc
+§6.7). `pnpm lint:robot-steps` checks every twin against `openspec/specs/**`.
+The twins are checked against behaviour, not line by line, and are not counted
+in the totals above: the technical suites keep the Playwright parity rows.
+
+Each subsection lists where a twin asserts more than the technical rows above.
+These are the candidates for strengthening the technical and Playwright suites
+(evaluation doc §6.7.6 item 3); this change does not make that decision.
+
+### block_picker_bdd.robot (pilot)
+
+Restates the 9 `block-picker.spec.ts` tests. Differences from the rows in
+`## block-picker.spec.ts`:
 
 - **Opens picker**: waits for the picker itself, not the first `text=Scenario`
   (which the seeded Scenario block also matches).
@@ -243,3 +253,167 @@ above. Differences from the rows in `## block-picker.spec.ts`:
   loses it.
 - **Enter / click inserts**: the target block's new type equals the focused
   item's label, as well as being different from `scenario`.
+
+### initial_content_bdd.robot
+
+4 tests, SC-3.1.2. The second-joiner test lives here, not in
+`collaboration_bdd.robot`, so that every line of SC-3.1.2 is covered by one
+suite (design D10).
+
+- **Empty text**: also reads each block's `::before` label and checks it is
+  the keyword (`Feature`, `Scenario`, `Given`, `When`, `Then`).
+- **Cursor on Feature**: the Feature block is empty *and* the toolbar, which
+  follows the editor's own selection, shows the valid next blocks of Feature.
+- **Second joiner does not re-seed**: the second user sees the first user's
+  text and 5 blocks, *and* the first user still sees the text and 5 blocks
+  afterwards.
+
+### enter_progression_bdd.robot
+
+9 tests, SC-3.2.1, one per progression.
+
+- **Inserted immediately after**: the block list is the old list with one
+  block of the expected type inserted right after the current block; the
+  technical tests check the type of the last block only.
+- **Cursor at the start of the new block**: types a marker and checks that it
+  lands in the new block. No technical test checks the cursor.
+
+### toolbar_bdd.robot
+
+5 tests, SC-3.4.1 and SC-3.4.2.
+
+- **Valid next blocks**: the valid and invalid labels come from one shared
+  dictionary (design D4), the same one the picker steps read.
+- **Node inserted / Scenario after Feature**: the block list is the old list
+  with the chosen type inserted right after the current block, and a typed
+  marker lands in the new block ("the cursor moves to the new block").
+
+### visual_separation_bdd.robot
+
+8 tests, SC-3.7.1 and SC-3.7.2. The titles use the spec titles, with
+"(visual only)" (design D2).
+
+- **Border**: the block that gets the border is the inserted one (found by
+  index), and its border is solid as well as 1px, with non-zero top margin and
+  padding.
+- **Separator not in export**: the editor's top-level nodes are exactly its
+  blocks, and the TXT export has one `Keyword:` line per block and nothing
+  else. Run for SC-3.7.2 as well as SC-3.7.1.
+
+### image_bdd.robot
+
+2 tests, SC-3.8.1 and SC-3.8.2.
+
+- **A file picker opens**: `Promise To Upload File` is armed before the click,
+  so the test fails if no file chooser opens (design D8).
+- **Immediately after the current block**: the top-level nodes are the old
+  nodes with one image inserted right after the current one, and the image
+  renders with a non-zero size. SC-3.8.2 checks the rendered image as well.
+
+### data_table_bdd.robot
+
+7 tests, SC-3.11.1, 3.11.3, 3.11.4, 3.11.5 and 3.11.6.
+
+- **Tab / Shift+Tab**: each runs within a row and across a row boundary
+  (`— to the next row`, `— to the previous row`), since the spec line says
+  "left to right, top to bottom".
+- **Add row and Add column**: the two buttons are enabled as well as visible.
+
+### export_bdd.robot
+
+7 tests, SC-3.6.1, 3.9.1, 3.11.7 and 3.11.8. Each Then step compares the
+downloaded file with the editor's content when Export was clicked.
+
+- **TXT content and order**: one line per exported node, in the editor's
+  order, and nothing else; the technical tests check the first lines only.
+- **Image data-URI**: the line is a complete base64 data-URI and a whole line;
+  the technical test checks that the file contains `data:image`.
+- **MD**: every header type and list-item type is exported in its own format,
+  in order, and the image is `![alt](src)` with its own alt text.
+- **Tables**: every cell is padded to its column's width (TXT); the MD header
+  row, `| --- |` separator and remaining rows follow in order, and nothing
+  else. The technical tests check that `| name` or `| col` occurs.
+
+### import_bdd.robot
+
+11 tests, SC-7.1.1 to 7.1.4.
+
+- **Import button**: labelled Import, and stays visible after the cursor
+  moves to a Scenario and a Then block.
+- **Modal parts**: the confirm and cancel buttons are labelled Insert and
+  Cancel.
+- **Cancel**: the editor's full content is unchanged, not only the Feature
+  count.
+- **Insert**: the inserted blocks (type and text, or table rows) are exactly
+  the expected ones, right after the cursor's block, with everything else
+  unchanged; the technical tests compare counts by type.
+
+### collaboration_bdd.robot
+
+2 tests, SC-3.5.1.
+
+- **Types**: the second user sees the same blocks, in the same order, with
+  the same types and texts, not only the typed text in the Feature block.
+- **Inserts a block**: the first user inserts a Scenario block from the
+  toolbar and the second user sees it.
+
+### llm_review_bdd.robot
+
+23 tests, SC-8.1 to SC-8.4 and SC-8.8.
+
+- **Content sent**: the `POST /api/llm-review` body carries the session id and
+  the editor's current content, one `Keyword: text` line per block. Model
+  resolution and the OpenRouter call stay with the API unit tests (design D8).
+- **Markdown rendered**: the rendered `h2` and `li` elements, with their
+  texts, are exactly the expected ones.
+- **Header shows the model**: the title ends in ` — <model>`.
+- **Error**: the modal text equals the error, and the button returns to its
+  normal state (enabled, `Get AI Coaching`, no `reviewing` class).
+- **Model dropdown**: inside `.session-actions`, alongside the review button,
+  pre-selected to the default with no stored model, and to the stored
+  non-default model in the `— stored model` variant (settings stored through
+  the API first).
+- **Disabled until settings load**: the held settings return a non-default
+  model, and the enabled dropdown shows it.
+- **Prompt pre-filled**: starts with the default prompt with no stored
+  prompt, and equals the stored prompt in the `— stored prompt` variant; the
+  technical test checks length > 10.
+- **Closes without saving**: after a reload, the reopened prompt is the one
+  from before the edit. Reopening without a reload is not enough, because the
+  page keeps the unsaved text in its state (design D8).
+- **Save disabled**: checked for an empty textarea and for 9 characters.
+- **Slow settings load**: the edited prompt is not the default after reload.
+- **View last review**: shows the same result and the review route was called
+  once (`Route Request Count`, design D7); while a new review is in flight it
+  shows the cached result; after the new one arrives it shows the new result.
+
+### Exclusions
+
+Technical tests with no business-language twin (design D9):
+
+| Technical test | Reason | BDD |
+|---|---|---|
+| `SC-3.7.1 — first given after scenario has no border` | No scenario line describes a Given after Scenario | none |
+| `SC-3.11.1 — absent on Feature` | No line describes the cursor on Feature | none |
+| `SC-8.3.1 — expected models listed` | No line describes the model list | none |
+| `SC-8.4.1 — button visible` | Covered by the full `SC-8.4.1` test | none |
+| `SC-8.1.1 — modal opens` | Covered by `SC-8.1.2`, "the result is displayed in a modal" | none |
+| `SC-8.4.2` | "the next review uses the updated prompt" cannot be observed in the browser | none |
+| `SC-3.5.2` | Skipped: no stable collaboration-cursor extension | none |
+| `SC-3.2.2` | The app does not satisfy the Given: the image node is `selectable: false`, so the cursor is never on an image ([#53](https://github.com/deniskrizanovic/collaborativegherkin/issues/53)) | none until #53 is fixed |
+| `SC-3.8.3` | The app does not satisfy "at the drop position": the drop handler ignores the drop coordinates ([#54](https://github.com/deniskrizanovic/collaborativegherkin/issues/54)) | none until #54 is fixed |
+| `SC-3.11.2` (both tests) | The app does not satisfy "the cursor is placed inside the first cell": focus stays in the main editor ([#55](https://github.com/deniskrizanovic/collaborativegherkin/issues/55)) | none until #55 is fixed |
+
+### BDD-only tests
+
+Tests with no technical twin. Each exists because of the lint's coverage rule
+or because a spec line has more than one branch:
+
+| Test | Why |
+|---|---|
+| `SC-3.7.2 — separator not in export` | The technical suite checks the export for SC-3.7.1 only |
+| `SC-3.9.1 — image inline` | The image line of an MD export; the technical MD test has no image |
+| `SC-3.11.4 — to the next row`, `SC-3.11.5 — to the previous row` | "left to right, top to bottom" |
+| `SC-3.5.1 — inserts a block` | "types or inserts a block" |
+| `SC-8.1.1 — content sent` | "the current Gherkin content is sent" |
+| `SC-8.4.4 — cleared` | "cleared the textarea or entered fewer than 10 characters" |

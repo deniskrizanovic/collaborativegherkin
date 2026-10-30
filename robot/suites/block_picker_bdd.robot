@@ -3,13 +3,16 @@ Documentation       Business-language pilot of block_picker.robot (docs/robot-fr
 ...
 ...                 The same 9 tests, each written as the GIVEN/WHEN/THEN lines of
 ...                 its scenario in openspec/specs/gherkin-editor/spec.md. The
-...                 steps live in ../resources/editor_domain.resource.
+...                 gherkin-editor steps live in
+...                 ../resources/steps/gherkin_editor.resource, steps shared with
+...                 other capabilities (`the user presses Escape`) in
+...                 ../resources/steps/shared.resource.
 ...                 `pnpm lint:robot-steps` checks every step against its spec
 ...                 scenario. The technical suite block_picker.robot stays next
-...                 to this one for the pilot.
+...                 to this one.
 
 Resource            ../resources/common.resource
-Resource            ../resources/editor_domain.resource
+Resource            ../resources/steps/gherkin_editor.resource
 
 Suite Setup         Open Browser For Suite
 Test Setup          Open Owner Context And Page

@@ -3,6 +3,7 @@ Documentation       Port of e2e/import.spec.ts — spec §7.1 Gherkin text impor
 
 Resource            ../resources/common.resource
 Resource            ../resources/session.resource
+Resource            ../resources/editor.resource
 
 Suite Setup         Open Browser For Suite
 Test Setup          Open Owner Context And Page
@@ -11,34 +12,26 @@ Test Teardown       Finish Test
 Test Tags           chunk1    import
 
 
-*** Variables ***
-${IMPORT_BTN}       .gherkin-import-btn
-${MODAL}            .gherkin-import-modal
-${TEXTAREA}         .gherkin-import-textarea
-${CONFIRM}          .gherkin-import-confirm
-${CANCEL}           .gherkin-import-cancel
-
-
 *** Test Cases ***
 SC-7.1.1: Import button always visible in toolbar
     Open Session
-    Wait For Elements State    ${IMPORT_BTN}    visible
+    Wait For Elements State    ${IMPORT_BUTTON}    visible
 
 SC-7.1.2: Clicking Import opens modal with textarea and buttons
     Open Session
-    Click    ${IMPORT_BTN}
-    Wait For Elements State    ${MODAL}    visible
-    Wait For Elements State    ${TEXTAREA}    visible
-    Wait For Elements State    ${CONFIRM}    visible
-    Wait For Elements State    ${CANCEL}    visible
+    Click    ${IMPORT_BUTTON}
+    Wait For Elements State    ${IMPORT_MODAL}    visible
+    Wait For Elements State    ${IMPORT_TEXTAREA}    visible
+    Wait For Elements State    ${IMPORT_CONFIRM}    visible
+    Wait For Elements State    ${IMPORT_CANCEL}    visible
 
 SC-7.1.4: Cancel closes modal without inserting
     Open Session
-    Click    ${IMPORT_BTN}
-    Fill Text    ${TEXTAREA}    Feature: Should not appear
-    Click    ${CANCEL}
-    Wait For Elements State    ${MODAL}    hidden
-    Get Element Count    [data-gherkin-type="feature"]    ==    1
+    Click    ${IMPORT_BUTTON}
+    Fill Text    ${IMPORT_TEXTAREA}    Feature: Should not appear
+    Click    ${IMPORT_CANCEL}
+    Wait For Elements State    ${IMPORT_MODAL}    hidden
+    Get Element Count    ${BLOCK_TYPE}[feature]    ==    1
 
 SC-7.1.3: Inserting Gherkin creates blocks, skips non-matching, clears modal — valid sequence
     Open Session
@@ -48,25 +41,25 @@ SC-7.1.3: Inserting Gherkin creates blocks, skips non-matching, clears modal —
     ...    Given some context
     ...    When I do something
     ...    Then I see the result
-    Wait For Elements State    ${MODAL}    hidden
-    Get Element Count    [data-gherkin-type="feature"]    ==    2
-    Get Element Count    [data-gherkin-type="scenario"]    ==    2
-    Get Element Count    [data-gherkin-type="given"]    ==    2
-    Get Element Count    [data-gherkin-type="when"]    ==    2
-    Get Element Count    [data-gherkin-type="then"]    ==    2
+    Wait For Elements State    ${IMPORT_MODAL}    hidden
+    Get Element Count    ${BLOCK_TYPE}[feature]    ==    2
+    Get Element Count    ${BLOCK_TYPE}[scenario]    ==    2
+    Get Element Count    ${BLOCK_TYPE}[given]    ==    2
+    Get Element Count    ${BLOCK_TYPE}[when]    ==    2
+    Get Element Count    ${BLOCK_TYPE}[then]    ==    2
 
 SC-7.1.3: Inserting Gherkin creates blocks, skips non-matching, clears modal — out-of-order inserted leniently
     Open Session
     Import Gherkin    Scenario: Orphan    Given context
-    Get Element Count    [data-gherkin-type="scenario"]    ==    2
-    Get Element Count    [data-gherkin-type="given"]    ==    2
+    Get Element Count    ${BLOCK_TYPE}[scenario]    ==    2
+    Get Element Count    ${BLOCK_TYPE}[given]    ==    2
 
 SC-7.1.3: Inserting Gherkin creates blocks, skips non-matching, clears modal — textarea cleared
     Open Session
     Import Gherkin    Feature: Test
     # Reopen modal and verify textarea is empty.
-    Click    ${IMPORT_BTN}
-    Get Property    ${TEXTAREA}    value    ==    ${EMPTY}
+    Click    ${IMPORT_BUTTON}
+    Get Property    ${IMPORT_TEXTAREA}    value    ==    ${EMPTY}
 
 SC-7.1.3: Inserting Gherkin creates blocks, skips non-matching, clears modal — markdown-prefixed Gherkin parsed
     Open Session
@@ -76,12 +69,12 @@ SC-7.1.3: Inserting Gherkin creates blocks, skips non-matching, clears modal —
     ...    - Given: some context
     ...    - When: I do something
     ...    - Then: I see the result
-    Wait For Elements State    ${MODAL}    hidden
-    Get Element Count    [data-gherkin-type="feature"]    ==    2
-    Get Element Count    [data-gherkin-type="scenario"]    ==    2
-    Get Element Count    [data-gherkin-type="given"]    ==    2
-    Get Element Count    [data-gherkin-type="when"]    ==    2
-    Get Element Count    [data-gherkin-type="then"]    ==    2
+    Wait For Elements State    ${IMPORT_MODAL}    hidden
+    Get Element Count    ${BLOCK_TYPE}[feature]    ==    2
+    Get Element Count    ${BLOCK_TYPE}[scenario]    ==    2
+    Get Element Count    ${BLOCK_TYPE}[given]    ==    2
+    Get Element Count    ${BLOCK_TYPE}[when]    ==    2
+    Get Element Count    ${BLOCK_TYPE}[then]    ==    2
 
 SC-7.1.3: Inserting Gherkin creates blocks, skips non-matching, clears modal — pipe rows become DataTable
     Open Session
@@ -93,29 +86,29 @@ SC-7.1.3: Inserting Gherkin creates blocks, skips non-matching, clears modal —
     ...    | --- | --- |
     ...    | Alice | admin |
     ...    | Bob${SPACE * 3}| user${SPACE * 2}|
-    Wait For Elements State    ${MODAL}    hidden
-    Get Element Count    [data-gherkin-type="scenario"]    ==    2
-    Get Element Count    [data-gherkin-type="given"]    ==    2
-    Get Element Count    [data-gherkin-table]    ==    1
+    Wait For Elements State    ${IMPORT_MODAL}    hidden
+    Get Element Count    ${BLOCK_TYPE}[scenario]    ==    2
+    Get Element Count    ${BLOCK_TYPE}[given]    ==    2
+    Get Element Count    ${TABLE}    ==    1
 
 SC-7.1.3: Inserting Gherkin creates blocks, skips non-matching, clears modal — plain text skipped
     Open Session
-    ${before}=    Get Element Count    .gherkin-editor [data-gherkin-type]
+    ${before}=    Get Element Count    ${BLOCKS}
     Import Gherkin    This is just plain text with no keywords at all
-    Wait For Elements State    ${MODAL}    hidden
-    Get Element Count    .gherkin-editor [data-gherkin-type]    ==    ${before}
+    Wait For Elements State    ${IMPORT_MODAL}    hidden
+    Get Element Count    ${BLOCKS}    ==    ${before}
 
 SC-7.1.3: Inserting Gherkin creates blocks, skips non-matching, clears modal — case-insensitive with colon
     Open Session
-    ${before}=    Get Element Count    [data-gherkin-type="given"]
+    ${before}=    Get Element Count    ${BLOCK_TYPE}[given]
     Import Gherkin    GIVEN: something uppercase
-    Get Element Count    [data-gherkin-type="given"]    ==    ${before + 1}
+    Get Element Count    ${BLOCK_TYPE}[given]    ==    ${before + 1}
 
 SC-7.1.3: Inserting Gherkin creates blocks, skips non-matching, clears modal — case-insensitive without colon
     Open Session
-    ${before}=    Get Element Count    [data-gherkin-type="given"]
+    ${before}=    Get Element Count    ${BLOCK_TYPE}[given]
     Import Gherkin    Given something without a colon
-    Get Element Count    [data-gherkin-type="given"]    ==    ${before + 1}
+    Get Element Count    ${BLOCK_TYPE}[given]    ==    ${before + 1}
 
 
 *** Keywords ***
@@ -124,6 +117,6 @@ Import Gherkin
     ...    joined by newlines, and click Insert.
     [Arguments]    @{lines}
     ${text}=    Catenate    SEPARATOR=\n    @{lines}
-    Click    ${IMPORT_BTN}
-    Fill Text    ${TEXTAREA}    ${text}
-    Click    ${CONFIRM}
+    Click    ${IMPORT_BUTTON}
+    Fill Text    ${IMPORT_TEXTAREA}    ${text}
+    Click    ${IMPORT_CONFIRM}

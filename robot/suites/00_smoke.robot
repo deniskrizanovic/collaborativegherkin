@@ -13,6 +13,7 @@ Documentation       Smoke test: a new session opens with the 5 scaffold blocks.
 # Resource files hold shared keywords and variables (like TS imports).
 Resource            ../resources/common.resource
 Resource            ../resources/session.resource
+Resource            ../resources/editor.resource
 
 # Runs once before any test in this file: start Chromium.
 Suite Setup         Open Browser For Suite

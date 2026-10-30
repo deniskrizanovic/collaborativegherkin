@@ -78,14 +78,168 @@ robot/
   README.md          this file
   PARITY.md          Playwright test → Robot test, status per row
   resources/         shared keywords and variables (*.resource)
-    common.resource  Browser import, variables, suite/test setup
-    session.resource ports of e2e/helpers.ts (Open Session, ...)
-    editor_domain.resource  Given/When/Then keywords for block_picker_bdd.robot
-  libraries/         Python / JS keyword libraries
-  suites/            one *.robot file per e2e/*.spec.ts, plus the
-                     business-language pilot block_picker_bdd.robot
+    variables.resource  globals (${BASE_URL}, storage states)
+    common.resource  Browser import, suite/test setup and teardown
+    api.resource     RequestsLibrary sessions for the browser-free API suite
+    session.resource sessions, REST calls through the page, contexts,
+                     cookies, response waits, AI review selectors
+    editor.resource  editor selectors and helpers: blocks, toolbar, picker,
+                     images, data tables, export and import controls
+    files.resource   temp files and downloads
+    steps/           business-language steps, one file per spec capability
+      shared.resource            steps whose text is in more than one capability
+      gherkin_editor.resource    openspec/specs/gherkin-editor
+      gherkin_export.resource    openspec/specs/gherkin-export
+      gherkin_import.resource    openspec/specs/gherkin-import
+      realtime_collaboration.resource  openspec/specs/realtime-collaboration
+      llm_review.resource        openspec/specs/llm-review
+  libraries/         Python / JS keyword libraries (routes.cjs, WebSocketProbe.py)
+  suites/            one technical *.robot file per e2e/*.spec.ts, plus one
+                     business-language <area>_bdd.robot twin per editor area
   results/           output (git-ignored)
 ```
+
+## Writing a business-language test
+
+A `bdd` suite (`suites/<area>_bdd.robot`, tag `bdd`) tells the same story as
+its spec: each test is the GIVEN/WHEN/THEN lines of one scenario of
+`openspec/specs/`, word for word. The technical `<area>.robot` next to it
+keeps the Playwright port. `pnpm lint:robot-steps` (pre-commit hook and CI)
+checks every `bdd` test against its scenario:
+
+- the test is named `SC-x.y.z: <spec scenario title>[ — <variant>]`;
+- each step is a line of that scenario, with the same kind (Given / When /
+  Then; `And` / `But` take the kind before them), or that line refined (see
+  below). Backticks are dropped and case is ignored;
+- across all tests of a scenario, every line of it is used at least once.
+
+### Refining a line
+
+A step either equals its spec line or adds words after it. Pick the form by
+how the line ends:
+
+| Spec line ends in… | Refine with | Example |
+|---|---|---|
+| a noun the detail qualifies | a plain phrase | `Given the cursor is at the end of a block of type Feature` |
+| a full clause (expected values, a branch of an "or" line) | ` — <detail>` | `When the user clicks "Cancel" or presses Escape or clicks outside the panel — Escape` |
+
+Test data, such as a document to type or a text to import, lives in the
+suite's `*** Variables ***`, and the step refers to it with `with ${NAME}`:
+`Given the user pastes or types Gherkin text into the textarea and clicks
+Insert with ${MARKDOWN_PREFIXED}`. Expected values are test data too, passed
+after ` — `. A step never works out an expected value from a rule table of its
+own (that would copy `src/lib/gherkin.ts`); the one exception is the
+valid-next lists, kept once in `&{VALID_NEXT_LABELS}` /
+`&{INVALID_NEXT_LABELS}` in `steps/gherkin_editor.resource`.
+
+### Where a keyword goes
+
+- **A step** goes in `steps/<capability>.resource`, the capability whose
+  `openspec/specs/<capability>/spec.md` holds the line. If the same text
+  appears in more than one capability, it goes in `steps/shared.resource`.
+  Each step is defined once across `resources/`.
+- **A helper** goes where its subject is: `editor.resource` for the editor,
+  `session.resource` for sessions and the session page, `files.resource` for
+  files. A suite never redefines a selector or keyword these provide.
+- **Selectors** are variables of `editor.resource` or `session.resource`. A
+  step keyword never contains a selector literal.
+- **Naming**: steps are lower-case sentences copied from the spec line;
+  helpers are Title Case verb phrases (`Insert Image After Block`). A `bdd`
+  test body calls steps only.
+- **Synonyms**: when two lines mean the same thing (`a user is in a session
+  editor` / `a user is on a session page`), the second keyword calls the
+  first and its `[Documentation]` says so.
+- **Imports**: a `steps/` file imports `shared.resource`, `editor.resource`
+  and `session.resource`; a `bdd` suite imports `common.resource` and the
+  `steps/` files it uses.
+
+### Passing state between steps
+
+A test body holds steps only, so steps share state through test variables.
+The contract:
+
+- a step's `[Documentation]` ends with `Sets:` and/or `Reads:` lines naming
+  its variables;
+- each `steps/*.resource` lists, in its `Documentation`, every variable its
+  keywords set, with its meaning;
+- a step that reads one starts with `Require Step State    NAME    <step that
+  sets it>`. Run without that step, it fails with `"<step>" must run before
+  this step (${NAME} is not set)` instead of Robot's "variable not found".
+
+### Then steps check what the spec line says
+
+A Then step asserts its whole line, even when the technical test checks less.
+For example, "the cursor is placed at the start of the new block's text" types
+and checks that the text lands in the new block. When part of a line happens
+on the server, the step asserts what the browser can see and its
+`[Documentation]` names the boundary (for example, the review request's body
+carries the editor's content; the OpenRouter call is covered by unit tests).
+The usual robustness rules still hold: no fixed waits, wait for counts to
+grow, click before typing, and held routes for in-flight states.
+
+### When a scenario gets no business-language test
+
+A scenario is left out only when a line cannot be asserted:
+
+- the line cannot be seen from the browser (`SC-8.4.2`, "the next review uses
+  the updated prompt");
+- the technical test is skipped (`SC-3.5.2`);
+- the app does not do what the line says. Open a GitHub issue and leave the
+  scenario out until it is fixed (`SC-3.2.2` #53, `SC-3.8.3` #54, `SC-3.11.2`
+  #55). Never weaken the step to make it pass.
+
+Name the exclusion and its reason in the suite's `Documentation` and in
+`PARITY.md`. Technical variants with no matching line (for example "Table
+button absent on Feature") stay technical-only.
+
+### Worked example
+
+Spec `SC-8.8.2` in `openspec/specs/llm-review/spec.md`:
+
+```
+#### Scenario: View last review reopens modal without new API call
+- **GIVEN** the "View last review" button is visible
+- **WHEN** the user clicks it
+- **THEN** the result modal reopens showing the same result without a new API call
+```
+
+The test in `suites/llm_review_bdd.robot` repeats it:
+
+```robot
+SC-8.8.2: View last review reopens modal without new API call
+    Given the "View last review" button is visible
+    When the user clicks it
+    Then the result modal reopens showing the same result without a new API call
+```
+
+`When the user clicks it` is in `steps/shared.resource`, because the line
+also appears in `gherkin-editor`. The Given and Then are in
+`steps/llm_review.resource`:
+
+```robot
+the "View last review" button is visible
+    [Documentation]    Open a fresh session, complete a review, close the result
+    ...    modal and wait for "View last review". "it" in the next step is
+    ...    that button.
+    ...    Sets: ${SESSION_ID}, ${REVIEW_SHOWN}, ${IT_SELECTOR}.
+    a review has completed and the result modal has been closed
+    Wait For Elements State    ${VIEW_LAST_BUTTON}    visible
+    Set Test Variable    ${IT_SELECTOR}    ${VIEW_LAST_BUTTON}
+
+the result modal reopens showing the same result without a new API call
+    [Documentation]    The result modal shows the text it showed for the first
+    ...    review, and /api/llm-review has still served exactly one request.
+    ...    Reads: ${REVIEW_SHOWN}.
+    Require Step State    REVIEW_SHOWN    the "View last review" button is visible
+    Wait For Elements State    ${REVIEW_MODAL}    visible
+    Get Text    ${REVIEW_MODAL_BODY}    ==    ${REVIEW_SHOWN}
+    ${count}=    Route Request Count    ${REVIEW_URL}
+    Should Be Equal As Integers    ${count}    1
+```
+
+The review is served by `Fulfill Counted Route` (`routes.cjs`), so "without a
+new API call" is a count, not a fixed wait. Last, add the suite to the
+scenario's `> **Tests:**` line (`pnpm lint:specs`) and a row to `PARITY.md`.
 
 ## Robot syntax in five minutes
 
@@ -163,7 +317,8 @@ Toolbar Button
 ### Tags
 
 `[Tags]    chunk1    home` on a test. Every test carries its chunk tag
-(`chunk0` … `chunk6`) and an area tag. Select with `--include` / `--exclude`.
+(`chunk0` … `chunk6`) and an area tag; business-language tests carry `bdd`
+instead of a chunk tag. Select with `--include` / `--exclude`.
 The tag `skip` marks a ported `test.skip`.
 
 ### Setup and teardown

@@ -6,6 +6,7 @@ Documentation       Port of e2e/image.spec.ts — spec §3.8 image blocks: toolb
 
 Resource            ../resources/common.resource
 Resource            ../resources/session.resource
+Resource            ../resources/editor.resource
 Resource            ../resources/files.resource
 
 Suite Setup         Open Browser For Suite
@@ -15,23 +16,14 @@ Test Teardown       Remove Temp Files
 Test Tags           chunk3    image
 
 
-*** Variables ***
-${PICKER}           [style*="position: fixed"]
-${IMAGE}            .gherkin-image-block img
-
-
 *** Test Cases ***
 SC-3.8.1: Image toolbar button opens file picker and embeds image
     Open Session
-    ${png}=    Write Tiny PNG
-    Click    [data-gherkin-type="then"] >> nth=-1
-    ${image_button}=    Toolbar Button    Image
-    Click    ${image_button}
-    Upload File By Selector    input[type="file"]    ${png}
-    Wait For Elements State    .gherkin-image-block    visible
-    Wait For Elements State    ${IMAGE}    visible
+    Insert Image After Block    then
+    Wait For Elements State    ${IMAGE_BLOCK}    visible
+    Wait For Elements State    ${IMAGE_BLOCK} img    visible
     # The image really renders: a non-null box with both sides > 0.
-    ${box}=    Get BoundingBox    ${IMAGE}
+    ${box}=    Get BoundingBox    ${IMAGE_BLOCK} img
     Should Not Be Equal    ${box}    ${None}
     Should Be True    ${box}[width] > 0
     Should Be True    ${box}[height] > 0
@@ -39,19 +31,20 @@ SC-3.8.1: Image toolbar button opens file picker and embeds image
 SC-3.8.2: Slash-command Image selection opens file picker and embeds image
     Open Session
     ${png}=    Write Tiny PNG
-    Click    [data-gherkin-type="then"] >> nth=-1
+    ${then}=    Block Selector    then
+    Click    ${then} >> nth=-1
     Keyboard Input    type    /
     Wait For Elements State    ${PICKER}    visible
     # Image is always the last picker option.
     Click    ${PICKER} >> button >> nth=-1
-    Upload File By Selector    input[type="file"]    ${png}
-    Wait For Elements State    .gherkin-image-block    visible
+    Upload File By Selector    ${FILE_INPUT}    ${png}
+    Wait For Elements State    ${IMAGE_BLOCK}    visible
 
 SC-3.8.3: Drag and drop image embeds at drop position
     Open Session
     ${bytes}=    Tiny PNG Bytes
     ${base64}=    Evaluate    base64.b64encode($bytes).decode()    modules=base64
-    ${arg}=    Create Dictionary    selector=.gherkin-editor-wrapper    base64=${base64}
+    ${arg}=    Create Dictionary    selector=${EDITOR_WRAPPER}    base64=${base64}
     Evaluate JavaScript    ${None}
     ...    ({ selector, base64 }) => {
     ...        const el = document.querySelector(selector);
@@ -63,4 +56,4 @@ SC-3.8.3: Drag and drop image embeds at drop position
     ...        el.dispatchEvent(new DragEvent("drop", { bubbles: true, cancelable: true, dataTransfer: dt }));
     ...    }
     ...    arg=${arg}
-    Wait For Elements State    .gherkin-image-block    visible
+    Wait For Elements State    ${IMAGE_BLOCK}    visible

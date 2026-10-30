@@ -9,6 +9,7 @@ Documentation       Port of the collaborator-UX block of
 Library             Collections
 Resource            ../resources/common.resource
 Resource            ../resources/session.resource
+Resource            ../resources/editor.resource
 
 Suite Setup         Open Browser For Suite
 Test Setup          Open Owner Context And Page
@@ -18,9 +19,6 @@ Test Tags           chunk5    session-access-control
 
 
 *** Variables ***
-${FEATURE}          [data-gherkin-type="feature"]
-${MODEL_SELECT}     .session-model-select
-${PROMPT_MODAL}     .session-prompt-modal
 ${PROMPT}           A collaborator-supplied review prompt that is comfortably long enough.
 
 
@@ -31,7 +29,7 @@ a second user opens the shared link: no error banner, settings load
     # The settings GET on load must succeed for a non-owner (200), not 403.
     Expect Response Status    /api/sessions/${id}    GET    200
     ...    Go To    ${BASE_URL}/sessions/${id}
-    Wait For Elements State    ${FEATURE}    visible
+    Wait For Elements State    ${BLOCK_TYPE}[feature]    visible
     # The "silently swallowed 403" regression surfaced as this banner.
     Get Element Count    .form-error    ==    0
     Wait For Elements State    ${MODEL_SELECT}    visible
@@ -40,7 +38,7 @@ a second user can change the model and it persists (PATCH 200, no banner)
     ${id}=    Create Session Via API    Collaborator changes model
     Open Shared Link As Other User
     Go To    ${BASE_URL}/sessions/${id}
-    Wait For Elements State    ${FEATURE}    visible
+    Wait For Elements State    ${BLOCK_TYPE}[feature]    visible
 
     Wait For Elements State    ${MODEL_SELECT}    enabled
     ${current}=    Get Property    ${MODEL_SELECT}    value
@@ -59,14 +57,14 @@ a second user can change the model and it persists (PATCH 200, no banner)
     # Reload: the change persisted (the write really landed, not just an
     # optimistic UI update that got rolled back).
     Reload
-    Wait For Elements State    ${FEATURE}    visible
+    Wait For Elements State    ${BLOCK_TYPE}[feature]    visible
     Get Property    ${MODEL_SELECT}    value    ==    ${target}
 
 a second user can save a new prompt (modal closes, no banner)
     ${id}=    Create Session Via API    Collaborator edits prompt
     Open Shared Link As Other User
     Go To    ${BASE_URL}/sessions/${id}
-    Wait For Elements State    ${FEATURE}    visible
+    Wait For Elements State    ${BLOCK_TYPE}[feature]    visible
 
     Click    .session-edit-prompt-btn
     Wait For Elements State    ${PROMPT_MODAL}    visible

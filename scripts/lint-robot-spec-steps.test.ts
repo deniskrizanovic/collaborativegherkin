@@ -31,7 +31,7 @@ const specs = [{ file: "spec.md", content: spec }];
 
 function suite(tests: string, tags = "pilot    bdd") {
   return `*** Settings ***
-Resource            ../resources/editor_domain.resource
+Resource            ../resources/steps/gherkin_editor.resource
 Test Tags           ${tags}
 
 *** Test Cases ***

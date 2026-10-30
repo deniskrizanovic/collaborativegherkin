@@ -6,6 +6,7 @@ Documentation       Port of e2e/data-table.spec.ts — spec §3.11 data tables:
 
 Resource            ../resources/common.resource
 Resource            ../resources/session.resource
+Resource            ../resources/editor.resource
 Resource            ../resources/files.resource
 
 Suite Setup         Open Browser For Suite
@@ -15,23 +16,16 @@ Test Teardown       Remove Temp Files
 Test Tags           chunk3    data-table
 
 
-*** Variables ***
-${TABLE}            [data-gherkin-table]
-${PICKER}           [style*="position: fixed"]
-${CELL_0_0}         [data-gherkin-table] [data-cell='0-0']
-${CELL_0_1}         [data-gherkin-table] [data-cell='0-1']
-
-
 *** Test Cases ***
 SC-3.11.1: Table button shown when cursor is on step or data table — visible on Given
     Open Session
-    Click    [data-gherkin-type="given"] >> nth=0
+    Click    ${BLOCK_TYPE}[given] >> nth=0
     ${table_button}=    Toolbar Button    Table
     Wait For Elements State    ${table_button}    visible
 
 SC-3.11.1: Table button shown when cursor is on step or data table — absent on Feature
     Open Session
-    Click    [data-gherkin-type="feature"]
+    Click    ${BLOCK_TYPE}[feature]
     ${table_button}=    Toolbar Button    Table
     Wait For Elements State    ${table_button}    hidden
 
@@ -45,9 +39,9 @@ SC-3.11.6: Add row and Add column controls available
     Insert Table On First Given
     # Click into a cell to trigger focus-within, which shows the toolbar.
     Click    ${TABLE} td >> nth=0
-    Wait For Elements State    .gherkin-table-toolbar    visible
-    Wait For Elements State    .gherkin-table-toolbar-btn[data-action="insert-row-below"]    visible
-    Wait For Elements State    .gherkin-table-toolbar-btn[data-action="insert-col-after"]    visible
+    Wait For Elements State    ${TABLE_TOOLBAR}    visible
+    Wait For Elements State    ${TABLE_TOOLBAR_BUTTON}\[data-action="insert-row-below"]    visible
+    Wait For Elements State    ${TABLE_TOOLBAR_BUTTON}\[data-action="insert-col-after"]    visible
 
 SC-3.11.2: Clicking Table inserts 2×2 stub with cursor in first cell — first cell interactive
     Open Session
@@ -88,8 +82,7 @@ SC-3.11.7: TXT export uses pipe-delimited rows padded to column width
     Type Into Block    feature    Login
     Type Into Block    scenario    Table test
     Type Into Block    given    a step with data
-    ${table_button}=    Toolbar Button    Table
-    Click    ${table_button}
+    Click Toolbar Button    Table
     # Row 0 renders as <th>.
     Click    ${CELL_0_0}
     Fill Text    ${CELL_0_0}    name
@@ -97,7 +90,7 @@ SC-3.11.7: TXT export uses pipe-delimited rows padded to column width
     Fill Text    ${CELL_0_1}    age
     # Blur commits the cell content.
     Click Editor
-    ${path}    ${filename}=    Download Via Button    .gherkin-export-btn
+    ${path}    ${filename}=    Download Via Button    ${EXPORT_BUTTON}
     ${content}=    Get File    ${path}    encoding=UTF-8
     Should Contain    ${content}    | name
     Should Contain    ${content}    | age
@@ -107,12 +100,11 @@ SC-3.11.8: MD export uses header row with separator
     Type Into Block    feature    MD Table
     Type Into Block    scenario    export scenario
     Type Into Block    given    a step
-    ${table_button}=    Toolbar Button    Table
-    Click    ${table_button}
+    Click Toolbar Button    Table
     Click    ${CELL_0_0}
     Fill Text    ${CELL_0_0}    col
     Click Editor
-    ${path}    ${filename}=    Download Via Button    .gherkin-export-md-btn    md
+    ${path}    ${filename}=    Download Via Button    ${EXPORT_MD_BUTTON}    md
     ${content}=    Get File    ${path}    encoding=UTF-8
     Should Contain    ${content}    | col
     Should Match Regexp    ${content}    \\| -+
@@ -121,6 +113,6 @@ SC-3.11.8: MD export uses header row with separator
 *** Keywords ***
 Insert Table On First Given
     [Documentation]    Put the cursor on the first given and click Table.
-    Click    [data-gherkin-type="given"] >> nth=0
-    ${table_button}=    Toolbar Button    Table
-    Click    ${table_button}
+    ${given}=    Block Selector    given
+    Click    ${given} >> nth=0
+    Click Toolbar Button    Table
