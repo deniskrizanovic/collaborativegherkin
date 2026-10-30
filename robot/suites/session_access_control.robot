@@ -42,6 +42,7 @@ a second user can change the model and it persists (PATCH 200, no banner)
     Go To    ${BASE_URL}/sessions/${id}
     Wait For Elements State    ${FEATURE}    visible
 
+    Wait For Elements State    ${MODEL_SELECT}    enabled
     ${current}=    Get Property    ${MODEL_SELECT}    value
     ${options}=    Evaluate JavaScript    ${MODEL_SELECT} option
     ...    (els) => els.map((el) => el.value)

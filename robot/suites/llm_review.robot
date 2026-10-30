@@ -29,6 +29,12 @@ ${VIEW_LAST_BTN}    .session-view-last-review-btn
 ${EDIT_PROMPT}      .session-edit-prompt-btn
 ${PROMPT_MODAL}     .session-prompt-modal
 ${PROMPT_TEXT}      .session-prompt-textarea
+# Session settings GET. Matches /api/sessions/<id> but not /api/sessions, so
+# `Create Session Via API` is never intercepted.
+${SETTINGS_URL}     **/api/sessions/*
+${EMPTY_SETTINGS}    {"model": null, "prompt": null}
+# Opening words of DEFAULT_PROMPT in src/lib/llm-constants.ts.
+${DEFAULT_PROMPT_START}    You are an excellent Software Requirements Analyst.
 
 
 *** Test Cases ***
@@ -50,6 +56,15 @@ SC-8.4.1: Edit prompt button opens modal with pre-filled textarea — button vis
     Open Session
     Wait For Elements State    ${EDIT_PROMPT}    visible
 
+SC-8.3.4: Model dropdown is disabled until session settings have loaded — controls disabled while settings load is pending
+    Hold Route    ${SETTINGS_URL}    200    ${EMPTY_SETTINGS}    GET
+    Open Session
+    Wait For Elements State    ${EDIT_PROMPT}    disabled
+    Wait For Elements State    ${MODEL_SELECT}    disabled
+    Release Route    ${SETTINGS_URL}
+    Wait For Elements State    ${EDIT_PROMPT}    enabled
+    Wait For Elements State    ${MODEL_SELECT}    enabled
+
 SC-8.1.1: Clicking Get AI Coaching sends content and disables controls — modal opens
     Open Session
     Intercept Review
@@ -60,6 +75,7 @@ SC-8.1.1: Clicking Get AI Coaching sends content and disables controls — modal
 SC-8.1.2: Successful LLM response displayed as Markdown in modal — header shows model name
     Open Session
     Intercept Review
+    Wait For Elements State    ${MODEL_SELECT}    enabled
     ${selected_model}=    Get Property    ${MODEL_SELECT}    value
     Click    ${REVIEW_BTN}
     Get Text    .session-review-modal-header    *=    ${selected_model}
@@ -212,6 +228,30 @@ SC-8.4.2: Saving new prompt persists it and closes modal
     Get Property    ${PROMPT_TEXT}    value    ==    ${new_prompt}
     # Clean up: close without saving.
     Click    .session-prompt-cancel
+
+SC-8.4.6: A prompt edited after a slow settings load is the one saved
+    Hold Route    ${SETTINGS_URL}    200    ${EMPTY_SETTINGS}    GET
+    Open Session
+    Wait For Elements State    ${EDIT_PROMPT}    disabled
+    Release Route    ${SETTINGS_URL}
+    Click    ${EDIT_PROMPT}
+    ${new_prompt}=    Set Variable    You are a patient BDD coach. Explain every suggestion.
+    Fill Text    ${PROMPT_TEXT}    ${new_prompt}
+    Click    .session-prompt-save
+    Wait For Elements State    ${PROMPT_MODAL}    hidden
+    # Reload against the real server: the PATCH must have sent the edited text.
+    Clear Routes
+    Reload
+    Click    ${EDIT_PROMPT}
+    Get Property    ${PROMPT_TEXT}    value    ==    ${new_prompt}
+
+SC-8.4.7: Failed settings load leaves the default prompt editable
+    Fulfill Route    ${SETTINGS_URL}    500    {"error": "Failed to fetch session"}    GET
+    Open Session
+    Get Text    .form-error    ==    Couldn't load this session's AI settings.
+    Click    ${EDIT_PROMPT}
+    Wait For Elements State    ${PROMPT_MODAL}    visible
+    Get Property    ${PROMPT_TEXT}    value    ^=    ${DEFAULT_PROMPT_START}
 
 
 *** Keywords ***
