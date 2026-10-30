@@ -27,10 +27,10 @@ the Feature block) unless noted otherwise.
 | 1 | 27 | initial-content (3), toolbar (5), import (11), home (8) |
 | 2 | 25 | enter-progression (9), block-picker (9), visual-separation (7) |
 | 3 | 19 | export (4), image (3), enter-progression SC-3.2.2 (1), data-table (10), visual-separation export (1) |
-| 4 | 23 | llm-review (22), home SC-1.2.4 (1) |
+| 4 | 26 | llm-review (25), home SC-1.2.4 (1) |
 | 5 | 9 | collaboration (3, one skip), session-access-control (6: 3 API + 3 UX) |
 | 6 | 3 | websocket-auth (3) |
-| **All** | **106** | 14 spec files |
+| **All** | **109** | 14 spec files |
 
 ## initial-content.spec.ts
 
@@ -156,15 +156,16 @@ the Feature block) unless noted otherwise.
 
 ## llm-review.spec.ts
 
-`interceptReview` = route `/api/llm-review` fulfilled 200 JSON `{result: <body>}`, default body `MOCK_REVIEW` (`## Feedback` + 2 bullet items). "Held" = route handler awaits a test-controlled promise before fulfilling.
+`interceptReview` = route `/api/llm-review` fulfilled 200 JSON `{result: <body>}`, default body `MOCK_REVIEW` (`## Feedback` + 2 bullet items). "Held" = route handler awaits a test-controlled promise before fulfilling. "Held settings GET" = route `**/api/sessions/*` held for GET only (other methods fall back to the server), then fulfilled 200 JSON `{model: null, prompt: null}`.
 
 | Playwright file | Title | Key assertions | Robot suite | Chunk | Status |
 |---|---|---|---|---|---|
 | llm-review.spec.ts | SC-8.3.1: Model dropdown shown pre-selected to persisted model — button and dropdown visible | `.session-review-btn` visible; `.session-model-select` visible | llm_review.robot | 4 | ported |
 | llm-review.spec.ts | SC-8.3.1: Model dropdown shown pre-selected to persisted model — expected models listed | wait first option attached; option texts contain `meta-llama/llama-3.2-3b-instruct:free`, `deepseek/deepseek-v4-flash:free`, `google/gemma-4-31b-it:free`, `google/gemma-4-26b-a4b-it:free` | llm_review.robot | 4 | ported |
 | llm-review.spec.ts | SC-8.4.1: Edit prompt button opens modal with pre-filled textarea — button visible | `.session-edit-prompt-btn` visible | llm_review.robot | 4 | ported |
+| llm-review.spec.ts | SC-8.3.4: Model dropdown is disabled until session settings have loaded — controls disabled while settings load is pending | **held settings GET** registered before openSession; `.session-edit-prompt-btn` disabled; `.session-model-select` disabled; release; both enabled | llm_review.robot | 4 | ported |
 | llm-review.spec.ts | SC-8.1.1: Clicking Get AI Coaching sends content and disables controls — modal opens | interceptReview; click review; `.session-review-modal` visible; body contains `Feedback` | llm_review.robot | 4 | ported |
-| llm-review.spec.ts | SC-8.1.2: Successful LLM response displayed as Markdown in modal — header shows model name | interceptReview; read select value; click review; `.session-review-modal-header` contains selected model | llm_review.robot | 4 | ported |
+| llm-review.spec.ts | SC-8.1.2: Successful LLM response displayed as Markdown in modal — header shows model name | interceptReview; select enabled; read select value; click review; `.session-review-modal-header` contains selected model | llm_review.robot | 4 | ported |
 | llm-review.spec.ts | SC-8.1.2: Successful LLM response displayed as Markdown in modal — Markdown rendered | interceptReview; click review; body `h2` visible; body `li` count == 2 | llm_review.robot | 4 | ported |
 | llm-review.spec.ts | SC-8.1.1: Clicking Get AI Coaching sends content and disables controls — button disabled in flight | **held route**; click review; button disabled, text == `Reviewing…`; model select disabled; release; modal visible; button enabled | llm_review.robot | 4 | ported |
 | llm-review.spec.ts | SC-8.2.3: X button closes results modal | interceptReview; click review; modal visible; click `.session-review-modal-close`; modal not visible | llm_review.robot | 4 | ported |
@@ -182,6 +183,8 @@ the Feature block) unless noted otherwise.
 | llm-review.spec.ts | SC-8.4.3: Cancel, Escape, or outside click closes prompt modal without saving — click outside | edit prompt; modal visible; click `.session-prompt-modal` at (5, 5); modal not visible | llm_review.robot | 4 | ported |
 | llm-review.spec.ts | SC-8.4.4: Save disabled when textarea has fewer than 10 chars | edit prompt; fill `short`; `.session-prompt-save` disabled | llm_review.robot | 4 | ported |
 | llm-review.spec.ts | SC-8.4.2: Saving new prompt persists it and closes modal | edit prompt; fill new prompt; save; modal not visible; reopen; textarea value == new prompt; cancel (cleanup) | llm_review.robot | 4 | ported |
+| llm-review.spec.ts | SC-8.4.6: A prompt edited after a slow settings load is the one saved | **held settings GET** registered before openSession; edit prompt disabled; release; edit prompt; fill new prompt; save; modal not visible; unroute all; reload; edit prompt; textarea value == new prompt | llm_review.robot | 4 | ported |
+| llm-review.spec.ts | SC-8.4.7: Failed settings load leaves the default prompt editable | route `**/api/sessions/*` GET only fulfilled 500 JSON `{error}` before openSession; `.form-error` text == `Couldn't load this session's AI settings.`; edit prompt; modal visible; textarea value == `DEFAULT_PROMPT` (Robot: starts with its first sentence) | llm_review.robot | 4 | ported |
 
 ## collaboration.spec.ts
 
@@ -201,7 +204,7 @@ API block uses a separate `request` context with `user2.json` (non-owner); dispo
 | session-access-control.spec.ts | non-owner can PATCH a session's settings (200) | owner creates; user2 PATCH `{prompt: "A collaborator-supplied prompt that is long enough."}` status == 200 | session_access_control_api.robot | 5 | ported |
 | session-access-control.spec.ts | non-owner cannot DELETE a session (403) — deletion stays owner-only | owner creates; user2 DELETE status == 403; owner GET status == 200 | session_access_control_api.robot | 5 | ported |
 | session-access-control.spec.ts | a second user opens the shared link: no error banner, settings load | owner creates; user2 context; **waitForResponse** URL includes `/api/sessions/<id>` and method GET, paired with goto; status == 200; wait feature; `.form-error` count == 0; `.session-model-select` visible | session_access_control.robot | 5 | ported |
-| session-access-control.spec.ts | a second user can change the model and it persists (PATCH 200, no banner) | owner creates; user2 context goto + wait; read current value, option values; target != current exists (truthy); **waitForResponse** PATCH paired with selectOption; status == 200; `.form-error` count == 0; reload; wait feature; select value == target | session_access_control.robot | 5 | ported |
+| session-access-control.spec.ts | a second user can change the model and it persists (PATCH 200, no banner) | owner creates; user2 context goto + wait; select enabled; read current value, option values; target != current exists (truthy); **waitForResponse** PATCH paired with selectOption; status == 200; `.form-error` count == 0; reload; wait feature; select value == target | session_access_control.robot | 5 | ported |
 | session-access-control.spec.ts | a second user can save a new prompt (modal closes, no banner) | owner creates; user2 context goto + wait; edit prompt; modal visible; fill long prompt; **waitForResponse** PATCH paired with save click; status == 200; prompt modal not visible; `.form-error` count == 0 | session_access_control.robot | 5 | ported |
 
 ## websocket-auth.spec.ts

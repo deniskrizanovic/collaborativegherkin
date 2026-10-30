@@ -1,5 +1,6 @@
 import { test, expect } from "@playwright/test";
 import { openSession } from "./helpers";
+import { DEFAULT_PROMPT } from "../src/lib/llm-constants";
 
 // spec §8
 
@@ -9,6 +10,27 @@ async function interceptReview(page: Parameters<typeof openSession>[0], response
   await page.route("/api/llm-review", (route) =>
     route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ result: responseBody }) })
   );
+}
+
+// Session settings GET. Matches /api/sessions/<id> but not /api/sessions, and
+// session creation goes through page.request, which page.route never sees.
+const SETTINGS_URL = "**/api/sessions/*";
+const EMPTY_SETTINGS = JSON.stringify({ model: null, prompt: null });
+
+/**
+ * Hold the session settings GET until the returned function is called, then
+ * fulfill it with no stored model or prompt. Other methods (the PATCH saves)
+ * fall back to the server.
+ */
+async function holdSettingsLoad(page: Parameters<typeof openSession>[0]): Promise<() => void> {
+  let release!: () => void;
+  const held = new Promise<void>((res) => { release = res; });
+  await page.route(SETTINGS_URL, async (route) => {
+    if (route.request().method() !== "GET") return route.fallback();
+    await held;
+    await route.fulfill({ status: 200, contentType: "application/json", body: EMPTY_SETTINGS });
+  });
+  return release;
 }
 
 test.describe("LLM review — session page controls", () => {
@@ -33,6 +55,17 @@ test.describe("LLM review — session page controls", () => {
     await openSession(page);
     await expect(page.locator(".session-edit-prompt-btn")).toBeVisible();
   });
+
+  test("SC-8.3.4: Model dropdown is disabled until session settings have loaded — controls disabled while settings load is pending", async ({ page }) => {
+    const release = await holdSettingsLoad(page);
+    await openSession(page);
+    await expect(page.locator(".session-edit-prompt-btn")).toBeDisabled();
+    await expect(page.locator(".session-model-select")).toBeDisabled();
+
+    release();
+    await expect(page.locator(".session-edit-prompt-btn")).toBeEnabled();
+    await expect(page.locator(".session-model-select")).toBeEnabled();
+  });
 });
 
 test.describe("LLM review — triggering a review", () => {
@@ -49,7 +82,9 @@ test.describe("LLM review — triggering a review", () => {
     await openSession(page);
     await interceptReview(page);
 
-    const selectedModel = await page.locator(".session-model-select").inputValue();
+    const select = page.locator(".session-model-select");
+    await expect(select).toBeEnabled();
+    const selectedModel = await select.inputValue();
     await page.locator(".session-review-btn").click();
     await expect(page.locator(".session-review-modal-header")).toContainText(selectedModel);
   });
@@ -256,5 +291,38 @@ test.describe("LLM review — prompt editing", () => {
 
     // Clean up — restore default
     await page.locator(".session-prompt-cancel").click();
+  });
+
+  test("SC-8.4.6: A prompt edited after a slow settings load is the one saved", async ({ page }) => {
+    const release = await holdSettingsLoad(page);
+    await openSession(page);
+    await expect(page.locator(".session-edit-prompt-btn")).toBeDisabled();
+    release();
+
+    await page.locator(".session-edit-prompt-btn").click();
+    const newPrompt = "You are a patient BDD coach. Explain every suggestion.";
+    await page.locator(".session-prompt-textarea").fill(newPrompt);
+    await page.locator(".session-prompt-save").click();
+    await expect(page.locator(".session-prompt-modal")).not.toBeVisible();
+
+    // Reload against the real server: the PATCH must have sent the edited text.
+    await page.unrouteAll();
+    await page.reload();
+    await page.locator(".session-edit-prompt-btn").click();
+    await expect(page.locator(".session-prompt-textarea")).toHaveValue(newPrompt);
+  });
+
+  test("SC-8.4.7: Failed settings load leaves the default prompt editable", async ({ page }) => {
+    await page.route(SETTINGS_URL, (route) =>
+      route.request().method() === "GET"
+        ? route.fulfill({ status: 500, contentType: "application/json", body: JSON.stringify({ error: "Failed to fetch session" }) })
+        : route.fallback()
+    );
+    await openSession(page);
+    await expect(page.locator(".form-error")).toHaveText("Couldn't load this session's AI settings.");
+
+    await page.locator(".session-edit-prompt-btn").click();
+    await expect(page.locator(".session-prompt-modal")).toBeVisible();
+    await expect(page.locator(".session-prompt-textarea")).toHaveValue(DEFAULT_PROMPT);
   });
 });

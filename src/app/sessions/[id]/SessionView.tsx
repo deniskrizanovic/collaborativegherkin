@@ -29,19 +29,36 @@ export default function SessionView({ sessionId, title }: Props) {
   const [savingPrompt, setSavingPrompt] = useState(false);
 
   const [settingsError, setSettingsError] = useState<string | null>(null);
+  // The model select and "Edit prompt" stay disabled until the load settles,
+  // so a late response can never overwrite what the user has changed. Keyed by
+  // session id, so a sessionId change disables them again until its load settles.
+  const [loadedSessionId, setLoadedSessionId] = useState<string | null>(null);
+  const settingsLoaded = loadedSessionId === sessionId;
 
   useEffect(() => {
+    // Ignore responses that arrive after cleanup (unmount, sessionId change,
+    // StrictMode double mount).
+    let cancelled = false;
     fetch(`/api/sessions/${sessionId}`)
       .then(async (r) => {
         if (!r.ok) {
+          if (cancelled) return;
           setSettingsError("Couldn't load this session's AI settings.");
+          setLoadedSessionId(sessionId);
           return;
         }
         const data: { model: string | null; prompt: string | null } = await r.json();
+        if (cancelled) return;
         setSelectedModel(data.model ?? DEFAULT_MODEL);
         setPromptText(data.prompt ?? DEFAULT_PROMPT);
+        setLoadedSessionId(sessionId);
       })
-      .catch(() => setSettingsError("Couldn't load this session's AI settings."));
+      .catch(() => {
+        if (cancelled) return;
+        setSettingsError("Couldn't load this session's AI settings.");
+        setLoadedSessionId(sessionId);
+      });
+    return () => { cancelled = true; };
   }, [sessionId]);
 
   // Close review modal on Escape
@@ -140,14 +157,18 @@ export default function SessionView({ sessionId, title }: Props) {
       </p>
       {settingsError && <p className="form-error">{settingsError}</p>}
       <div className="session-actions">
-        <button className="session-edit-prompt-btn" onClick={handleOpenPrompt}>
+        <button
+          className="session-edit-prompt-btn"
+          onClick={handleOpenPrompt}
+          disabled={!settingsLoaded}
+        >
           Edit prompt
         </button>
         <select
           className="session-model-select"
           value={selectedModel}
           onChange={(e) => handleModelChange(e.target.value)}
-          disabled={reviewing}
+          disabled={reviewing || !settingsLoaded}
         >
           {AVAILABLE_MODELS.map((m) => (
             <option key={m} value={m}>{m}</option>

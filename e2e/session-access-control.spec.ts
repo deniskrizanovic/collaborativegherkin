@@ -110,6 +110,7 @@ test.describe("session access control — collaborator UX (ADR-0005)", () => {
       await page2.waitForSelector('[data-gherkin-type="feature"]');
 
       const select = page2.locator(".session-model-select");
+      await expect(select).toBeEnabled();
       const current = await select.inputValue();
       const options = await select.locator("option").evaluateAll((els) =>
         (els as HTMLOptionElement[]).map((e) => e.value)

@@ -41,13 +41,18 @@ fulfillRoute.rfdoc =
 
 /**
  * Like `fulfillRoute`, but the handler waits until `releaseRoute(url)` before
- * fulfilling, so the UI stays in its in-flight state until then.
+ * fulfilling, so the UI stays in its in-flight state until then. When `method`
+ * is set, other methods pass through to the server unchanged and are never held.
  */
-async function holdRoute(url, status, body, page) {
+async function holdRoute(url, status, body, method = null, page) {
   const routes = heldFor(page);
   if (routes.has(url)) throw new Error(`A route for ${url} is already held`);
   const release = new Promise((resolve) => routes.set(url, resolve));
   await page.route(url, async (route) => {
+    if (method && route.request().method() !== method.toUpperCase()) {
+      await route.continue();
+      return;
+    }
     await release;
     try {
       await route.fulfill({ status: Number(status), contentType: "application/json", body });
@@ -57,7 +62,7 @@ async function holdRoute(url, status, body, page) {
   });
 }
 holdRoute.rfdoc =
-  "Hold requests to ``url`` until `Release Route`, then fulfill them with ``status`` and JSON ``body``.";
+  "Hold requests to ``url`` until `Release Route`, then fulfill them with ``status`` and JSON ``body``. With ``method``, other methods continue to the server.";
 
 /** Let a route registered with `holdRoute` on the active page fulfill its requests. */
 async function releaseRoute(url, page) {

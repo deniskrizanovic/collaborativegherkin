@@ -209,9 +209,13 @@ kbd {
   color: var(--text-muted);
   transition: border-color 0.15s, color 0.15s;
 }
-.session-edit-prompt-btn:hover {
+.session-edit-prompt-btn:hover:not(:disabled) {
   border-color: #002664;
   color: var(--text);
+}
+.session-edit-prompt-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 
 .session-model-select {
