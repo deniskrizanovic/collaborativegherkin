@@ -2,79 +2,16 @@
 
 import React, { forwardRef, useCallback, useEffect, useImperativeHandle, useRef, useState } from "react";
 import { useEditor, useEditorState, EditorContent } from "@tiptap/react";
-import { Node, mergeAttributes } from "@tiptap/core";
 import StarterKit from "@tiptap/starter-kit";
 import Collaboration from "@tiptap/extension-collaboration";
 import { GherkinBlockType, GHERKIN_LABELS, exportToMarkdown, parseGherkin, DataTableBlock } from "@/lib/gherkin";
 import { GherkinDataTable } from "./GherkinDataTable";
+import { GherkinImage } from "./GherkinImage";
+import { GherkinParagraph } from "./GherkinParagraph";
+import { NarrowNodeSelection } from "./NarrowNodeSelection";
 import { BlockPicker, getValidNextTypes } from "./BlockPicker";
 import { useCollabProvider } from "./useCollabProvider";
 import { useGherkinKeyboard, getAllBlocks, getCurrentBlockType, getPreviousBlockType } from "./useGherkinKeyboard";
-
-const GherkinImage = Node.create({
-  name: "gherkin_image",
-  group: "block",
-  atom: true,
-  selectable: false,
-  draggable: true,
-
-  addAttributes() {
-    return {
-      src: { default: null },
-      alt: { default: "" },
-    };
-  },
-
-  parseHTML() {
-    return [{ tag: "img[data-gherkin-image]" }];
-  },
-
-  renderHTML({ HTMLAttributes }) {
-    return ["img", mergeAttributes(HTMLAttributes, { "data-gherkin-image": "" })];
-  },
-
-  addNodeView() {
-    return ({ node }) => {
-      const dom = document.createElement("div");
-      dom.className = "gherkin-image-block";
-      const img = document.createElement("img");
-      img.src = node.attrs.src;
-      img.alt = node.attrs.alt ?? "";
-      img.style.maxWidth = "100%";
-      dom.appendChild(img);
-      return { dom };
-    };
-  },
-});
-
-const GherkinParagraph = Node.create({
-  name: "paragraph",
-  priority: 1000,
-  group: "block",
-  content: "inline*",
-
-  addAttributes() {
-    return {
-      "data-gherkin-type": {
-        default: null,
-        parseHTML: (el) => el.getAttribute("data-gherkin-type"),
-        renderHTML: (attrs) =>
-          attrs["data-gherkin-type"]
-            ? { "data-gherkin-type": attrs["data-gherkin-type"] }
-            : {},
-      },
-    };
-  },
-
-  parseHTML() {
-    return [{ tag: "p" }];
-  },
-
-  renderHTML({ HTMLAttributes }) {
-    return ["p", mergeAttributes(HTMLAttributes), 0];
-  },
-});
-
 
 export interface GherkinEditorHandle {
   getContent: () => string;
@@ -119,6 +56,7 @@ function GherkinEditor({ sessionId, wsUrl }, ref) {
       GherkinParagraph,
       GherkinImage,
       GherkinDataTable,
+      NarrowNodeSelection,
       Collaboration.configure({ document: ydoc }),
     ],
     content: "",

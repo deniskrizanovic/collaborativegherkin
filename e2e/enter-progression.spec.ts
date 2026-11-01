@@ -1,5 +1,5 @@
 import { test, expect } from "@playwright/test";
-import { openSession, pressEnterAndWait } from "./helpers";
+import { documentNodes, openSession, pressEnterAndWait } from "./helpers";
 import path from "path";
 import fs from "fs";
 import os from "os";
@@ -190,10 +190,8 @@ test.describe("enter-key auto-progression", () => {
       (count: number) => document.querySelectorAll("[data-gherkin-type]").length > count,
       countBefore
     );
-    const typesAfter = await page.locator(".gherkin-editor [data-gherkin-type]").evaluateAll(
-      (els) => els.map((el) => el.getAttribute("data-gherkin-type"))
-    );
-    expect(typesAfter[typesAfter.length - 1]).toBe("and");
+    const nodes = await documentNodes(page);
+    expect(nodes[nodes.indexOf("image") + 1]).toBe("and");
 
     fs.unlinkSync(tmpImg);
   });

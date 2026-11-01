@@ -138,6 +138,7 @@ SC-3.2.2: Enter on image block uses prevType context
     ${count_before}=    Get Length    ${types_before}
     Keyboard Key    press    Enter
     Get Element Count    ${BLOCKS}    >    ${count_before}
-    # prevType is 'then', so the new block after the image is 'and'.
-    ${types_after}=    Block Types In Editor
-    Should Be Equal    ${types_after}[-1]    and
+    # prevType is 'then', so the node right after the image is 'and'.
+    ${nodes}=    Document Nodes In Editor
+    ${i}=    Evaluate    $nodes.index("image")
+    Should Be Equal    ${nodes}[${i + 1}]    and

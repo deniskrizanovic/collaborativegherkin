@@ -47,6 +47,14 @@ SC-3.1.2: New document seeded with 5 scaffold blocks once — second joiner does
     Switch Page    ${page1}    context=ALL
     Wait For Condition    Text    ${BLOCK_TYPE}[feature]    *=    Do not wipe me    timeout=5s
 
+SC-3.12.6: Collaborator removes an image another user has selected — image in the middle
+    [Teardown]    Remove Temp Files
+    Remove Selected Image Remotely    image_last=${False}
+
+SC-3.12.6: Collaborator removes an image another user has selected — image last
+    [Teardown]    Remove Temp Files
+    Remove Selected Image Remotely    image_last=${True}
+
 SC-3.5.2: Remote user cursors visible in distinct colour
     [Tags]    skip
     Skip    @tiptap/extension-collaboration-cursor has no Tiptap 3 stable release yet; skipped until available
@@ -64,3 +72,41 @@ SC-3.5.2: Remote user cursors visible in distinct colour
     Switch Page    ${page1}    context=ALL
     Wait For Elements State    .collaboration-cursor__caret    visible    timeout=5s
 
+
+*** Keywords ***
+Remove Selected Image Remotely
+    [Documentation]    The first user selects the image of Then, image, And (or
+    ...    Then, image when ${image_last}); the second user selects it and
+    ...    presses Backspace. The image disappears for the first user, whose
+    ...    typing still lands in a Gherkin block that both users see, with the
+    ...    blocks around the image intact and no page error. The Y.js binding
+    ...    restores the first user's node selection after the remote delete,
+    ...    and with the image last no node is left at that position.
+    [Arguments]    ${image_last}
+    ${id}=    Build Then Image And    image_last=${image_last}
+    ${ids}=    Get Page Ids    CURRENT    CURRENT    CURRENT
+    ${page1}=    Set Variable    ${ids}[0]
+    ${page2}=    Open Second Context    ${OWNER_STATE}
+    Switch Page    ${page2}    context=ALL
+    Go To    ${BASE_URL}/sessions/${id}
+    Wait For Elements State    ${IMAGE_BLOCK}    visible
+
+    Switch Page    ${page1}    context=ALL
+    Select Image
+    Switch Page    ${page2}    context=ALL
+    Select Image
+    Keyboard Key    press    Backspace
+
+    Switch Page    ${page1}    context=ALL
+    Get Element Count    ${IMAGE_BLOCK}    ==    0
+    Keyboard Input    type    Still typing
+    ${typed}=    Set Variable    ${BLOCKS}:has-text("Still typing")
+    Get Element Count    ${typed}    ==    1
+    Get Text    ${BLOCK_TYPE}[then]    *=    Before image
+    IF    not ${image_last}
+        Get Text    ${BLOCK_TYPE}[and]    *=    After image
+    END
+    ${errors}=    Get Page Errors
+    Should Be Empty    ${errors}
+    Switch Page    ${page2}    context=ALL
+    Get Element Count    ${typed}    ==    1

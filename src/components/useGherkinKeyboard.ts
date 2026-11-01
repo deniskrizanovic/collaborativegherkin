@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useLayoutEffect, useRef, useState, MutableRefObject } from "react";
 import { Editor } from "@tiptap/react";
-import { TextSelection } from "@tiptap/pm/state";
+import { EditorState, NodeSelection, TextSelection, Transaction } from "@tiptap/pm/state";
+import { GapCursor } from "@tiptap/pm/gapcursor";
 import {
   GherkinBlockType,
   NEXT_BLOCK_ON_ENTER,
@@ -10,6 +11,7 @@ import {
   DataTableBlock,
 } from "@/lib/gherkin";
 import { InsertableType, getValidNextTypes } from "./BlockPicker";
+import { isImageSelected } from "./GherkinImage";
 
 export interface PickerState {
   show: boolean;
@@ -66,20 +68,66 @@ export function getAllBlocks(state: import("@tiptap/pm/state").EditorState): Doc
   return blocks;
 }
 
-function insertAtomNode(editor: Editor, node: import("@tiptap/pm/model").Node) {
+/**
+ * Where a block inserted "after the cursor" goes: after the selected image,
+ * into the gap of a gap cursor, or after the block holding a text selection.
+ * Null for any other selection (for example Select All), where there is no
+ * single block to insert after.
+ */
+export function positionAfterSelection(state: EditorState): number | null {
+  const { selection } = state;
+  if (selection instanceof NodeSelection) return selection.to;
+  if (selection instanceof GapCursor) return selection.from;
+  if (selection instanceof TextSelection && selection.$from.depth > 0) return selection.$from.after();
+  return null;
+}
+
+function insertAtomNodeAt(editor: Editor, node: import("@tiptap/pm/model").Node, pos: number) {
   const { state, view } = editor;
-  const insertPos = state.selection.$from.after();
+  const $pos = state.doc.resolve(Math.min(pos, state.doc.content.size));
+  // A remote change may leave a tracked position inside a block.
+  const insertPos = $pos.depth === 0 ? $pos.pos : $pos.after(1);
   const tr = state.tr.insert(insertPos, node);
   const afterPos = Math.min(insertPos + node.nodeSize, tr.doc.content.size);
   tr.setSelection(TextSelection.near(tr.doc.resolve(afterPos)));
   view.dispatch(tr);
 }
 
-function insertImageFromFile(file: File, editor: Editor) {
+function insertAtomNode(editor: Editor, node: import("@tiptap/pm/model").Node) {
+  const insertPos = positionAfterSelection(editor.state);
+  if (insertPos !== null) insertAtomNodeAt(editor, node, insertPos);
+}
+
+interface TrackedPosition {
+  current: () => number;
+  stop: () => void;
+}
+
+/**
+ * Follows a document position through later changes, local and remote, so an
+ * image chosen in the file dialog lands where the upload was started.
+ */
+function trackPosition(editor: Editor, pos: number): TrackedPosition {
+  let position = editor.utils.createMappablePosition(pos);
+  const onTransaction = ({ transaction }: { transaction: Transaction }) => {
+    position = editor.utils.getUpdatedPosition(position, transaction).position;
+  };
+  editor.on("transaction", onTransaction);
+  return { current: () => position.position, stop: () => editor.off("transaction", onTransaction) };
+}
+
+function trackPositionAfterSelection(editor: Editor): TrackedPosition | null {
+  const pos = positionAfterSelection(editor.state);
+  return pos === null ? null : trackPosition(editor, pos);
+}
+
+function insertImageFromFile(file: File, editor: Editor, target: TrackedPosition | null) {
   const reader = new FileReader();
   reader.onload = (e) => {
+    target?.stop();
+    if (!target || editor.isDestroyed) return;
     const src = e.target?.result as string;
-    insertAtomNode(editor, editor.state.schema.nodes.gherkin_image.create({ src, alt: file.name }));
+    insertAtomNodeAt(editor, editor.state.schema.nodes.gherkin_image.create({ src, alt: file.name }), target.current());
   };
   reader.readAsDataURL(file);
 }
@@ -105,6 +153,9 @@ export function useGherkinKeyboard(
   // Keep triggerFileUpload stable in a ref so insertBlock doesn't re-create on every render
   const triggerFileUploadRef = useRef(triggerFileUpload);
   useEffect(() => { triggerFileUploadRef.current = triggerFileUpload; }, [triggerFileUpload]);
+
+  // Where the image from the open file dialog goes, captured when the upload starts
+  const uploadTargetRef = useRef<TrackedPosition | null>(null);
 
   const closePicker = useCallback(() => {
     setPickerState(CLOSED_PICKER);
@@ -134,6 +185,8 @@ export function useGherkinKeyboard(
           const { from } = editor.state.selection;
           editor.chain().focus().deleteRange({ from: from - 1, to: from }).run();
         }
+        uploadTargetRef.current?.stop();
+        uploadTargetRef.current = trackPositionAfterSelection(editor);
         triggerFileUploadRef.current();
         return;
       }
@@ -143,8 +196,9 @@ export function useGherkinKeyboard(
         editor.chain().focus().deleteRange({ from: from - 1, to: from }).run();
       }
 
-      if (replace) {
-        const { $from } = editor.state.selection;
+      const { $from } = editor.state.selection;
+      // A selected image sits at depth 0 with no block to retype; insert after it instead
+      if (replace && $from.depth > 0) {
         const nodeStart = $from.before();
         editor.chain().focus()
           .command(({ tr }) => {
@@ -155,8 +209,8 @@ export function useGherkinKeyboard(
         return;
       }
 
-      const { $from } = editor.state.selection;
-      const insertPos = $from.after();
+      const insertPos = positionAfterSelection(editor.state);
+      if (insertPos === null) return;
       editor.chain().focus()
         .insertContentAt(insertPos, {
           type: "paragraph",
@@ -182,11 +236,8 @@ export function useGherkinKeyboard(
         const nextType = contextType ? NEXT_BLOCK_ON_ENTER[contextType] : null;
 
         if (nextType && canFollow(currentType ?? prevType, nextType)) {
-          const { $from } = editor.state.selection;
-          const insertPos =
-            $from.depth > 0
-              ? $from.after()
-              : $from.pos + ($from.nodeAfter?.nodeSize ?? 0);
+          const insertPos = positionAfterSelection(editor.state);
+          if (insertPos === null) return true;
           editor
             .chain()
             .focus()
@@ -200,7 +251,8 @@ export function useGherkinKeyboard(
         return true;
       }
 
-      if (event.key === "/") {
+      // The image's own plugin keeps the "/" from replacing it; only the picker is skipped here
+      if (event.key === "/" && !isImageSelected(editor.state)) {
         const currentType = getCurrentBlockType(editor.state);
         const prevType = getPreviousBlockType(editor.state);
         const options = getValidNextTypes(prevType);
@@ -266,7 +318,10 @@ export function useGherkinKeyboard(
   const insertImage = useCallback(
     (file: File) => {
       const editor = editorRef.current;
-      if (editor) insertImageFromFile(file, editor);
+      if (!editor) return;
+      const target = uploadTargetRef.current ?? trackPositionAfterSelection(editor);
+      uploadTargetRef.current = null;
+      insertImageFromFile(file, editor, target);
     },
     [editorRef]
   );

@@ -1,5 +1,74 @@
-import { test, expect } from "@playwright/test";
-import { createSession } from "./helpers";
+import { test, expect, Browser, Page } from "@playwright/test";
+import { createSession, documentNodes } from "./helpers";
+import path from "path";
+import fs from "fs";
+import os from "os";
+
+const PNG_1x1 = Buffer.from(
+  "89504e470d0a1a0a0000000d49484452000000010000000108020000009001" +
+  "2e00000000c4944415478016360f8cfc00000000200016c3455300000000049454e44ae426082",
+  "hex"
+);
+
+// SC-3.12.6 — the first user selects an image, the second user deletes it.
+// y-prosemirror restores the first user's NodeSelection after the remote
+// change; with the image last there is no node left at the saved position.
+async function removeSelectedImageRemotely(page: Page, browser: Browser, imageLast: boolean) {
+  const pageErrors: Error[] = [];
+  page.on("pageerror", (err) => pageErrors.push(err));
+
+  const sessionId = await createSession(page, "Remote image delete");
+  const url = `http://localhost:3000/sessions/${sessionId}`;
+  await page.goto(url);
+  await page.waitForSelector('[data-gherkin-type="then"]');
+
+  await page.locator('[data-gherkin-type="then"]').click();
+  await page.keyboard.type("Before image");
+  if (!imageLast) {
+    await page.locator(".gherkin-toolbar-btn", { hasText: "And" }).click();
+    await page.keyboard.type("After image");
+  }
+
+  const tmpImg = path.join(os.tmpdir(), `test-img-${Date.now()}.png`);
+  fs.writeFileSync(tmpImg, PNG_1x1);
+  await page.locator('[data-gherkin-type="then"]').click();
+  await page.locator(".gherkin-toolbar-btn", { hasText: "Image" }).click();
+  await page.locator('input[type="file"]').setInputFiles(tmpImg);
+  fs.unlinkSync(tmpImg);
+  await expect(page.locator(".gherkin-image-block")).toBeVisible();
+  expect(await documentNodes(page)).toEqual(
+    imageLast
+      ? ["feature", "scenario", "given", "when", "then", "image"]
+      : ["feature", "scenario", "given", "when", "then", "image", "and"]
+  );
+
+  const context2 = await browser.newContext({ storageState: "e2e/.auth/user.json" });
+  const page2 = await context2.newPage();
+  try {
+    await page2.goto(url);
+    await expect(page2.locator(".gherkin-image-block")).toBeVisible({ timeout: 5000 });
+
+    await page.locator(".gherkin-image-block").click();
+    await expect(page.locator(".gherkin-image-block")).toHaveClass(/ProseMirror-selectednode/);
+
+    await page2.locator(".gherkin-image-block").click();
+    await page2.keyboard.press("Backspace");
+
+    await expect(page.locator(".gherkin-image-block")).toHaveCount(0, { timeout: 5000 });
+
+    await page.keyboard.type("Still typing");
+    const typed = '.gherkin-editor [data-gherkin-type]';
+    await expect(page.locator(typed, { hasText: "Still typing" })).toHaveCount(1);
+    await expect(page2.locator(typed, { hasText: "Still typing" })).toHaveCount(1, { timeout: 5000 });
+    await expect(page.locator('[data-gherkin-type="then"]')).toContainText("Before image");
+    if (!imageLast) {
+      await expect(page.locator('[data-gherkin-type="and"]')).toContainText("After image");
+    }
+    expect(pageErrors).toEqual([]);
+  } finally {
+    await context2.close();
+  }
+}
 
 // spec §3.5 — real-time collaboration
 // Uses two separate browser contexts so BroadcastChannel cannot bridge them.
@@ -49,6 +118,14 @@ test.describe("real-time collaboration", () => {
     } finally {
       await context2.close();
     }
+  });
+
+  test("SC-3.12.6: Collaborator removes an image another user has selected — image in the middle", async ({ page, browser }) => {
+    await removeSelectedImageRemotely(page, browser, false);
+  });
+
+  test("SC-3.12.6: Collaborator removes an image another user has selected — image last", async ({ page, browser }) => {
+    await removeSelectedImageRemotely(page, browser, true);
   });
 
   // @tiptap/extension-collaboration-cursor has no Tiptap 3 stable release yet; skipped until available
