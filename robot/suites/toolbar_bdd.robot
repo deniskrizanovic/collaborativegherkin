@@ -1,5 +1,6 @@
 *** Settings ***
 Documentation       Business-language twin of toolbar.robot: spec §3.4 toolbar
+...                 and SC-3.12.5, toolbar insert with an image selected
 ...                 (openspec/specs/gherkin-editor/spec.md).
 ...
 ...                 Each test is the GIVEN/WHEN/THEN lines of its scenario; the
@@ -7,6 +8,7 @@ Documentation       Business-language twin of toolbar.robot: spec §3.4 toolbar
 ...                 Valid-next labels come from &{VALID_NEXT_LABELS} there.
 
 Resource            ../resources/common.resource
+Resource            ../resources/files.resource
 Resource            ../resources/steps/gherkin_editor.resource
 
 Suite Setup         Open Browser For Suite
@@ -43,3 +45,10 @@ SC-3.4.2: Clicking toolbar button inserts block and moves cursor — Scenario af
     When the user clicks a toolbar button labelled Scenario
     Then a new block of the chosen type is inserted after the current block
     And the cursor moves to the new block
+
+SC-3.12.5: Toolbar insert with an image selected places the block after the image
+    [Teardown]    Remove Temp Files
+    Given an image block follows a Then block and the image is selected
+    When the user clicks the And toolbar button
+    Then a new And block is inserted immediately after the image
+    And the cursor is placed at the start of the new block's text

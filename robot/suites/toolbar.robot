@@ -1,5 +1,6 @@
 *** Settings ***
-Documentation       Port of e2e/toolbar.spec.ts — spec §3.4 toolbar.
+Documentation       Port of e2e/toolbar.spec.ts — spec §3.4 toolbar, and
+...                 SC-3.12.5 (toolbar insert with an image selected).
 
 Library             Collections
 Resource            ../resources/common.resource
@@ -45,3 +46,16 @@ SC-3.4.1: Toolbar shows valid next blocks and Image — Image present on non-Fea
     Click    ${BLOCK_TYPE}[then]
     ${texts}=    Toolbar Button Texts
     List Should Contain Value    ${texts}    Image
+
+SC-3.12.5: Toolbar insert with an image selected places the block after the image
+    [Teardown]    Remove Temp Files
+    Open Session
+    Insert Image After Block    then
+    Select Image
+    Click Toolbar Button    And
+    Get Element Count    ${BLOCK_TYPE}[and]    ==    1
+    ${nodes}=    Document Nodes In Editor
+    ${expected}=    Create List    feature    scenario    given    when    then    image    and
+    Lists Should Be Equal    ${nodes}    ${expected}
+    Keyboard Input    type    After image
+    Get Text    ${BLOCK_TYPE}[and]    ==    After image

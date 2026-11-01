@@ -8,11 +8,9 @@ Documentation       Business-language twin of enter_progression.robot: spec §3.
 ...                 step's refinement (`— Scenario`), never worked out by a
 ...                 keyword. The expected types are the ones the technical tests
 ...                 assert.
-...
-...                 SC-3.2.2 (Enter on an image block) has no test here: the app
-...                 cannot put the cursor on an image (issue #53, design D9).
 
 Resource            ../resources/common.resource
+Resource            ../resources/files.resource
 Resource            ../resources/steps/gherkin_editor.resource
 
 Suite Setup         Open Browser For Suite
@@ -75,4 +73,11 @@ SC-3.2.1: Enter at end of block inserts auto-progression type — rule → scena
     Given the cursor is at the end of a block of type Rule
     When the user presses Enter
     Then a new block of the auto-progression type is inserted immediately after the current block — Scenario
+    And the cursor is placed at the start of the new block's text
+
+SC-3.2.2: Enter on image block uses prevType context
+    [Teardown]    Remove Temp Files
+    Given an image block follows a Then block and the image is selected
+    When the user presses Enter
+    Then a new block is inserted immediately after the image using the auto-progression type of the most recent Gherkin block that precedes the image — And
     And the cursor is placed at the start of the new block's text

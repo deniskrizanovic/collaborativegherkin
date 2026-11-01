@@ -6,8 +6,9 @@ whose keyword implements it. A keyword is named after its spec line;
 line that appears in scenarios of more than one capability (counted over
 all of openspec/specs, so `the editor renders` counts SC-3.5.2, which is
 excluded); its keyword lives in this file. Out of scope (design D9):
-SC-3.5.2, SC-8.4.2, the app bugs SC-3.2.2 (#53), SC-3.8.3 (#54) and
-SC-3.11.2 (#55), and every scenario not listed.
+SC-3.5.2, SC-8.4.2, the app bugs SC-3.8.3 (#54) and SC-3.11.2 (#55), and
+every scenario not listed. SC-3.2.2 and SC-3.12.1–SC-3.12.6 were added by
+openspec/changes/fix-image-enter-selection once #53 was fixed.
 
 SC-3.1.2  New document seeded with 5 scaffold blocks once  (gherkin-editor)
     given  the Y.js document is empty after synchronisation  -> gherkin_editor
@@ -21,6 +22,12 @@ SC-3.2.1  Enter at end of block inserts auto-progression type  (gherkin-editor)
     given  the cursor is at the end of a block  -> gherkin_editor
     when   the user presses Enter  -> shared (key keyword)
     then   a new block of the auto-progression type is inserted immediately after the current block  -> gherkin_editor
+    then   the cursor is placed at the start of the new block's text  -> gherkin_editor
+
+SC-3.2.2  Enter on image block uses prevType context  (gherkin-editor)
+    given  an image block follows a Then block and the image is selected  -> gherkin_editor
+    when   the user presses Enter  -> shared (key keyword)
+    then   a new block is inserted immediately after the image using the auto-progression type of the most recent Gherkin block that precedes the image  -> gherkin_editor
     then   the cursor is placed at the start of the new block's text  -> gherkin_editor
 
 SC-3.3.1  Typing / opens picker with valid next blocks and Image  (gherkin-editor)
@@ -149,6 +156,40 @@ SC-3.11.8  MD export uses header row with separator  (gherkin-export)
     then   the first row is the header row  -> gherkin_export
     then   a `| --- | --- |` separator row follows the header  -> gherkin_export
     then   subsequent rows follow in order  -> gherkin_export
+
+SC-3.12.1  Clicking an image selects it  (gherkin-editor)
+    given  a document contains an image block that is not selected  -> gherkin_editor
+    when   the user clicks the image  -> gherkin_editor
+    then   the image is shown as selected  -> gherkin_editor
+
+SC-3.12.2  Arrow key moves the selection onto an image  (gherkin-editor)
+    given  the cursor is at the end of the block directly before an image block  -> gherkin_editor
+    when   the user presses ArrowRight  -> gherkin_editor (key keyword)
+    then   the image is shown as selected  -> gherkin_editor
+
+SC-3.12.3  Typing does not replace a selected image  (gherkin-editor)
+    given  an image block is selected  -> gherkin_editor
+    when   the user types a letter or `/`  -> gherkin_editor
+    then   the image stays in the document  -> gherkin_editor
+    then   no text is inserted and the block picker does not open  -> gherkin_editor
+
+SC-3.12.4  Backspace removes a selected image  (gherkin-editor)
+    given  an image block between two Gherkin blocks is selected  -> gherkin_editor
+    when   the user presses Backspace  -> gherkin_editor (key keyword)
+    then   the image is removed from the document  -> gherkin_editor
+    then   the Gherkin blocks on either side of it are unchanged  -> gherkin_editor
+
+SC-3.12.5  Toolbar insert with an image selected places the block after the image  (gherkin-editor)
+    given  an image block follows a Then block and the image is selected  -> gherkin_editor
+    when   the user clicks the And toolbar button  -> gherkin_editor
+    then   a new And block is inserted immediately after the image  -> gherkin_editor
+    then   the cursor is placed at the start of the new block's text  -> gherkin_editor
+
+SC-3.12.6  Collaborator removes an image another user has selected  (gherkin-editor)
+    given  two users are in the same session and the first user has an image block selected  -> realtime_collaboration
+    when   the second user removes that image  -> realtime_collaboration
+    then   the image disappears from the first user's editor  -> realtime_collaboration
+    then   the first user can keep typing in the editor  -> realtime_collaboration
 
 SC-7.1.1  Import button always visible in toolbar  (gherkin-import)
     given  a user is in a session editor  -> shared [shared]

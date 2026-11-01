@@ -24,13 +24,13 @@ the Feature block) unless noted otherwise.
 
 | Chunk | Tests | Files |
 |---|---|---|
-| 1 | 27 | initial-content (3), toolbar (5), import (11), home (8) |
+| 1 | 28 | initial-content (3), toolbar (6), import (11), home (8) |
 | 2 | 25 | enter-progression (9), block-picker (9), visual-separation (7) |
-| 3 | 19 | export (4), image (3), enter-progression SC-3.2.2 (1), data-table (10), visual-separation export (1) |
+| 3 | 25 | export (4), image (9), enter-progression SC-3.2.2 (1), data-table (10), visual-separation export (1) |
 | 4 | 26 | llm-review (25), home SC-1.2.4 (1) |
-| 5 | 9 | collaboration (3, one skip), session-access-control (6: 3 API + 3 UX) |
+| 5 | 11 | collaboration (5, one skip), session-access-control (6: 3 API + 3 UX) |
 | 6 | 3 | websocket-auth (3) |
-| **All** | **109** | 14 spec files |
+| **All** | **118** | 14 spec files |
 
 ## initial-content.spec.ts
 
@@ -49,6 +49,7 @@ the Feature block) unless noted otherwise.
 | toolbar.spec.ts | SC-3.4.2: Clicking toolbar button inserts block and moves cursor | click toolbar `Rule`; `[data-gherkin-type="rule"]` visible | toolbar.robot | 1 | ported |
 | toolbar.spec.ts | SC-3.4.2: Clicking toolbar button inserts block and moves cursor — Scenario after Feature | count scenario before; click toolbar `Scenario`; scenario count == before + 1 (auto-retry) | toolbar.robot | 1 | ported |
 | toolbar.spec.ts | SC-3.4.1: Toolbar shows valid next blocks and Image — Image present on non-Feature block | click `then` block; toolbar btn texts contain `Image` | toolbar.robot | 1 | ported |
+| toolbar.spec.ts | SC-3.12.5: Toolbar insert with an image selected places the block after the image | write PNG temp; click then; toolbar `Image`; setInputFiles; delete temp; image visible; click image; toolbar `And`; and count == 1; documentNodes == `[feature, scenario, given, when, then, image, and]`; type `After image`; `and` text == `After image` | toolbar.robot | 1 | ported |
 
 ## import.spec.ts
 
@@ -93,7 +94,7 @@ the Feature block) unless noted otherwise.
 | enter-progression.spec.ts | SC-3.2.1: Enter at end of block inserts auto-progression type — but → and | pressEnterAndWait scenario, given; toolbar `But`; click last but; `End`; record last `but` index; pressEnterAndWait and; type at index + 1 == `and` | enter_progression.robot | 2 | ported |
 | enter-progression.spec.ts | SC-3.2.1: Enter at end of block inserts auto-progression type — background → given | click feature; toolbar `Background`; click background; `End`, `Enter`; type after background == `given` | enter_progression.robot | 2 | ported |
 | enter-progression.spec.ts | SC-3.2.1: Enter at end of block inserts auto-progression type — rule → scenario | click feature; toolbar `Rule`; click rule; `End`, `Enter`; type after rule == `scenario` | enter_progression.robot | 2 | ported |
-| enter-progression.spec.ts | SC-3.2.2: Enter on image block uses prevType context | pressEnterAndWait scenario, given, when, then; write 1×1 PNG to temp; click last then; toolbar `Image`; setInputFiles; wait `.gherkin-image-block`; click it; count blocks; `Enter`; wait for function count > before; last type == `and`; delete temp file | enter_progression.robot | 3 | ported |
+| enter-progression.spec.ts | SC-3.2.2: Enter on image block uses prevType context | pressEnterAndWait scenario, given, when, then; write 1×1 PNG to temp; click last then; toolbar `Image`; setInputFiles; wait `.gherkin-image-block`; click it; count blocks; `Enter`; wait for function count > before; documentNodes: node right after `image` == `and`; delete temp file | enter_progression.robot | 3 | ported |
 
 ## block-picker.spec.ts
 
@@ -138,6 +139,12 @@ the Feature block) unless noted otherwise.
 | image.spec.ts | SC-3.8.1: Image toolbar button opens file picker and embeds image | write 1×1 PNG temp; click last then; toolbar `Image`; setInputFiles; `.gherkin-image-block` visible; `.gherkin-image-block img` visible; boundingBox not null, width > 0, height > 0; delete temp | image.robot | 3 | ported |
 | image.spec.ts | SC-3.8.2: Slash-command Image selection opens file picker and embeds image | write PNG temp; click last then; type `/`; picker visible; click last picker button; setInputFiles; `.gherkin-image-block` visible; delete temp | image.robot | 3 | ported |
 | image.spec.ts | SC-3.8.3: Drag and drop image embeds at drop position | page.evaluate: build `File` from base64 PNG, `DataTransfer`, dispatch `DragEvent("drop", {bubbles, cancelable, dataTransfer})` on `.gherkin-editor-wrapper`; `.gherkin-image-block` visible; delete temp | image.robot | 3 | ported |
+| image.spec.ts | SC-3.12.1: Clicking an image selects it | buildThenImageAnd (Then `Before image`, image, And `After image`); `.gherkin-image-block` lacks `ProseMirror-selectednode`; click it; has `ProseMirror-selectednode` | image.robot | 3 | ported |
+| image.spec.ts | SC-3.12.2: Arrow key moves the selection onto an image | buildThenImageAnd; click then; `End`; poll cursorPosition == `{index: 4, offset: 12, empty: true}`; image not selected; `ArrowRight`; image has `ProseMirror-selectednode` | image.robot | 3 | ported |
+| image.spec.ts | SC-3.12.3: Typing does not replace a selected image — letter | buildThenImageAnd; record editor textContent; click image; type `x`; image count == 1; documentNodes == `[feature, scenario, given, when, then, image, and]`; textContent unchanged; `.block-picker` not visible | image.robot | 3 | ported |
+| image.spec.ts | SC-3.12.3: Typing does not replace a selected image — slash | as letter, typing `/` | image.robot | 3 | ported |
+| image.spec.ts | SC-3.12.4: Backspace removes a selected image | buildThenImageAnd; click image; `Backspace`; image count == 0; documentNodes == `[feature, scenario, given, when, then, and]`; then text == `Before image`; and text == `After image` | image.robot | 3 | ported |
+| image.spec.ts | SC-3.12.4: Backspace removes a selected image — undo restores it | collect `pageerror`; buildThenImageAnd; click image; endUndoStep (`y-undo` plugin `undoManager.stopCapturing()`); `Backspace`; image count == 0; `ControlOrMeta+z`; image count == 1; documentNodes == `[feature, scenario, given, when, then, image, and]`; image has `ProseMirror-selectednode`; type `x`; documentNodes unchanged; then text == `Before image`, and text == `After image`; click and, poll cursor in node 6; `End`, poll offset 11; type ` still typing`; and text == `After image still typing`; no page errors | image.robot | 3 | ported |
 
 ## data-table.spec.ts
 
@@ -192,6 +199,8 @@ the Feature block) unless noted otherwise.
 |---|---|---|---|---|---|
 | collaboration.spec.ts | SC-3.5.1: Change by one user is visible to all in real time | create via API (no openSession); page1 goto + wait feature; **second isolated context** (`user.json`) page2 goto + wait feature; page1 click feature, type `Shared feature`; page2 feature contains `Shared feature` (timeout 5 s); context2 closed in finally | collaboration.robot | 5 | ported |
 | collaboration.spec.ts | SC-3.1.2: New document seeded with 5 scaffold blocks once — second joiner does not re-seed | create via API; page1 goto, wait, click feature, type `Do not wipe me`; **second context** (`user.json`) goto + wait; page2 feature contains text (5 s); page1 feature still contains text (5 s); context2 closed in finally | collaboration.robot | 5 | ported |
+| collaboration.spec.ts | SC-3.12.6: Collaborator removes an image another user has selected — image in the middle | collect `pageerror`; page1 Then `Before image`, And `After image`, image after Then; **second context** goto, image visible; page1 clicks image, has `ProseMirror-selectednode`; page2 clicks image, `Backspace`; page1 image count == 0; page1 types `Still typing`; one block has it on page1 and page2; then still `Before image`, and still `After image`; no page errors; delete temp | collaboration.robot | 5 | ported |
+| collaboration.spec.ts | SC-3.12.6: Collaborator removes an image another user has selected — image last | as image in the middle, with no And block (image is the last node) | collaboration.robot | 5 | ported |
 | collaboration.spec.ts | SC-3.5.2: Remote user cursors visible in distinct colour | **skip** (`@tiptap/extension-collaboration-cursor has no Tiptap 3 stable release yet`). Body: two contexts; page2 clicks feature; page1 `.collaboration-cursor__caret` visible (5 s) | collaboration.robot | 5 | skip |
 
 ## session-access-control.spec.ts
@@ -270,17 +279,20 @@ suite (design D10).
 
 ### enter_progression_bdd.robot
 
-9 tests, SC-3.2.1, one per progression.
+10 tests, SC-3.2.1 (one per progression) and SC-3.2.2.
 
 - **Inserted immediately after**: the block list is the old list with one
   block of the expected type inserted right after the current block; the
   technical tests check the type of the last block only.
 - **Cursor at the start of the new block**: types a marker and checks that it
   lands in the new block. No technical test checks the cursor.
+- **Enter on an image** (SC-3.2.2): the top-level nodes are the old nodes
+  with an And block inserted right after the image, not only the node after
+  the image.
 
 ### toolbar_bdd.robot
 
-5 tests, SC-3.4.1 and SC-3.4.2.
+6 tests, SC-3.4.1, SC-3.4.2 and SC-3.12.5.
 
 - **Valid next blocks**: the valid and invalid labels come from one shared
   dictionary (design D4), the same one the picker steps read.
@@ -302,13 +314,19 @@ suite (design D10).
 
 ### image_bdd.robot
 
-2 tests, SC-3.8.1 and SC-3.8.2.
+7 tests, SC-3.8.1, SC-3.8.2 and SC-3.12.1 to 3.12.4.
 
 - **A file picker opens**: `Promise To Upload File` is armed before the click,
   so the test fails if no file chooser opens (design D8).
 - **Immediately after the current block**: the top-level nodes are the old
   nodes with one image inserted right after the current one, and the image
   renders with a non-zero size. SC-3.8.2 checks the rendered image as well.
+- **Shown as selected** (SC-3.12.1, 3.12.2): the selected image has a solid
+  outline as well as the `ProseMirror-selectednode` class.
+- **No text inserted** (SC-3.12.3): the editor's full content (types, texts,
+  image `src` and `alt`) is unchanged, not only its text.
+- **Blocks on either side unchanged** (SC-3.12.4): the blocks before and after
+  the image keep their type as well as their text.
 
 ### data_table_bdd.robot
 
@@ -350,12 +368,14 @@ downloaded file with the editor's content when Export was clicked.
 
 ### collaboration_bdd.robot
 
-2 tests, SC-3.5.1.
+4 tests, SC-3.5.1 and SC-3.12.6.
 
 - **Types**: the second user sees the same blocks, in the same order, with
   the same types and texts, not only the typed text in the Feature block.
 - **Inserts a block**: the first user inserts a Scenario block from the
   toolbar and the second user sees it.
+- **Keep typing** (SC-3.12.6): every block the first user had before the
+  removal keeps its text, not only Then and And.
 
 ### llm_review_bdd.robot
 
@@ -395,12 +415,12 @@ Technical tests with no business-language twin (design D9):
 |---|---|---|
 | `SC-3.7.1 — first given after scenario has no border` | No scenario line describes a Given after Scenario | none |
 | `SC-3.11.1 — absent on Feature` | No line describes the cursor on Feature | none |
+| `SC-3.12.4 — undo restores it` | No line describes undo; the test guards the restored selection (design D5, Risks) | none |
 | `SC-8.3.1 — expected models listed` | No line describes the model list | none |
 | `SC-8.4.1 — button visible` | Covered by the full `SC-8.4.1` test | none |
 | `SC-8.1.1 — modal opens` | Covered by `SC-8.1.2`, "the result is displayed in a modal" | none |
 | `SC-8.4.2` | "the next review uses the updated prompt" cannot be observed in the browser | none |
 | `SC-3.5.2` | Skipped: no stable collaboration-cursor extension | none |
-| `SC-3.2.2` | The app does not satisfy the Given: the image node is `selectable: false`, so the cursor is never on an image ([#53](https://github.com/deniskrizanovic/collaborativegherkin/issues/53)) | none until #53 is fixed |
 | `SC-3.8.3` | The app does not satisfy "at the drop position": the drop handler ignores the drop coordinates ([#54](https://github.com/deniskrizanovic/collaborativegherkin/issues/54)) | none until #54 is fixed |
 | `SC-3.11.2` (both tests) | The app does not satisfy "the cursor is placed inside the first cell": focus stays in the main editor ([#55](https://github.com/deniskrizanovic/collaborativegherkin/issues/55)) | none until #55 is fixed |
 

@@ -955,3 +955,9 @@ kbd {
   display: block;
   max-width: 100%;
 }
+
+.gherkin-image-block.ProseMirror-selectednode {
+  outline: 2px solid var(--focus-colour);
+  outline-offset: 2px;
+  border-radius: var(--radius);
+}

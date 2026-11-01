@@ -35,6 +35,8 @@ ${PICKER}           [style*="position: fixed"]
 # Background of the focused picker item.
 ${FOCUSED_BG}       rgba(0, 38, 100, 0.06)
 ${IMAGE_BLOCK}      .gherkin-image-block
+# An image block ProseMirror marks as the selected node.
+${SELECTED_IMAGE}    .gherkin-image-block.ProseMirror-selectednode
 ${TABLE}            [data-gherkin-table]
 ${CELL_0_0}         ${TABLE} [data-cell='0-0']
 ${CELL_0_1}         ${TABLE} [data-cell='0-1']
@@ -114,7 +116,8 @@ Document Content In Editor
     ...    order as a dictionary. `node` is the `data-gherkin-type` of a block,
     ...    `image` for an image block, `table` for a data table, else the tag
     ...    name. A block also has `text`, an image `src` and `alt`, a data
-    ...    table `rows` (cell texts, row by row). No helpers.ts counterpart.
+    ...    table `rows` (cell texts, row by row). helpers.ts `documentNodes`
+    ...    returns the `node` values only.
     ${js}=    Catenate
     ...    (el) => [...el.children].map((child) => {
     ...    const type = child.getAttribute("data-gherkin-type");
@@ -131,8 +134,8 @@ Document Content In Editor
 Document Nodes In Editor
     [Documentation]    Return the `node` of every top-level node of the editor,
     ...    in document order (`Document Content In Editor`). Unlike `Block
-    ...    Types In Editor` it shows where images and tables sit. No helpers.ts
-    ...    counterpart.
+    ...    Types In Editor` it shows where images and tables sit. Port of
+    ...    helpers.ts `documentNodes`.
     ${content}=    Document Content In Editor
     ${nodes}=    Evaluate    [n["node"] for n in $content]
     RETURN    ${nodes}
@@ -143,12 +146,24 @@ Cursor Position
     ...    top-level node it is in; `offset`, its offset in the text of the
     ...    block holding it; `empty`, true for a bare cursor. Reads the
     ...    selection through the handle Tiptap puts on the editor's DOM node,
-    ...    like `Click Block`. No helpers.ts counterpart.
+    ...    like `Click Block`. Port of helpers.ts `cursorPosition`.
     ${js}=    Catenate
     ...    (el) => { const { $from, empty } = el.editor.state.selection;
     ...    return { index: $from.index(0), offset: $from.parentOffset, empty }; }
     ${position}=    Evaluate JavaScript    ${EDITOR}    ${js}
     RETURN    ${position}
+
+Wait For Cursor At
+    [Documentation]    Wait until the editor's selection is a bare cursor in
+    ...    top-level node ${index} at text offset ${offset} (`Cursor Position`).
+    ...    ProseMirror picks up a caret move made by a key such as End a few ms
+    ...    after the key, so wait before pressing the next one. Port of the
+    ...    `expect.poll(() => cursorPosition(page))` calls in the e2e specs.
+    [Arguments]    ${index}    ${offset}
+    ${js}=    Catenate
+    ...    (el) => { const { $from, empty } = el.editor.state.selection;
+    ...    return empty && $from.index(0) === ${index} && $from.parentOffset === ${offset}; }
+    Wait For Function    ${js}    selector=${EDITOR}
 
 Current Node Index
     [Documentation]    Return the index, among `Document Nodes In Editor`, of
@@ -285,6 +300,44 @@ Insert Image After Block
     Upload File By Selector    ${FILE_INPUT}    ${png}
     Get Element Count    ${IMAGE_BLOCK}    >    ${before}
     Wait For Elements State    ${IMAGE_BLOCK} >> nth=-1    visible
+
+Build Then Image And
+    [Documentation]    Open a session, type `Before image` into Then, add an And
+    ...    block holding `After image` unless ${image_last}, then insert an
+    ...    image after Then: Then, image, And (or Then, image). Returns the
+    ...    session id. Needs the `Remove Temp Files` teardown. Port of
+    ...    `buildThenImageAnd` in e2e/image.spec.ts.
+    [Arguments]    ${image_last}=${False}
+    ${id}=    Open Session
+    Click Block    ${BLOCK_TYPE}[then]
+    Keyboard Input    type    Before image
+    IF    not ${image_last}
+        Click Toolbar Button    And
+        Get Element Count    ${BLOCK_TYPE}[and]    ==    1
+        Keyboard Input    type    After image
+    END
+    Insert Image After Block    then
+    RETURN    ${id}
+
+Select Image
+    [Documentation]    Click the image block and wait until it is selected.
+    Click    ${IMAGE_BLOCK}
+    Get Element Count    ${SELECTED_IMAGE}    ==    1
+
+End Undo Step
+    [Documentation]    Close the current undo step. The Y.js undo manager
+    ...    merges every change made within its capture window (500 ms) into
+    ...    one step, so a fast test's next change would otherwise be undone
+    ...    together with everything typed before it. Reads the undo manager
+    ...    from the `y-undo` plugin state through the handle Tiptap puts on the
+    ...    editor's DOM node. Port of helpers.ts `endUndoStep`.
+    ${js}=    Catenate
+    ...    (el) => { const { state } = el.editor;
+    ...    const plugin = state.plugins.find((p) => p.key.startsWith("y-undo$"));
+    ...    const undoManager = plugin?.getState(state)?.undoManager;
+    ...    if (!undoManager) throw new Error("End Undo Step: no y-undo plugin with an undoManager on the editor");
+    ...    undoManager.stopCapturing(); }
+    Evaluate JavaScript    ${EDITOR}    ${js}
 
 # ---- Data tables ---------------------------------------------------------
 

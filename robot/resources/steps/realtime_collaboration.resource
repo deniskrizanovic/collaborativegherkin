@@ -17,6 +17,11 @@ Documentation       Business-language steps for
 ...                 the user who makes the change.
 ...                 ${CHANGED_TYPES}, ${CHANGED_TEXTS}: block types and texts in
 ...                 the changing user's editor once the change is made.
+...                 ${IMAGE_PAGES}: page id of each user's editor in the image
+...                 removal scenario; the first user selects the image, the
+...                 second removes it.
+...                 ${CONTENT_BEFORE}: the first user's editor before the image
+...                 is removed (`Remember Editor`).
 
 Library             Collections
 Resource            ../session.resource
@@ -39,6 +44,23 @@ two or more users have the same session URL open
     Switch Page    ${first}    context=ALL
     @{pages}=    Create List    ${first}    ${second}
     Set Test Variable    ${USER_PAGES}    ${pages}
+
+two users are in the same session and the first user has an image block selected — ${where:image in the middle|image last}
+    [Documentation]    The first user builds Then, image, And (or Then, image
+    ...    for image last) and selects the image; a second, isolated context
+    ...    opens the same session. Ends on the first user's page.
+    ...    Sets: ${IMAGE_PAGES}, ${CONTENT_BEFORE}.
+    ${id}=    Build Then Image And    image_last=${{"${where}" == "image last"}}
+    ${ids}=    Get Page Ids    CURRENT    CURRENT    CURRENT
+    ${second}=    Open Second Context    ${OWNER_STATE}
+    Switch Page    ${second}    context=ALL
+    Go To    ${BASE_URL}/sessions/${id}
+    Wait For Elements State    ${IMAGE_BLOCK}    visible
+    Switch Page    ${ids}[0]    context=ALL
+    Select Image
+    Remember Editor
+    @{pages}=    Create List    ${ids}[0]    ${second}
+    Set Test Variable    ${IMAGE_PAGES}    ${pages}
 
 # ---- When ----------------------------------------------------------------
 
@@ -66,6 +88,15 @@ one user types or inserts a block — inserts a block
     Get Element Count    ${BLOCKS}    ==    ${before + 1}
     Remember Changed Blocks
 
+the second user removes that image
+    [Documentation]    The second user clicks the image and presses Backspace.
+    ...    Reads: ${IMAGE_PAGES}.
+    Require Step State    IMAGE_PAGES    two users are in the same session and the first user has an image block selected — <where>
+    Switch Page    ${IMAGE_PAGES}[1]    context=ALL
+    Select Image
+    Keyboard Key    press    Backspace
+    Get Element Count    ${IMAGE_BLOCK}    ==    0
+
 # ---- Then ----------------------------------------------------------------
 
 all other connected users see the change reflected in their editors in real time
@@ -84,6 +115,33 @@ all other connected users see the change reflected in their editors in real time
             Wait For Condition    Property    ${block}    textContent    ==    ${CHANGED_TEXTS}[${index}]    timeout=5s
         END
     END
+
+the image disappears from the first user's editor
+    [Documentation]    Reads: ${IMAGE_PAGES}.
+    Require Step State    IMAGE_PAGES    two users are in the same session and the first user has an image block selected — <where>
+    Switch Page    ${IMAGE_PAGES}[0]    context=ALL
+    Get Element Count    ${IMAGE_BLOCK}    ==    0
+
+the first user can keep typing in the editor
+    [Documentation]    The first user types `Still typing`: it lands in one
+    ...    Gherkin block, which the second user sees too; the blocks around
+    ...    the image keep their text, and the first user's page has no error.
+    ...    Reads: ${IMAGE_PAGES}, ${CONTENT_BEFORE}.
+    Require Step State    IMAGE_PAGES    two users are in the same session and the first user has an image block selected — <where>
+    Switch Page    ${IMAGE_PAGES}[0]    context=ALL
+    Keyboard Input    type    Still typing
+    ${typed}=    Set Variable    ${BLOCKS}:has-text("Still typing")
+    Get Element Count    ${typed}    ==    1
+    FOR    ${node}    IN    @{CONTENT_BEFORE}
+        IF    "text" in $node
+            ${block}=    Set Variable    ${BLOCK_TYPE}[${node}[node]]
+            Get Text    ${block}    *=    ${node}[text]
+        END
+    END
+    ${errors}=    Get Page Errors
+    Should Be Empty    ${errors}
+    Switch Page    ${IMAGE_PAGES}[1]    context=ALL
+    Wait For Condition    Element Count    ${typed}    ==    1    timeout=5s
 
 # ---- Technical helpers ---------------------------------------------------
 

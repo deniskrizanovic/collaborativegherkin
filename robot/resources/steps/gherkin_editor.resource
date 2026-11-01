@@ -185,6 +185,50 @@ the block picker menu is open and an item is focused
     ${label}=    Get Text    ${PICKER} >> button >> nth=${FOCUSED_INDEX}
     Set Test Variable    ${FOCUSED_TYPE}    ${label.strip().lower().replace(" ", "_")}
 
+an image block follows a Then block and the image is selected
+    [Documentation]    Open a fresh session, type into Then, insert an image
+    ...    after it (the image is the last node) and select the image.
+    ...    Sets: ${CONTENT_BEFORE}, ${TYPES_BEFORE}, ${BLOCKS_BEFORE},
+    ...    ${CURRENT_NODE_INDEX} (the image's index).
+    Build Then Image And    image_last=${True}
+    Select Image
+    Remember Editor
+
+a document contains an image block that is not selected
+    [Documentation]    Open a fresh session with Then, image, And and check
+    ...    that the image is not selected.
+    Build Then Image And
+    Get Element Count    ${SELECTED_IMAGE}    ==    0
+
+the cursor is at the end of the block directly before an image block
+    [Documentation]    Open a fresh session with Then, image, And, click the
+    ...    Then block, press End and wait until the editor has the cursor at
+    ...    the end of its text (`Wait For Cursor At`).
+    Build Then Image And
+    ${nodes}=    Document Nodes In Editor
+    ${index}=    Evaluate    $nodes.index("image") - 1
+    Click Block    ${BLOCK_TYPE}[then]
+    Keyboard Key    press    End
+    ${text}=    Get Text    ${BLOCK_TYPE}[then]
+    Wait For Cursor At    ${index}    ${{len($text)}}
+    Get Element Count    ${SELECTED_IMAGE}    ==    0
+
+an image block is selected
+    [Documentation]    Open a fresh session with Then, image, And and select
+    ...    the image.
+    ...    Sets: ${CONTENT_BEFORE}, ${TYPES_BEFORE}, ${BLOCKS_BEFORE},
+    ...    ${CURRENT_NODE_INDEX}.
+    Build Then Image And
+    Select Image
+    Remember Editor
+
+an image block between two Gherkin blocks is selected
+    [Documentation]    Open a fresh session with Then, image, And and select
+    ...    the image.
+    ...    Sets: ${CONTENT_BEFORE}, ${TYPES_BEFORE}, ${BLOCKS_BEFORE},
+    ...    ${CURRENT_NODE_INDEX}.
+    an image block is selected
+
 # ---- When ----------------------------------------------------------------
 
 the first user's editor finishes syncing
@@ -250,6 +294,21 @@ the user clicks the item
 
 the user clicks outside the menu
     Mouse Button    click    10    10
+
+the user presses ${key:ArrowRight|Backspace}
+    Keyboard Key    press    ${key}
+
+the user clicks the image
+    Click    ${IMAGE_BLOCK}
+
+the user types a letter or / — ${key:letter|slash}
+    [Documentation]    Type `x` for a letter, `/` for a slash.
+    ${text}=    Set Variable If    "${key}" == "slash"    /    x
+    Keyboard Input    type    ${text}
+
+the user clicks the And toolbar button
+    [Documentation]    Sets: ${CHOSEN_TYPE}.
+    the user clicks a toolbar button labelled And
 
 # ---- Then ----------------------------------------------------------------
 
@@ -490,6 +549,64 @@ the menu closes without inserting a block
     ${types}=    Block Types In Editor
     Lists Should Be Equal    ${types}    ${TYPES_BEFORE}
 
+a new block is inserted immediately after the image using the auto-progression type of the most recent Gherkin block that precedes the image — ${type}
+    [Documentation]    One node more, a ${type} block right after the image;
+    ...    the other nodes are unchanged and in order.
+    ...    Reads: ${CONTENT_BEFORE}, ${CURRENT_NODE_INDEX}.
+    ...    Sets: ${NEW_BLOCK_INDEX}.
+    Require Step State    CONTENT_BEFORE    an image block follows a Then block and the image is selected
+    Block Should Be Inserted After Image    ${type.lower()}
+
+a new And block is inserted immediately after the image
+    [Documentation]    Reads: ${CONTENT_BEFORE}, ${CURRENT_NODE_INDEX}.
+    ...    Sets: ${NEW_BLOCK_INDEX}.
+    Require Step State    CONTENT_BEFORE    an image block follows a Then block and the image is selected
+    Block Should Be Inserted After Image    and
+
+the image is shown as selected
+    [Documentation]    The image block has ProseMirror's selected-node class
+    ...    and the outline that highlights it.
+    Get Element Count    ${SELECTED_IMAGE}    ==    1
+    Get Style    ${SELECTED_IMAGE}    outline-style    ==    solid
+
+the image stays in the document
+    [Documentation]    The top-level nodes are those of ${CONTENT_BEFORE}.
+    ...    Reads: ${CONTENT_BEFORE}.
+    Require Step State    CONTENT_BEFORE    an image block is selected
+    Get Element Count    ${IMAGE_BLOCK}    ==    1
+    ${before}=    Evaluate    [n["node"] for n in $CONTENT_BEFORE]
+    ${nodes}=    Document Nodes In Editor
+    Lists Should Be Equal    ${nodes}    ${before}
+
+no text is inserted and the block picker does not open
+    [Documentation]    The editor's content equals ${CONTENT_BEFORE} and no
+    ...    picker is shown.
+    ...    Reads: ${CONTENT_BEFORE}.
+    Require Step State    CONTENT_BEFORE    an image block is selected
+    ${content}=    Document Content In Editor
+    Should Be Equal    ${content}    ${CONTENT_BEFORE}
+    Get Element Count    ${PICKER}    ==    0
+
+the image is removed from the document
+    [Documentation]    The top-level nodes are those of ${CONTENT_BEFORE}
+    ...    without the image.
+    ...    Reads: ${CONTENT_BEFORE}, ${CURRENT_NODE_INDEX}.
+    Require Step State    CONTENT_BEFORE    an image block between two Gherkin blocks is selected
+    Get Element Count    ${IMAGE_BLOCK}    ==    0
+    ${expected}=    Evaluate    [n["node"] for n in $CONTENT_BEFORE if n["node"] != "image"]
+    ${nodes}=    Document Nodes In Editor
+    Lists Should Be Equal    ${nodes}    ${expected}
+
+the Gherkin blocks on either side of it are unchanged
+    [Documentation]    The blocks before and after the image keep their type
+    ...    and text.
+    ...    Reads: ${CONTENT_BEFORE}, ${CURRENT_NODE_INDEX}.
+    Require Step State    CONTENT_BEFORE    an image block between two Gherkin blocks is selected
+    ${content}=    Document Content In Editor
+    ${i}=    Set Variable    ${CURRENT_NODE_INDEX}
+    Should Be Equal    ${content}[${i - 1}]    ${CONTENT_BEFORE}[${i - 1}]
+    Should Be Equal    ${content}[${i}]    ${CONTENT_BEFORE}[${i + 1}]
+
 # ---- Technical helpers ---------------------------------------------------
 
 Block Should Be Inserted After Current Block
@@ -503,6 +620,22 @@ Block Should Be Inserted After Current Block
     ${types}=    Block Types In Editor
     Lists Should Be Equal    ${types}    ${expected}
     Set Test Variable    ${NEW_BLOCK_INDEX}    ${index}
+
+Block Should Be Inserted After Image
+    [Documentation]    Wait for one block more, then check the top-level nodes
+    ...    are those of ${CONTENT_BEFORE} with ${type} inserted right after the
+    ...    image at ${CURRENT_NODE_INDEX}.
+    ...    Sets: ${NEW_BLOCK_INDEX} (among the blocks, as
+    ...    `Typed Text Should Land In New Block` counts).
+    [Arguments]    ${type}
+    Get Element Count    ${BLOCKS}    ==    ${BLOCKS_BEFORE + 1}
+    ${before}=    Evaluate    [n["node"] for n in $CONTENT_BEFORE]
+    ${index}=    Evaluate    ${CURRENT_NODE_INDEX} + 1
+    ${expected}=    Evaluate    $before[:$index] + [$type] + $before[$index:]
+    ${nodes}=    Document Nodes In Editor
+    Lists Should Be Equal    ${nodes}    ${expected}
+    ${new}=    Evaluate    len([n for n in $before[:$index] if n not in ("image", "table")])
+    Set Test Variable    ${NEW_BLOCK_INDEX}    ${new}
 
 Arm Image Upload
     [Documentation]    Write a 1×1 PNG, record the editor (`Remember Editor`),
