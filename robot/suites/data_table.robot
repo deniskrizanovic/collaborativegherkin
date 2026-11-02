@@ -43,20 +43,42 @@ SC-3.11.6: Add row and Add column controls available
     Wait For Elements State    ${TABLE_TOOLBAR_BUTTON}\[data-action="insert-row-below"]    visible
     Wait For Elements State    ${TABLE_TOOLBAR_BUTTON}\[data-action="insert-col-after"]    visible
 
-SC-3.11.2: Clicking Table inserts 2×2 stub with cursor in first cell — first cell interactive
+SC-3.11.2: Clicking Table inserts 2×2 stub with cursor in first cell — first cell focused
     Open Session
     Insert Table On First Given
-    Click    ${CELL_0_0}
+    # No click on the cell: the insert itself must focus it.
     Wait For Elements State    ${CELL_0_0}    focused
-    Fill Text    ${CELL_0_0}    header
+    Keyboard Input    type    header
     Get Text    ${CELL_0_0}    ==    header
+    # Blur commits the cell content to the node; the text must survive it.
+    Click    ${BLOCK_TYPE}[feature]
+    Wait For Elements State    ${CELL_0_0}    defocused
+    Get Text    ${CELL_0_0}    ==    header
+
+SC-3.11.9: Choosing Table in the block picker puts the cursor in the first cell
+    Open Session
+    # Same route to a step block as SC-3.11.3: on the new when block prevType=given.
+    Press Enter And Wait For Block    scenario
+    Press Enter And Wait For Block    given
+    Press Enter And Wait For Block    when
+    Keyboard Input    type    /
+    Click    ${PICKER} >> button:has-text("Table")
+    Wait For Elements State    ${CELL_0_0}    focused
+    Keyboard Input    type    picked
+    Get Text    ${CELL_0_0}    ==    picked
+    Get Element Count    ${BLOCKS}:has-text("/")    ==    0
 
 SC-3.11.4: Tab moves focus to next cell
     Open Session
     Insert Table On First Given
-    Click    ${CELL_0_0}
+    Wait For Elements State    ${CELL_0_0}    focused
+    # Typed text makes the blur on Tab commit the cell, which must not lose focus.
+    Keyboard Input    type    abc
     Keyboard Key    press    Tab
     Wait For Elements State    ${CELL_0_1}    focused
+    Keyboard Input    type    def
+    Get Text    ${CELL_0_0}    ==    abc
+    Get Text    ${CELL_0_1}    ==    def
 
 SC-3.11.5: Shift+Tab moves focus to previous cell
     Open Session

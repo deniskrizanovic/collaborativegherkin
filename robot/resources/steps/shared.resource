@@ -6,10 +6,12 @@ whose keyword implements it. A keyword is named after its spec line;
 line that appears in scenarios of more than one capability (counted over
 all of openspec/specs, so `the editor renders` counts SC-3.5.2, which is
 excluded); its keyword lives in this file. Out of scope (design D9):
-SC-3.5.2, SC-8.4.2, the app bug SC-3.11.2 (#55), and every scenario not
-listed. SC-3.2.2 and SC-3.12.1–SC-3.12.6 were added by
-openspec/changes/fix-image-enter-selection once #53 was fixed; SC-3.8.3 and
-SC-3.8.5 by openspec/changes/fix-image-drop-position once #54 was fixed.
+SC-3.5.2, SC-8.4.2, and every scenario not listed. SC-3.2.2 and
+SC-3.12.1–SC-3.12.6 were added by openspec/changes/fix-image-enter-selection
+once #53 was fixed; SC-3.8.3 and SC-3.8.5 by
+openspec/changes/fix-image-drop-position once #54 was fixed; SC-3.11.2,
+SC-3.11.9 and SC-3.11.10 by openspec/changes/fix-table-first-cell-focus once
+#55 was fixed.
 
 SC-3.1.2  New document seeded with 5 scaffold blocks once  (gherkin-editor)
     given  the Y.js document is empty after synchronisation  -> gherkin_editor
@@ -139,6 +141,13 @@ SC-3.11.1  Table button shown when cursor is on step or data table  (gherkin-edi
     given  the cursor is on a step block (`given`, `when`, `then`, `and`, or `but`) or on a data table block that follows a step  -> gherkin_editor
     then   the toolbar shows a "Table" button  -> gherkin_editor
 
+SC-3.11.2  Clicking Table inserts 2×2 stub with cursor in first cell  (gherkin-editor)
+    given  the toolbar shows a "Table" button  -> gherkin_editor
+    when   the user clicks it  -> shared [shared]
+    then   a 2×2 data table stub with empty cells is inserted immediately after the current block  -> gherkin_editor
+    then   the cursor is placed inside the first cell  -> gherkin_editor
+    then   text the user types next appears in the first cell  -> gherkin_editor
+
 SC-3.11.3  Slash-command picker includes Table when on step block  (gherkin-editor)
     given  the user types `/` and the current/previous block is a step type  -> gherkin_editor
     then   the block picker includes "Table" as an option  -> gherkin_editor
@@ -156,6 +165,20 @@ SC-3.11.5  Shift+Tab moves focus to previous cell  (gherkin-editor)
 SC-3.11.6  Add row and Add column controls available  (gherkin-editor)
     given  a data table is in the document  -> gherkin_editor
     then   "Add row" and "Add column" controls are available within the table UI  -> gherkin_editor
+
+SC-3.11.9  Choosing Table in the block picker puts the cursor in the first cell  (gherkin-editor)
+    given  the block picker, opened by typing `/` on a step block, shows "Table" as an option  -> gherkin_editor
+    when   the user chooses "Table"  -> gherkin_editor
+    then   a 2×2 data table stub with empty cells is inserted immediately after the step block  -> gherkin_editor
+    then   the `/` typed to open the picker is removed from the step block  -> gherkin_editor
+    then   the cursor is placed inside the first cell  -> gherkin_editor
+    then   text the user types next appears in the first cell  -> gherkin_editor
+
+SC-3.11.10  Inserting a table does not move a collaborator's cursor  (gherkin-editor)
+    given  two users are editing the same session and the second user's cursor is in a Gherkin block  -> realtime_collaboration
+    when   the first user inserts a data table  -> realtime_collaboration
+    then   the second user sees the new table  -> realtime_collaboration
+    then   text the second user types next appears in the block where their cursor was, not in the table  -> realtime_collaboration
 
 SC-3.11.7  TXT export uses pipe-delimited rows padded to column width  (gherkin-export)
     given  a data table block is present  -> gherkin_export
@@ -366,7 +389,7 @@ the user clicks it
     [Documentation]    Click the control that the previous step named.
     ...    Reads: ${IT_SELECTOR}.
     Require Step State    IT_SELECTOR
-    ...    the "View last review" button is visible
+    ...    the "View last review" button is visible / the toolbar shows a "Table" button — cursor on Given
     Click    ${IT_SELECTOR}
 
 the editor renders

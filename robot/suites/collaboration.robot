@@ -55,6 +55,33 @@ SC-3.12.6: Collaborator removes an image another user has selected — image las
     [Teardown]    Remove Temp Files
     Remove Selected Image Remotely    image_last=${True}
 
+SC-3.11.10: Inserting a table does not move a collaborator's cursor
+    ${id}=    Create Session Via API    Table focus collab
+    ${page1}=    Open Session Page    ${id}
+    ${page2}=    Open Second Context    ${OWNER_STATE}
+    Switch Page    ${page2}    context=ALL
+    Go To    ${BASE_URL}/sessions/${id}
+    Click Block    ${BLOCK_TYPE}[then]
+
+    Switch Page    ${page1}    context=ALL
+    Click Block    ${BLOCK_TYPE}[given]
+    Click Toolbar Button    Table
+    Wait For Elements State    ${CELL_0_0}    focused
+
+    Switch Page    ${page2}    context=ALL
+    Wait For Elements State    ${TABLE}    visible    timeout=5s
+    ${in_cell}=    Evaluate JavaScript    ${None}
+    ...    () => !!document.activeElement?.closest("[data-cell]")
+    Should Not Be True    ${in_cell}
+    Keyboard Input    type    Collaborator marker
+    FOR    ${page}    IN    ${page2}    ${page1}
+        Switch Page    ${page}    context=ALL
+        Wait For Condition    Text    ${BLOCK_TYPE}[then]    *=    Collaborator marker    timeout=5s
+        Get Text    ${TABLE}    not contains    Collaborator marker
+        ${errors}=    Get Page Errors
+        Should Be Empty    ${errors}
+    END
+
 SC-3.5.2: Remote user cursors visible in distinct colour
     [Tags]    skip
     Skip    @tiptap/extension-collaboration-cursor has no Tiptap 3 stable release yet; skipped until available

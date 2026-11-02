@@ -26,11 +26,11 @@ the Feature block) unless noted otherwise.
 |---|---|---|
 | 1 | 28 | initial-content (3), toolbar (6), import (11), home (8) |
 | 2 | 25 | enter-progression (9), block-picker (9), visual-separation (7) |
-| 3 | 28 | export (4), image (12), enter-progression SC-3.2.2 (1), data-table (10), visual-separation export (1) |
+| 3 | 29 | export (4), image (12), enter-progression SC-3.2.2 (1), data-table (11), visual-separation export (1) |
 | 4 | 26 | llm-review (25), home SC-1.2.4 (1) |
-| 5 | 11 | collaboration (5, one skip), session-access-control (6: 3 API + 3 UX) |
+| 5 | 12 | collaboration (6, one skip), session-access-control (6: 3 API + 3 UX) |
 | 6 | 3 | websocket-auth (3) |
-| **All** | **121** | 14 spec files |
+| **All** | **123** | 14 spec files |
 
 ## initial-content.spec.ts
 
@@ -157,8 +157,9 @@ the Feature block) unless noted otherwise.
 | data-table.spec.ts | SC-3.11.1: Table button shown when cursor is on step or data table — absent on Feature | click feature; toolbar `Table` not visible | data_table.robot | 3 | ported |
 | data-table.spec.ts | SC-3.11.2: Clicking Table inserts 2×2 stub with cursor in first cell — node inserted | click first given; toolbar `Table`; `[data-gherkin-table]` visible | data_table.robot | 3 | ported |
 | data-table.spec.ts | SC-3.11.6: Add row and Add column controls available | given → `Table`; click first `[data-gherkin-table] td`; `.gherkin-table-toolbar` visible; `[data-action="insert-row-below"]` and `[data-action="insert-col-after"]` buttons visible | data_table.robot | 3 | ported |
-| data-table.spec.ts | SC-3.11.2: Clicking Table inserts 2×2 stub with cursor in first cell — first cell interactive | given → `Table`; click cell `0-0`; focused; fill `header`; text == `header` | data_table.robot | 3 | ported |
-| data-table.spec.ts | SC-3.11.4: Tab moves focus to next cell | given → `Table`; click cell `0-0`; `Tab`; cell `0-1` focused | data_table.robot | 3 | ported |
+| data-table.spec.ts | SC-3.11.2: Clicking Table inserts 2×2 stub with cursor in first cell — first cell focused | given → `Table`; cell `0-0` focused with **no click**; keyboard type `header`; text == `header`; click feature (blur commit); cell not focused; text still `header` | data_table.robot | 3 | ported |
+| data-table.spec.ts | SC-3.11.9: Choosing Table in the block picker puts the cursor in the first cell | pressEnterAndWait scenario, given, when; type `/`; click picker `Table`; cell `0-0` focused with **no click**; keyboard type `picked`; text == `picked`; no `.gherkin-editor [data-gherkin-type]` contains `/` | data_table.robot | 3 | ported |
+| data-table.spec.ts | SC-3.11.4: Tab moves focus to next cell | given → `Table`; cell `0-0` focused; type `abc`; `Tab` (blur commit); cell `0-1` focused; type `def`; texts `abc` / `def` | data_table.robot | 3 | ported |
 | data-table.spec.ts | SC-3.11.5: Shift+Tab moves focus to previous cell | given → `Table`; click cell `0-1`; `Shift+Tab`; cell `0-0` focused | data_table.robot | 3 | ported |
 | data-table.spec.ts | SC-3.11.3: Slash-command picker includes Table when on step block | pressEnterAndWait scenario, given, when; type `/`; picker visible; picker button `Table` visible; `Escape` | data_table.robot | 3 | ported |
 | data-table.spec.ts | SC-3.11.7: TXT export uses pipe-delimited rows padded to column width | type feature `Login`, scenario `Table test`, given `a step with data`; toolbar `Table`; click+fill `0-0` `name`, `0-1` `age`; click `.gherkin-editor` (blur commit); download TXT; save, read, delete; content contains `\| name` and `\| age` | data_table.robot | 3 | ported |
@@ -204,6 +205,7 @@ the Feature block) unless noted otherwise.
 | collaboration.spec.ts | SC-3.1.2: New document seeded with 5 scaffold blocks once — second joiner does not re-seed | create via API; page1 goto, wait, click feature, type `Do not wipe me`; **second context** (`user.json`) goto + wait; page2 feature contains text (5 s); page1 feature still contains text (5 s); context2 closed in finally | collaboration.robot | 5 | ported |
 | collaboration.spec.ts | SC-3.12.6: Collaborator removes an image another user has selected — image in the middle | collect `pageerror`; page1 Then `Before image`, And `After image`, image after Then; **second context** goto, image visible; page1 clicks image, has `ProseMirror-selectednode`; page2 clicks image, `Backspace`; page1 image count == 0; page1 types `Still typing`; one block has it on page1 and page2; then still `Before image`, and still `After image`; no page errors; delete temp | collaboration.robot | 5 | ported |
 | collaboration.spec.ts | SC-3.12.6: Collaborator removes an image another user has selected — image last | as image in the middle, with no And block (image is the last node) | collaboration.robot | 5 | ported |
+| collaboration.spec.ts | SC-3.11.10: Inserting a table does not move a collaborator's cursor | collect `pageerror` on both pages; create via API; page1 goto; **second context** goto, click Then; page1 click Given, toolbar `Table`; page1 cell `0-0` focused; page2 table visible (5 s); page2 `document.activeElement` not inside `[data-cell]`; page2 types `Collaborator marker`; on both pages Then contains it (5 s) and table does not; no page errors; context2 closed in finally | collaboration.robot | 5 | ported |
 | collaboration.spec.ts | SC-3.5.2: Remote user cursors visible in distinct colour | **skip** (`@tiptap/extension-collaboration-cursor has no Tiptap 3 stable release yet`). Body: two contexts; page2 clicks feature; page1 `.collaboration-cursor__caret` visible (5 s) | collaboration.robot | 5 | skip |
 
 ## session-access-control.spec.ts
@@ -338,12 +340,18 @@ suite (design D10).
 
 ### data_table_bdd.robot
 
-7 tests, SC-3.11.1, 3.11.3, 3.11.4, 3.11.5 and 3.11.6.
+9 tests, SC-3.11.1 to 3.11.6 and SC-3.11.9.
 
 - **Tab / Shift+Tab**: each runs within a row and across a row boundary
   (`— to the next row`, `— to the previous row`), since the spec line says
   "left to right, top to bottom".
 - **Add row and Add column**: the two buttons are enabled as well as visible.
+- **Stub inserted** (SC-3.11.2, 3.11.9): the editor's top-level nodes are
+  the ones from before the insert with one table right after the cursor's
+  block, and every cell of the 2×2 stub is empty; the technical tests check
+  that a table is visible.
+- **Slash removed** (SC-3.11.9): the step block's text equals its text from
+  before the `/` was typed.
 
 ### export_bdd.robot
 
@@ -376,7 +384,7 @@ downloaded file with the editor's content when Export was clicked.
 
 ### collaboration_bdd.robot
 
-4 tests, SC-3.5.1 and SC-3.12.6.
+5 tests, SC-3.5.1, SC-3.11.10 and SC-3.12.6.
 
 - **Types**: the second user sees the same blocks, in the same order, with
   the same types and texts, not only the typed text in the Feature block.
@@ -431,7 +439,6 @@ Technical tests with no business-language twin (design D9):
 | `SC-3.5.2` | Skipped: no stable collaboration-cursor extension | none |
 | `SC-3.8.3 — cancelled file picker` | No line describes a pending file picker; the test guards the stale upload target (#54) | none |
 | `SC-3.8.5 — on the toolbar` | The scenario's WHEN line describes a drop below the last block only | none |
-| `SC-3.11.2` (both tests) | The app does not satisfy "the cursor is placed inside the first cell": focus stays in the main editor ([#55](https://github.com/deniskrizanovic/collaborativegherkin/issues/55)) | none until #55 is fixed |
 
 ### BDD-only tests
 
