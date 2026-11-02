@@ -11,8 +11,9 @@ Documentation       Business-language twin of collaboration.robot: spec §3.5
 ...                 the rest of its scenario. SC-3.5.2 (remote cursors) is
 ...                 excluded: it is skipped in the technical suite, since the
 ...                 collaboration-cursor extension has no stable Tiptap 3 release.
-...                 SC-3.12.6 (a collaborator removes a selected image) belongs
-...                 to openspec/specs/gherkin-editor/spec.md.
+...                 SC-3.12.6 (a collaborator removes a selected image) and
+...                 SC-3.11.10 (inserting a table keeps a collaborator's cursor)
+...                 belong to openspec/specs/gherkin-editor/spec.md.
 
 Resource            ../resources/common.resource
 Resource            ../resources/files.resource
@@ -35,6 +36,12 @@ SC-3.5.1: Change by one user is visible to all in real time — inserts a block
     Given two or more users have the same session URL open
     When one user types or inserts a block — inserts a block
     Then all other connected users see the change reflected in their editors in real time
+
+SC-3.11.10: Inserting a table does not move a collaborator's cursor
+    Given two users are editing the same session and the second user's cursor is in a Gherkin block
+    When the first user inserts a data table
+    Then the second user sees the new table
+    And text the second user types next appears in the block where their cursor was, not in the table
 
 SC-3.12.6: Collaborator removes an image another user has selected — image in the middle
     [Teardown]    Remove Temp Files

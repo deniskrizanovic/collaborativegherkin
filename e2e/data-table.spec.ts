@@ -48,15 +48,35 @@ test.describe("data table insertion", () => {
     await expect(page.locator('.gherkin-table-toolbar-btn[data-action="insert-col-after"]')).toBeVisible();
   });
 
-  test("SC-3.11.2: Clicking Table inserts 2×2 stub with cursor in first cell — first cell interactive", async ({ page }) => {
+  test("SC-3.11.2: Clicking Table inserts 2×2 stub with cursor in first cell — first cell focused", async ({ page }) => {
     await openSession(page);
     await page.locator('[data-gherkin-type="given"]').first().click();
     await page.locator(".gherkin-toolbar-btn", { hasText: "Table" }).click();
     const firstCell = page.locator("[data-gherkin-table] [data-cell='0-0']");
-    await firstCell.click();
+    // No click on the cell: the insert itself must focus it
     await expect(firstCell).toBeFocused();
-    await firstCell.fill("header");
+    await page.keyboard.type("header");
     await expect(firstCell).toHaveText("header");
+    // Blur commits the cell content to the node; the text must survive it
+    await page.locator('[data-gherkin-type="feature"]').click();
+    await expect(firstCell).not.toBeFocused();
+    await expect(firstCell).toHaveText("header");
+  });
+
+  test("SC-3.11.9: Choosing Table in the block picker puts the cursor in the first cell", async ({ page }) => {
+    await openSession(page);
+    // Same route to a step block as SC-3.11.3: on the new when block prevType=given
+    await pressEnterAndWait(page, "scenario");
+    await pressEnterAndWait(page, "given");
+    await pressEnterAndWait(page, "when");
+    await page.keyboard.type("/");
+    const picker = page.locator('[style*="position: fixed"]');
+    await picker.locator("button", { hasText: "Table" }).click();
+    const firstCell = page.locator("[data-gherkin-table] [data-cell='0-0']");
+    await expect(firstCell).toBeFocused();
+    await page.keyboard.type("picked");
+    await expect(firstCell).toHaveText("picked");
+    await expect(page.locator(".gherkin-editor [data-gherkin-type]", { hasText: "/" })).toHaveCount(0);
   });
 
   test("SC-3.11.4: Tab moves focus to next cell", async ({ page }) => {
@@ -64,10 +84,15 @@ test.describe("data table insertion", () => {
     await page.locator('[data-gherkin-type="given"]').first().click();
     await page.locator(".gherkin-toolbar-btn", { hasText: "Table" }).click();
     const firstCell = page.locator("[data-gherkin-table] [data-cell='0-0']");
-    await firstCell.click();
+    await expect(firstCell).toBeFocused();
+    // Typed text makes the blur on Tab commit the cell, which must not lose focus
+    await page.keyboard.type("abc");
     await page.keyboard.press("Tab");
     const secondCell = page.locator("[data-gherkin-table] [data-cell='0-1']");
     await expect(secondCell).toBeFocused();
+    await page.keyboard.type("def");
+    await expect(firstCell).toHaveText("abc");
+    await expect(secondCell).toHaveText("def");
   });
 
   test("SC-3.11.5: Shift+Tab moves focus to previous cell", async ({ page }) => {

@@ -13,6 +13,7 @@ import {
 } from "@/lib/gherkin";
 import { InsertableType, getValidNextTypes } from "./BlockPicker";
 import { isImageSelected } from "./GherkinImage";
+import { focusFirstTableCell } from "./GherkinDataTable";
 
 export interface PickerState {
   show: boolean;
@@ -134,20 +135,46 @@ function renderedRect(editor: Editor, offset: number): BlockRect | null {
   return dom instanceof Element ? dom.getBoundingClientRect() : null;
 }
 
-function insertAtomNodeAt(editor: Editor, node: PMNode, pos: number) {
-  const { state, view } = editor;
-  const $pos = state.doc.resolve(Math.min(pos, state.doc.content.size));
-  // A remote change may leave a tracked position inside a block.
-  const insertPos = $pos.depth === 0 ? $pos.pos : $pos.after(1);
-  const tr = state.tr.insert(insertPos, node);
-  const afterPos = Math.min(insertPos + node.nodeSize, tr.doc.content.size);
-  tr.setSelection(TextSelection.near(tr.doc.resolve(afterPos)));
-  view.dispatch(tr);
+/**
+ * The transaction that inserts `node` at the top-level position at or after
+ * `pos`, with the cursor placed after it, and the position it went in at.
+ */
+export function atomInsertTransaction(state: EditorState, node: PMNode, pos: number): { tr: Transaction; insertPos: number } {
+  return insertAtomInto(state.tr, node, pos);
 }
 
-function insertAtomNode(editor: Editor, node: PMNode) {
-  const insertPos = positionAfterSelection(editor.state);
-  if (insertPos !== null) insertAtomNodeAt(editor, node, insertPos);
+function insertAtomInto(tr: Transaction, node: PMNode, pos: number): { tr: Transaction; insertPos: number } {
+  const $pos = tr.doc.resolve(Math.min(pos, tr.doc.content.size));
+  // A remote change may leave a tracked position inside a block.
+  const insertPos = $pos.depth === 0 ? $pos.pos : $pos.after(1);
+  tr.insert(insertPos, node);
+  const afterPos = Math.min(insertPos + node.nodeSize, tr.doc.content.size);
+  tr.setSelection(TextSelection.near(tr.doc.resolve(afterPos)));
+  return { tr, insertPos };
+}
+
+/**
+ * The transaction that inserts `node` after the block holding the selection
+ * (see `positionAfterSelection`), first removing the `/` just before the
+ * cursor when `deleteSlash` is set and that character is a `/`. One
+ * transaction, so collaborators never see the slash gone without the node and
+ * one undo reverts both. Null when there is no block to insert after.
+ */
+export function slashAtomInsertTransaction(
+  state: EditorState,
+  node: PMNode,
+  deleteSlash: boolean
+): { tr: Transaction; insertPos: number } | null {
+  const pos = positionAfterSelection(state);
+  if (pos === null) return null;
+  const tr = state.tr;
+  const { from } = state.selection;
+  if (deleteSlash && from > 0 && state.doc.textBetween(from - 1, from) === "/") tr.delete(from - 1, from);
+  return insertAtomInto(tr, node, tr.mapping.map(pos));
+}
+
+function insertAtomNodeAt(editor: Editor, node: PMNode, pos: number) {
+  editor.view.dispatch(atomInsertTransaction(editor.state, node, pos).tr);
 }
 
 interface TrackedPosition {
@@ -223,16 +250,19 @@ export function useGherkinKeyboard(
       if (!editor) return;
 
       if (type === "data_table") {
-        if (deleteSlash) {
-          const { from } = editor.state.selection;
-          editor.chain().focus().deleteRange({ from: from - 1, to: from }).run();
-        }
-        insertAtomNode(
-          editor,
+        // No chain().focus(): Tiptap defers it to the next frame, where it
+        // would take focus back from the first cell.
+        const inserted = slashAtomInsertTransaction(
+          editor.state,
           editor.state.schema.nodes.gherkin_data_table.create({
             rows: JSON.stringify([["", ""], ["", ""]]),
-          })
+          }),
+          deleteSlash
         );
+        if (inserted) editor.view.dispatch(inserted.tr);
+        // Only the inserting client runs this, so collaborators keep their focus.
+        // With no cell to focus, put the caret back in the editor instead.
+        if (!inserted || !focusFirstTableCell(editor.view.nodeDOM(inserted.insertPos))) editor.view.focus();
         return;
       }
 

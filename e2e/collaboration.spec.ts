@@ -128,6 +128,41 @@ test.describe("real-time collaboration", () => {
     await removeSelectedImageRemotely(page, browser, true);
   });
 
+  test("SC-3.11.10: Inserting a table does not move a collaborator's cursor", async ({ page, browser }) => {
+    const pageErrors: Error[] = [];
+    page.on("pageerror", (err) => pageErrors.push(err));
+
+    const sessionId = await createSession(page, "Table focus collab");
+    const url = `http://localhost:3000/sessions/${sessionId}`;
+    await page.goto(url);
+    await page.waitForSelector('[data-gherkin-type="given"]');
+
+    const context2 = await browser.newContext({ storageState: "e2e/.auth/user.json" });
+    const page2 = await context2.newPage();
+    page2.on("pageerror", (err) => pageErrors.push(err));
+    try {
+      await page2.goto(url);
+      await page2.waitForSelector('[data-gherkin-type="then"]');
+      await page2.locator('[data-gherkin-type="then"]').click();
+
+      await page.locator('[data-gherkin-type="given"]').click();
+      await page.locator(".gherkin-toolbar-btn", { hasText: "Table" }).click();
+      await expect(page.locator("[data-gherkin-table] [data-cell='0-0']")).toBeFocused();
+
+      await expect(page2.locator("[data-gherkin-table]")).toBeVisible({ timeout: 5000 });
+      expect(await page2.evaluate(() => !!document.activeElement?.closest("[data-cell]"))).toBe(false);
+
+      await page2.keyboard.type("Collaborator marker");
+      for (const p of [page, page2]) {
+        await expect(p.locator('[data-gherkin-type="then"]')).toContainText("Collaborator marker", { timeout: 5000 });
+        await expect(p.locator("[data-gherkin-table]")).not.toContainText("Collaborator marker");
+      }
+      expect(pageErrors).toEqual([]);
+    } finally {
+      await context2.close();
+    }
+  });
+
   // @tiptap/extension-collaboration-cursor has no Tiptap 3 stable release yet; skipped until available
   test.skip("SC-3.5.2: Remote user cursors visible in distinct colour", async ({ page, browser }) => {
     const sessionId = await createSession(page, "Cursor test");

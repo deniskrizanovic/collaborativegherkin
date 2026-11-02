@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import { describe, it, expect, vi } from "vitest";
-import { GherkinDataTable } from "./GherkinDataTable";
+import { GherkinDataTable, focusFirstTableCell } from "./GherkinDataTable";
 
 function makeNodeView(initialRows: string[][] = [["a", "b"], ["c", "d"]]) {
   const committedRows: { value: string } = { value: JSON.stringify(initialRows) };
@@ -154,6 +154,20 @@ describe("GherkinDataTable node view", () => {
       expect(cells[0].textContent).toBe("x");
     });
 
+    it("keeps the cell elements when the rows equal its own last commit", () => {
+      const { view } = makeNodeView([["a", "b"], ["c", "d"]]);
+      const cell = view.dom.querySelector("[data-cell='0-0']") as HTMLElement;
+      cell.textContent = "typed";
+      cell.dispatchEvent(new FocusEvent("blur"));
+      // ProseMirror calls update() with the rows the blur just committed
+      view.update({
+        attrs: { rows: JSON.stringify([["typed", "b"], ["c", "d"]]) },
+        type: { name: "gherkin_data_table" },
+      });
+      expect(view.dom.querySelector("[data-cell='0-0']")).toBe(cell);
+      expect(cell.textContent).toBe("typed");
+    });
+
     it("returns false for a different node type", () => {
       const { view } = makeNodeView();
       const result = view.update({
@@ -161,6 +175,27 @@ describe("GherkinDataTable node view", () => {
         type: { name: "paragraph" },
       });
       expect(result).toBe(false);
+    });
+  });
+
+  describe("focusFirstTableCell", () => {
+    it("focuses the first cell of the node view, even when a later cell had focus", () => {
+      const { view } = makeNodeView([["h1", "h2"], ["r1", "r2"]]);
+      document.body.appendChild(view.dom);
+      // jsdom only focuses contenteditable elements that have a tabIndex
+      view.dom.querySelectorAll<HTMLElement>("[data-cell]").forEach((c) => (c.tabIndex = 0));
+      (view.dom.querySelector("[data-cell='1-1']") as HTMLElement).focus();
+      expect(focusFirstTableCell(view.dom)).toBe(true);
+      expect(document.activeElement).toBe(view.dom.querySelector("[data-cell='0-0']"));
+      view.dom.remove();
+    });
+
+    it("returns false for null", () => {
+      expect(focusFirstTableCell(null)).toBe(false);
+    });
+
+    it("returns false for an element with no cells", () => {
+      expect(focusFirstTableCell(document.createElement("div"))).toBe(false);
     });
   });
 

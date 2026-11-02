@@ -8,7 +8,14 @@ import { GherkinImage, isImageSelected, protectSelectedImage } from "./GherkinIm
 import { GherkinParagraph } from "./GherkinParagraph";
 import { GherkinDataTable } from "./GherkinDataTable";
 import { narrowNodeSelection, narrowNodeSelectionPlugin } from "./NarrowNodeSelection";
-import { BlockRect, blockIndexAtY, positionAfterBlockAtY, positionAfterSelection } from "./useGherkinKeyboard";
+import {
+  BlockRect,
+  atomInsertTransaction,
+  blockIndexAtY,
+  positionAfterBlockAtY,
+  positionAfterSelection,
+  slashAtomInsertTransaction,
+} from "./useGherkinKeyboard";
 
 const schema = getSchema([
   StarterKit.configure({ undoRedo: false, paragraph: false, trailingNode: false, link: false, underline: false }),
@@ -59,6 +66,67 @@ describe("positionAfterSelection", () => {
   it("returns null for Select All, which has no single block to insert after", () => {
     const state = stateWith(middleDoc, (doc) => new AllSelection(doc));
     expect(positionAfterSelection(state)).toBeNull();
+  });
+});
+
+function table(): PMNode {
+  return schema.nodes.gherkin_data_table.create({ rows: JSON.stringify([["", ""], ["", ""]]) });
+}
+
+describe("atomInsertTransaction", () => {
+  it("returns the position where the table node now sits", () => {
+    const state = EditorState.create({ schema, doc: middleDoc });
+    const { tr, insertPos } = atomInsertTransaction(state, table(), 8);
+    expect(insertPos).toBe(8);
+    expect(tr.doc.nodeAt(insertPos)?.type.name).toBe("gherkin_data_table");
+  });
+
+  it("moves a position inside a block to after that block and returns that", () => {
+    const state = EditorState.create({ schema, doc: middleDoc });
+    // 3 is inside Then "Before" (0–8)
+    const { tr, insertPos } = atomInsertTransaction(state, table(), 3);
+    expect(insertPos).toBe(8);
+    expect(tr.doc.nodeAt(insertPos)?.type.name).toBe("gherkin_data_table");
+  });
+
+  it("clamps a position past the end and returns the end of the document", () => {
+    const state = EditorState.create({ schema, doc: lastDoc });
+    const { tr, insertPos } = atomInsertTransaction(state, table(), lastDoc.content.size + 5);
+    expect(insertPos).toBe(lastDoc.content.size);
+    expect(tr.doc.nodeAt(insertPos)?.type.name).toBe("gherkin_data_table");
+  });
+});
+
+describe("slashAtomInsertTransaction", () => {
+  // When "Step/" (0–7), And "After" (7–14); cursor after the slash at 6
+  const slashDoc = schema.nodes.doc.create(null, [block("when", "Step/"), block("and", "After")]);
+
+  it("removes the slash and inserts the table in one transaction", () => {
+    const state = stateWith(slashDoc, (doc) => TextSelection.create(doc, 6));
+    const { tr, insertPos } = slashAtomInsertTransaction(state, table(), true)!;
+    expect(tr.doc.child(0).textContent).toBe("Step");
+    expect(insertPos).toBe(6);
+    expect(tr.doc.nodeAt(insertPos)?.type.name).toBe("gherkin_data_table");
+    expect(tr.doc.child(2).textContent).toBe("After");
+  });
+
+  it("keeps the character before the cursor when it is not a slash", () => {
+    const state = stateWith(slashDoc, (doc) => TextSelection.create(doc, 5));
+    const { tr, insertPos } = slashAtomInsertTransaction(state, table(), true)!;
+    expect(tr.doc.child(0).textContent).toBe("Step/");
+    expect(tr.doc.nodeAt(insertPos)?.type.name).toBe("gherkin_data_table");
+  });
+
+  it("keeps the slash when deleteSlash is not set", () => {
+    const state = stateWith(slashDoc, (doc) => TextSelection.create(doc, 6));
+    const { tr, insertPos } = slashAtomInsertTransaction(state, table(), false)!;
+    expect(tr.doc.child(0).textContent).toBe("Step/");
+    expect(insertPos).toBe(7);
+  });
+
+  it("returns null and changes nothing for Select All", () => {
+    const state = stateWith(slashDoc, (doc) => new AllSelection(doc));
+    expect(slashAtomInsertTransaction(state, table(), true)).toBeNull();
   });
 });
 

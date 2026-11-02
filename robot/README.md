@@ -185,8 +185,7 @@ A scenario is left out only when a line cannot be asserted:
   the updated prompt");
 - the technical test is skipped (`SC-3.5.2`);
 - the app does not do what the line says. Open a GitHub issue and leave the
-  scenario out until it is fixed (`SC-3.11.2` #55). Never
-  weaken the step to make it pass.
+  scenario out until it is fixed. Never weaken the step to make it pass.
 
 Name the exclusion and its reason in the suite's `Documentation` and in
 `PARITY.md`. Technical variants with no matching line (for example "Table

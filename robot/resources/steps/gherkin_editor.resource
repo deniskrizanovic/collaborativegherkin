@@ -28,6 +28,8 @@ Documentation       Business-language steps for openspec/specs/gherkin-editor/sp
 ...                 ${SESSION_ID}: id of the session created by a Given step.
 ...                 ${FIRST_PAGE}: page id of the first user's editor.
 ...                 ${UPLOAD_PROMISE}: the armed file-chooser upload of an image.
+...                 ${IT_SELECTOR}: see shared.resource.
+...                 ${TYPED_IN_CELL}: text typed into the first cell of a table.
 
 Library             Collections
 Resource            ../session.resource
@@ -128,6 +130,32 @@ a data table is in the document
     ...    the seeded Given block through the toolbar.
     Open Session
     Insert Table After Block    given
+
+the toolbar shows a "Table" button — cursor on Given
+    [Documentation]    Open a fresh session, put the cursor in the seeded Given
+    ...    block and wait for the toolbar's Table button, which "it" in the
+    ...    next step refers to.
+    ...    Sets: ${IT_SELECTOR}, ${CONTENT_BEFORE}, ${CURRENT_NODE_INDEX}.
+    Open Session
+    ${given}=    Block Selector    given
+    Click Block    ${given}
+    the toolbar shows a "Table" button
+    Remember Editor
+    ${button}=    Toolbar Button    Table
+    Set Test Variable    ${IT_SELECTOR}    ${button}
+
+the block picker, opened by typing / on a step block, shows "Table" as an option
+    [Documentation]    Open a fresh session, put the cursor at the end of the
+    ...    seeded Then block (the block before it, When, is a step) and type
+    ...    `/`. The editor is remembered before the `/`, so later steps can
+    ...    check it was removed.
+    ...    Sets: ${CONTENT_BEFORE}, ${CURRENT_NODE_INDEX}.
+    Open Session
+    Put Cursor At End Of Block    then
+    Remember Editor
+    the user types /
+    a block picker menu opens
+    the block picker includes "Table" as an option
 
 the toolbar is showing valid block types
     [Documentation]    Open a fresh session (cursor on the Feature block) and
@@ -276,6 +304,10 @@ the user types / and selects Image from the block picker
     the user types /
     a block picker menu opens
     Click    ${PICKER} >> button:has-text("Image")
+
+the user chooses "Table"
+    Click    ${PICKER} >> button:has-text("Table")
+    Wait For Elements State    ${PICKER}    hidden
 
 the user presses Tab inside a cell in row ${row}, column ${column}
     [Documentation]    Click the cell (rows and columns count from 1), wait
@@ -527,6 +559,39 @@ focus moves to the previous cell — row ${row}, column ${column}
 a block picker menu opens
     Wait For Elements State    ${PICKER}    visible
 
+a 2×2 data table stub with empty cells is inserted immediately after the current block
+    [Documentation]    Reads: ${CONTENT_BEFORE}, ${CURRENT_NODE_INDEX}.
+    Require Step State    CONTENT_BEFORE    the toolbar shows a "Table" button — cursor on Given
+    Empty Table Stub Should Follow Current Node
+
+a 2×2 data table stub with empty cells is inserted immediately after the step block
+    [Documentation]    Reads: ${CONTENT_BEFORE}, ${CURRENT_NODE_INDEX}.
+    Require Step State    CONTENT_BEFORE    the block picker, opened by typing / on a step block, shows "Table" as an option
+    Empty Table Stub Should Follow Current Node
+
+the / typed to open the picker is removed from the step block
+    [Documentation]    The step block's text is what it was before the `/`.
+    ...    Reads: ${CONTENT_BEFORE}, ${CURRENT_NODE_INDEX}.
+    Require Step State    CONTENT_BEFORE    the block picker, opened by typing / on a step block, shows "Table" as an option
+    ${content}=    Document Content In Editor
+    ${block}=    Set Variable    ${content}[${CURRENT_NODE_INDEX}]
+    Should Be Equal    ${block}[text]    ${CONTENT_BEFORE}[${CURRENT_NODE_INDEX}][text]
+    Should Not Contain    ${block}[text]    /
+
+the cursor is placed inside the first cell
+    [Documentation]    Row 1, column 1 has keyboard focus without being
+    ...    clicked.
+    Wait For Elements State    ${CELL_0_0}    focused
+
+text the user types next appears in the first cell
+    [Documentation]    Type with the keyboard (no click, no fill) and check the
+    ...    first cell shows it. Focus is left where typing put it; the
+    ...    technical suite checks the text survives the blur commit.
+    ...    Sets: ${TYPED_IN_CELL}.
+    Set Test Variable    ${TYPED_IN_CELL}    first cell text
+    Keyboard Input    type    ${TYPED_IN_CELL}
+    Get Text    ${CELL_0_0}    ==    ${TYPED_IN_CELL}
+
 the menu lists the block types that are valid next blocks for the current block, according to canFollow()
     [Documentation]    Checks the labels recorded for ${PREVIOUS_BLOCK} in
     ...    &{VALID_NEXT_LABELS} and &{INVALID_NEXT_LABELS}.
@@ -666,6 +731,17 @@ the image is embedded as an image block at the end of the document
     Image Should Be Inserted At Node    ${{len($CONTENT_BEFORE)}}
 
 # ---- Technical helpers ---------------------------------------------------
+
+Empty Table Stub Should Follow Current Node
+    [Documentation]    The top-level nodes are ${CONTENT_BEFORE} with one
+    ...    2×2 table of empty cells right after ${CURRENT_NODE_INDEX}.
+    ${index}=    Evaluate    ${CURRENT_NODE_INDEX} + 1
+    ${content}=    Document Content In Editor
+    ${nodes}=    Evaluate    [n["node"] for n in $content]
+    ${expected}=    Evaluate    [n["node"] for n in $CONTENT_BEFORE[:$index]] + ["table"] + [n["node"] for n in $CONTENT_BEFORE[$index:]]
+    Lists Should Be Equal    ${nodes}    ${expected}
+    ${rows}=    Set Variable    ${content}[${index}][rows]
+    Should Be Equal    ${rows}    ${{[["", ""], ["", ""]]}}
 
 Block Should Be Inserted After Current Block
     [Documentation]    Wait for one block more, then check the blocks are

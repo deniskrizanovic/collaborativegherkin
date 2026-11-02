@@ -3,6 +3,23 @@ import { GherkinBlockType } from "@/lib/gherkin";
 
 export const STEP_TYPES: GherkinBlockType[] = ["given", "when", "then", "and", "but"];
 
+/** Value of the `data-cell` attribute the node view gives the cell at row `ri`, column `ci`. */
+export function cellId(ri: number, ci: number): string {
+  return `${ri}-${ci}`;
+}
+
+/**
+ * Focus the first cell of a data table's rendered DOM (`view.nodeDOM` of the
+ * table node). Returns whether a cell was found and focused.
+ */
+export function focusFirstTableCell(dom: globalThis.Node | null): boolean {
+  if (!(dom instanceof HTMLElement)) return false;
+  const cell = dom.querySelector<HTMLElement>(`[data-cell="${cellId(0, 0)}"]`);
+  if (!cell) return false;
+  cell.focus();
+  return true;
+}
+
 export const GherkinDataTable = Node.create({
   name: "gherkin_data_table",
   group: "block",
@@ -67,7 +84,7 @@ export const GherkinDataTable = Node.create({
           if (ri === 0) tr.className = "gherkin-table-header-row";
           row.forEach((cell, ci) => {
             const td = document.createElement(ri === 0 ? "th" : "td");
-            td.setAttribute("data-cell", `${ri}-${ci}`);
+            td.setAttribute("data-cell", cellId(ri, ci));
             td.contentEditable = "true";
             td.textContent = cell;
             const isHeader = ri === 0;
@@ -238,6 +255,9 @@ export const GherkinDataTable = Node.create({
         dom,
         update(updatedNode) {
           if (updatedNode.type.name !== "gherkin_data_table") return false;
+          // Our own commit (or no change to this table): the cells already show
+          // these rows. Rebuilding would detach the cell Tab is moving focus to.
+          if (updatedNode.attrs.rows === committedRows) return true;
           committedRows = updatedNode.attrs.rows as string;
           rows = JSON.parse(committedRows);
           buildTable();
