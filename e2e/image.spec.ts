@@ -30,6 +30,29 @@ async function buildThenImageAnd(page: Page, imageLast = false) {
   await expect(page.locator(".gherkin-image-block")).toBeVisible();
 }
 
+async function centreOf(page: Page, selector: string): Promise<{ x: number; y: number }> {
+  const box = await page.locator(selector).boundingBox();
+  expect(box).not.toBeNull();
+  return { x: box!.x + box!.width / 2, y: box!.y + box!.height / 2 };
+}
+
+// Drops the 1×1 PNG on the editor wrapper at the given viewport coordinates.
+async function dropImageAt(page: Page, x: number, y: number) {
+  await page.evaluate(
+    ({ base64, x, y }: { base64: string; x: number; y: number }) => {
+      const el = document.querySelector(".gherkin-editor-wrapper");
+      if (!el) throw new Error("no .gherkin-editor-wrapper");
+      const bytes = Uint8Array.from(atob(base64), (c) => c.charCodeAt(0));
+      const dt = new DataTransfer();
+      dt.items.add(new File([bytes], "test.png", { type: "image/png" }));
+      el.dispatchEvent(
+        new DragEvent("drop", { bubbles: true, cancelable: true, dataTransfer: dt, clientX: x, clientY: y })
+      );
+    },
+    { base64: PNG_1x1.toString("base64"), x, y }
+  );
+}
+
 test.describe("image blocks", () => {
   test("SC-3.8.1: Image toolbar button opens file picker and embeds image", async ({ page }) => {
     await openSession(page);
@@ -73,26 +96,40 @@ test.describe("image blocks", () => {
 
   test("SC-3.8.3: Drag and drop image embeds at drop position", async ({ page }) => {
     await openSession(page);
-    const tmpImg = path.join(os.tmpdir(), `test-img-${Date.now()}.png`);
-    fs.writeFileSync(tmpImg, PNG_1x1);
-
-    const base64 = PNG_1x1.toString("base64");
-    await page.evaluate(
-      async ({ selector, base64 }: { selector: string; base64: string }) => {
-        const el = document.querySelector(selector);
-        if (!el) return;
-        const bytes = Uint8Array.from(atob(base64), (c) => c.charCodeAt(0));
-        const file = new File([bytes], "test.png", { type: "image/png" });
-        const dt = new DataTransfer();
-        dt.items.add(file);
-        el.dispatchEvent(new DragEvent("drop", { bubbles: true, cancelable: true, dataTransfer: dt }));
-      },
-      { selector: ".gherkin-editor-wrapper", base64 }
-    );
-
+    const { x, y } = await centreOf(page, '[data-gherkin-type="then"]');
+    await dropImageAt(page, x, y);
     await expect(page.locator(".gherkin-image-block")).toBeVisible();
+    expect(await documentNodes(page)).toEqual(["feature", "scenario", "given", "when", "then", "image"]);
+  });
 
-    fs.unlinkSync(tmpImg);
+  test("SC-3.8.3: Drag and drop image embeds at drop position — cancelled file picker", async ({ page }) => {
+    await openSession(page);
+    // Opens the file chooser, which is left unanswered.
+    await page.locator(".gherkin-toolbar-btn", { hasText: "Image" }).click();
+    const { x, y } = await centreOf(page, '[data-gherkin-type="given"]');
+    await dropImageAt(page, x, y);
+    await expect(page.locator(".gherkin-image-block")).toBeVisible();
+    expect(await documentNodes(page)).toEqual(["feature", "scenario", "given", "image", "when", "then"]);
+  });
+
+  test("SC-3.8.5: Image dropped outside every block embeds after the nearest block — below the last block", async ({ page }) => {
+    await openSession(page);
+    const box = await page.locator('[data-gherkin-type="then"]').boundingBox();
+    expect(box).not.toBeNull();
+    await dropImageAt(page, box!.x + box!.width / 2, box!.y + box!.height + 40);
+    await expect(page.locator(".gherkin-image-block")).toBeVisible();
+    expect(await documentNodes(page)).toEqual(["feature", "scenario", "given", "when", "then", "image"]);
+  });
+
+  test("SC-3.8.5: Image dropped outside every block embeds after the nearest block — on the toolbar", async ({ page }) => {
+    await openSession(page);
+    // Cursor in Then, so a drop that used the cursor would land after Then, not Feature.
+    await page.locator('[data-gherkin-type="then"]').click();
+    await expect.poll(async () => (await cursorPosition(page)).index).toBe(4);
+    const { x, y } = await centreOf(page, ".gherkin-toolbar");
+    await dropImageAt(page, x, y);
+    await expect(page.locator(".gherkin-image-block")).toBeVisible();
+    expect(await documentNodes(page)).toEqual(["feature", "image", "scenario", "given", "when", "then"]);
   });
 
   // spec §3.12 — image block selection

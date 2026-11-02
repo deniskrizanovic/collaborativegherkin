@@ -301,6 +301,43 @@ Insert Image After Block
     Get Element Count    ${IMAGE_BLOCK}    >    ${before}
     Wait For Elements State    ${IMAGE_BLOCK} >> nth=-1    visible
 
+Centre Of
+    [Documentation]    Return the viewport coordinates of the centre of the
+    ...    first element matching ${selector}, as `x` and `y`. Port of
+    ...    `centreOf` in e2e/image.spec.ts.
+    [Arguments]    ${selector}
+    ${box}=    Get BoundingBox    ${selector}
+    ${x}=    Evaluate    $box["x"] + $box["width"] / 2
+    ${y}=    Evaluate    $box["y"] + $box["height"] / 2
+    RETURN    ${x}    ${y}
+
+Drop Image At
+    [Documentation]    Dispatch a `drop` of the 1×1 PNG on the editor wrapper
+    ...    at viewport coordinates ${x}, ${y}: a synthetic DataTransfer event,
+    ...    not a real drag. Port of `dropImageAt` in e2e/image.spec.ts.
+    [Arguments]    ${x}    ${y}
+    ${bytes}=    Tiny PNG Bytes
+    ${base64}=    Evaluate    base64.b64encode($bytes).decode()    modules=base64
+    ${arg}=    Create Dictionary    selector=${EDITOR_WRAPPER}    base64=${base64}    x=${x}    y=${y}
+    Evaluate JavaScript    ${None}
+    ...    ({ selector, base64, x, y }) => {
+    ...        const el = document.querySelector(selector);
+    ...        if (!el) throw new Error("no " + selector);
+    ...        const bytes = Uint8Array.from(atob(base64), (c) => c.charCodeAt(0));
+    ...        const dt = new DataTransfer();
+    ...        dt.items.add(new File([bytes], "test.png", { type: "image/png" }));
+    ...        el.dispatchEvent(new DragEvent("drop", { bubbles: true, cancelable: true, dataTransfer: dt, clientX: x, clientY: y }));
+    ...    }
+    ...    arg=${arg}
+
+Drop Image On
+    [Documentation]    Drop the 1×1 PNG at the centre of ${selector}
+    ...    (`Drop Image At`) and wait for an image block to render.
+    [Arguments]    ${selector}
+    ${x}    ${y}=    Centre Of    ${selector}
+    Drop Image At    ${x}    ${y}
+    Wait For Elements State    ${IMAGE_BLOCK} >> nth=-1    visible
+
 Build Then Image And
     [Documentation]    Open a session, type `Before image` into Then, add an And
     ...    block holding `After image` unless ${image_last}, then insert an

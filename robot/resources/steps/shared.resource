@@ -6,9 +6,10 @@ whose keyword implements it. A keyword is named after its spec line;
 line that appears in scenarios of more than one capability (counted over
 all of openspec/specs, so `the editor renders` counts SC-3.5.2, which is
 excluded); its keyword lives in this file. Out of scope (design D9):
-SC-3.5.2, SC-8.4.2, the app bugs SC-3.8.3 (#54) and SC-3.11.2 (#55), and
-every scenario not listed. SC-3.2.2 and SC-3.12.1–SC-3.12.6 were added by
-openspec/changes/fix-image-enter-selection once #53 was fixed.
+SC-3.5.2, SC-8.4.2, the app bug SC-3.11.2 (#55), and every scenario not
+listed. SC-3.2.2 and SC-3.12.1–SC-3.12.6 were added by
+openspec/changes/fix-image-enter-selection once #53 was fixed; SC-3.8.3 and
+SC-3.8.5 by openspec/changes/fix-image-drop-position once #54 was fixed.
 
 SC-3.1.2  New document seeded with 5 scaffold blocks once  (gherkin-editor)
     given  the Y.js document is empty after synchronisation  -> gherkin_editor
@@ -113,6 +114,17 @@ SC-3.8.2  Slash-command Image selection opens file picker and embeds image  (ghe
     when   the user types `/` and selects Image from the block picker  -> gherkin_editor
     then   a file picker opens  -> gherkin_editor
     then   selecting an image file embeds it as an image block immediately after the current block  -> gherkin_editor
+
+SC-3.8.3  Drag and drop image embeds at drop position  (gherkin-editor)
+    given  a user is in a session editor with the cursor in the Feature block  -> gherkin_editor
+    when   the user drops an image file onto the Then block  -> gherkin_editor
+    then   the image is embedded as an image block immediately after the Then block  -> gherkin_editor
+    then   the Feature block is still followed by the block that followed it before the drop  -> gherkin_editor
+
+SC-3.8.5  Image dropped outside every block embeds after the nearest block  (gherkin-editor)
+    given  a user is in a session editor with the cursor in the Feature block  -> gherkin_editor
+    when   the user drops an image file below the last block  -> gherkin_editor
+    then   the image is embedded as an image block at the end of the document  -> gherkin_editor
 
 SC-3.9.1  Export MD downloads markdown file in document order  (gherkin-export)
     given  a user is in a session editor  -> shared [shared]

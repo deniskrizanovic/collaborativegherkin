@@ -4,7 +4,8 @@ Documentation       Port of e2e/image.spec.ts — spec §3.8 image blocks: toolb
 ...                 selecting an image by click and arrow key, typing on it, and
 ...                 removing it with Backspace and undoing that. The file
 ...                 picker is fed with `Upload File By Selector` (Playwright
-...                 `setInputFiles`); the drop is a synthetic DataTransfer event.
+...                 `setInputFiles`); the drop is a synthetic DataTransfer event at
+...                 the coordinates of the target (`Drop Image At`).
 
 Resource            ../resources/common.resource
 Resource            ../resources/session.resource
@@ -44,21 +45,29 @@ SC-3.8.2: Slash-command Image selection opens file picker and embeds image
 
 SC-3.8.3: Drag and drop image embeds at drop position
     Open Session
-    ${bytes}=    Tiny PNG Bytes
-    ${base64}=    Evaluate    base64.b64encode($bytes).decode()    modules=base64
-    ${arg}=    Create Dictionary    selector=${EDITOR_WRAPPER}    base64=${base64}
-    Evaluate JavaScript    ${None}
-    ...    ({ selector, base64 }) => {
-    ...        const el = document.querySelector(selector);
-    ...        if (!el) return;
-    ...        const bytes = Uint8Array.from(atob(base64), (c) => c.charCodeAt(0));
-    ...        const file = new File([bytes], "test.png", { type: "image/png" });
-    ...        const dt = new DataTransfer();
-    ...        dt.items.add(file);
-    ...        el.dispatchEvent(new DragEvent("drop", { bubbles: true, cancelable: true, dataTransfer: dt }));
-    ...    }
-    ...    arg=${arg}
+    Drop Image On    ${BLOCK_TYPE}[then]
+    Document Nodes Should Be    feature    scenario    given    when    then    image
+
+SC-3.8.3: Drag and drop image embeds at drop position — cancelled file picker
+    Open Session
+    # Opens the file chooser, which is left unanswered.
+    Click Toolbar Button    Image
+    Drop Image On    ${BLOCK_TYPE}[given]
+    Document Nodes Should Be    feature    scenario    given    image    when    then
+
+SC-3.8.5: Image dropped outside every block embeds after the nearest block — below the last block
+    Open Session
+    ${box}=    Get BoundingBox    ${BLOCK_TYPE}[then]
+    Drop Image At    ${{$box["x"] + $box["width"] / 2}}    ${{$box["y"] + $box["height"] + 40}}
     Wait For Elements State    ${IMAGE_BLOCK}    visible
+    Document Nodes Should Be    feature    scenario    given    when    then    image
+
+SC-3.8.5: Image dropped outside every block embeds after the nearest block — on the toolbar
+    Open Session
+    # Cursor in Then, so a drop that used the cursor would land after Then, not Feature.
+    Click Block    ${BLOCK_TYPE}[then]
+    Drop Image On    ${TOOLBAR}
+    Document Nodes Should Be    feature    image    scenario    given    when    then
 
 SC-3.12.1: Clicking an image selects it
     Build Then Image And
@@ -121,6 +130,12 @@ SC-3.12.4: Backspace removes a selected image — undo restores it
 
 
 *** Keywords ***
+Document Nodes Should Be
+    [Documentation]    Fail unless `Document Nodes In Editor` is exactly @{expected}.
+    [Arguments]    @{expected}
+    ${nodes}=    Document Nodes In Editor
+    Lists Should Be Equal    ${nodes}    ${expected}
+
 Typing On Selected Image Changes Nothing
     [Documentation]    Select the image of Then, image, And and type ${key}: the
     ...    image stays, the text is unchanged and the block picker stays shut.

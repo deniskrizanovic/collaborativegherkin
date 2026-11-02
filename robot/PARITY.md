@@ -26,11 +26,11 @@ the Feature block) unless noted otherwise.
 |---|---|---|
 | 1 | 28 | initial-content (3), toolbar (6), import (11), home (8) |
 | 2 | 25 | enter-progression (9), block-picker (9), visual-separation (7) |
-| 3 | 25 | export (4), image (9), enter-progression SC-3.2.2 (1), data-table (10), visual-separation export (1) |
+| 3 | 28 | export (4), image (12), enter-progression SC-3.2.2 (1), data-table (10), visual-separation export (1) |
 | 4 | 26 | llm-review (25), home SC-1.2.4 (1) |
 | 5 | 11 | collaboration (5, one skip), session-access-control (6: 3 API + 3 UX) |
 | 6 | 3 | websocket-auth (3) |
-| **All** | **118** | 14 spec files |
+| **All** | **121** | 14 spec files |
 
 ## initial-content.spec.ts
 
@@ -138,7 +138,10 @@ the Feature block) unless noted otherwise.
 |---|---|---|---|---|---|
 | image.spec.ts | SC-3.8.1: Image toolbar button opens file picker and embeds image | write 1×1 PNG temp; click last then; toolbar `Image`; setInputFiles; `.gherkin-image-block` visible; `.gherkin-image-block img` visible; boundingBox not null, width > 0, height > 0; delete temp | image.robot | 3 | ported |
 | image.spec.ts | SC-3.8.2: Slash-command Image selection opens file picker and embeds image | write PNG temp; click last then; type `/`; picker visible; click last picker button; setInputFiles; `.gherkin-image-block` visible; delete temp | image.robot | 3 | ported |
-| image.spec.ts | SC-3.8.3: Drag and drop image embeds at drop position | page.evaluate: build `File` from base64 PNG, `DataTransfer`, dispatch `DragEvent("drop", {bubbles, cancelable, dataTransfer})` on `.gherkin-editor-wrapper`; `.gherkin-image-block` visible; delete temp | image.robot | 3 | ported |
+| image.spec.ts | SC-3.8.3: Drag and drop image embeds at drop position | cursor in Feature; dropImageAt centre of then `boundingBox()`: page.evaluate builds `File` from base64 PNG, `DataTransfer`, dispatches `DragEvent("drop", {bubbles, cancelable, dataTransfer, clientX, clientY})` on `.gherkin-editor-wrapper`; `.gherkin-image-block` visible; documentNodes == `[feature, scenario, given, when, then, image]` | image.robot | 3 | ported |
+| image.spec.ts | SC-3.8.3: Drag and drop image embeds at drop position — cancelled file picker | cursor in Feature; click toolbar `Image`, file chooser left unanswered; dropImageAt centre of given; image visible; documentNodes == `[feature, scenario, given, image, when, then]` | image.robot | 3 | ported |
+| image.spec.ts | SC-3.8.5: Image dropped outside every block embeds after the nearest block — below the last block | cursor in Feature; dropImageAt then centre x, 40px below then bottom; image visible; documentNodes == `[feature, scenario, given, when, then, image]` | image.robot | 3 | ported |
+| image.spec.ts | SC-3.8.5: Image dropped outside every block embeds after the nearest block — on the toolbar | click then (cursor index 4); dropImageAt centre of `.gherkin-toolbar`; image visible; documentNodes == `[feature, image, scenario, given, when, then]` | image.robot | 3 | ported |
 | image.spec.ts | SC-3.12.1: Clicking an image selects it | buildThenImageAnd (Then `Before image`, image, And `After image`); `.gherkin-image-block` lacks `ProseMirror-selectednode`; click it; has `ProseMirror-selectednode` | image.robot | 3 | ported |
 | image.spec.ts | SC-3.12.2: Arrow key moves the selection onto an image | buildThenImageAnd; click then; `End`; poll cursorPosition == `{index: 4, offset: 12, empty: true}`; image not selected; `ArrowRight`; image has `ProseMirror-selectednode` | image.robot | 3 | ported |
 | image.spec.ts | SC-3.12.3: Typing does not replace a selected image — letter | buildThenImageAnd; record editor textContent; click image; type `x`; image count == 1; documentNodes == `[feature, scenario, given, when, then, image, and]`; textContent unchanged; `.block-picker` not visible | image.robot | 3 | ported |
@@ -314,13 +317,18 @@ suite (design D10).
 
 ### image_bdd.robot
 
-7 tests, SC-3.8.1, SC-3.8.2 and SC-3.12.1 to 3.12.4.
+9 tests, SC-3.8.1, SC-3.8.2, SC-3.8.3, SC-3.8.5 and SC-3.12.1 to 3.12.4.
 
 - **A file picker opens**: `Promise To Upload File` is armed before the click,
   so the test fails if no file chooser opens (design D8).
 - **Immediately after the current block**: the top-level nodes are the old
   nodes with one image inserted right after the current one, and the image
   renders with a non-zero size. SC-3.8.2 checks the rendered image as well.
+- **Dropped onto / below a block** (SC-3.8.3, 3.8.5): the drop is a
+  synthetic `drop` event at the target's coordinates (`Drop Image At`); the
+  top-level nodes are the old nodes with one image inserted after the last Then
+  block, or appended, and the image renders with a non-zero size. SC-3.8.3
+  also checks the node after Feature keeps its type and text.
 - **Shown as selected** (SC-3.12.1, 3.12.2): the selected image has a solid
   outline as well as the `ProseMirror-selectednode` class.
 - **No text inserted** (SC-3.12.3): the editor's full content (types, texts,
@@ -421,7 +429,8 @@ Technical tests with no business-language twin (design D9):
 | `SC-8.1.1 — modal opens` | Covered by `SC-8.1.2`, "the result is displayed in a modal" | none |
 | `SC-8.4.2` | "the next review uses the updated prompt" cannot be observed in the browser | none |
 | `SC-3.5.2` | Skipped: no stable collaboration-cursor extension | none |
-| `SC-3.8.3` | The app does not satisfy "at the drop position": the drop handler ignores the drop coordinates ([#54](https://github.com/deniskrizanovic/collaborativegherkin/issues/54)) | none until #54 is fixed |
+| `SC-3.8.3 — cancelled file picker` | No line describes a pending file picker; the test guards the stale upload target (#54) | none |
+| `SC-3.8.5 — on the toolbar` | The scenario's WHEN line describes a drop below the last block only | none |
 | `SC-3.11.2` (both tests) | The app does not satisfy "the cursor is placed inside the first cell": focus stays in the main editor ([#55](https://github.com/deniskrizanovic/collaborativegherkin/issues/55)) | none until #55 is fixed |
 
 ### BDD-only tests

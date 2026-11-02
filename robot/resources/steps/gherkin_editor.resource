@@ -229,6 +229,13 @@ an image block between two Gherkin blocks is selected
     ...    ${CURRENT_NODE_INDEX}.
     an image block is selected
 
+a user is in a session editor with the cursor in the Feature block
+    [Documentation]    Open a fresh session (`Open Session` clicks Feature)
+    ...    and wait until the editor has the cursor at the start of the empty
+    ...    Feature block.
+    a user is in a session editor
+    Wait For Cursor At    0    0
+
 # ---- When ----------------------------------------------------------------
 
 the first user's editor finishes syncing
@@ -309,6 +316,30 @@ the user types a letter or / — ${key:letter|slash}
 the user clicks the And toolbar button
     [Documentation]    Sets: ${CHOSEN_TYPE}.
     the user clicks a toolbar button labelled And
+
+the user drops an image file onto the Then block
+    [Documentation]    Record the editor (`Remember Editor`), then drop the
+    ...    1×1 PNG at the centre of the last Then block (`Drop Image On`).
+    ...    Sets: ${CONTENT_BEFORE}, ${TYPES_BEFORE}, ${BLOCKS_BEFORE},
+    ...    ${CURRENT_NODE_INDEX}.
+    Remember Editor
+    Drop Image On    ${BLOCK_TYPE}[then] >> nth=-1
+
+the user drops an image file below the last block
+    [Documentation]    Record the editor (`Remember Editor`), then drop the
+    ...    1×1 PNG 40px below the editor's last top-level node, measured
+    ...    through ProseMirror (`view.nodeDOM`) so a widget or trailing
+    ...    element the editor appends is never taken for the last block.
+    ...    Sets: ${CONTENT_BEFORE}, ${TYPES_BEFORE}, ${BLOCKS_BEFORE},
+    ...    ${CURRENT_NODE_INDEX}.
+    Remember Editor
+    ${js}=    Catenate
+    ...    (el) => { const { view, state } = el.editor; const { doc } = state;
+    ...    const r = view.nodeDOM(doc.content.size - doc.lastChild.nodeSize).getBoundingClientRect();
+    ...    return { x: r.x + r.width / 2, y: r.bottom + 40 }; }
+    ${point}=    Evaluate JavaScript    ${EDITOR}    ${js}
+    Drop Image At    ${point}[x]    ${point}[y]
+    Wait For Elements State    ${IMAGE_BLOCK}    visible
 
 # ---- Then ----------------------------------------------------------------
 
@@ -607,6 +638,33 @@ the Gherkin blocks on either side of it are unchanged
     Should Be Equal    ${content}[${i - 1}]    ${CONTENT_BEFORE}[${i - 1}]
     Should Be Equal    ${content}[${i}]    ${CONTENT_BEFORE}[${i + 1}]
 
+the image is embedded as an image block immediately after the Then block
+    [Documentation]    The top-level nodes are those of ${CONTENT_BEFORE} with
+    ...    one image inserted right after the last Then block, and the image
+    ...    renders.
+    ...    Reads: ${CONTENT_BEFORE}.
+    Require Step State    CONTENT_BEFORE    the user drops an image file onto the Then block
+    ${before}=    Evaluate    [n["node"] for n in $CONTENT_BEFORE]
+    ${index}=    Last Index Of    ${before}    then
+    Image Should Be Inserted At Node    ${index + 1}
+
+the Feature block is still followed by the block that followed it before the drop
+    [Documentation]    The node after Feature is the one that followed it in
+    ...    ${CONTENT_BEFORE}, with the same type and text.
+    ...    Reads: ${CONTENT_BEFORE}.
+    Require Step State    CONTENT_BEFORE    the user drops an image file onto the Then block
+    ${before}=    Evaluate    [n["node"] for n in $CONTENT_BEFORE]
+    ${index}=    Evaluate    $before.index("feature") + 1
+    ${content}=    Document Content In Editor
+    Should Be Equal    ${content}[${index}]    ${CONTENT_BEFORE}[${index}]
+
+the image is embedded as an image block at the end of the document
+    [Documentation]    The top-level nodes are those of ${CONTENT_BEFORE} with
+    ...    one image appended, and the image renders.
+    ...    Reads: ${CONTENT_BEFORE}.
+    Require Step State    CONTENT_BEFORE    the user drops an image file below the last block
+    Image Should Be Inserted At Node    ${{len($CONTENT_BEFORE)}}
+
 # ---- Technical helpers ---------------------------------------------------
 
 Block Should Be Inserted After Current Block
@@ -636,6 +694,20 @@ Block Should Be Inserted After Image
     Lists Should Be Equal    ${nodes}    ${expected}
     ${new}=    Evaluate    len([n for n in $before[:$index] if n not in ("image", "table")])
     Set Test Variable    ${NEW_BLOCK_INDEX}    ${new}
+
+Image Should Be Inserted At Node
+    [Documentation]    Wait for one image more, then check the top-level nodes
+    ...    are those of ${CONTENT_BEFORE} with an image at ${index}, and that
+    ...    it renders with a non-zero size.
+    [Arguments]    ${index}
+    ${before}=    Evaluate    [n["node"] for n in $CONTENT_BEFORE]
+    Get Element Count    ${IMAGE_BLOCK}    ==    ${before.count("image") + 1}
+    ${expected}=    Evaluate    $before[:${index}] + ["image"] + $before[${index}:]
+    ${nodes}=    Document Nodes In Editor
+    Lists Should Be Equal    ${nodes}    ${expected}
+    Wait For Elements State    ${IMAGE_BLOCK} img    visible
+    ${box}=    Get BoundingBox    ${IMAGE_BLOCK} img
+    Should Be True    ${box}[width] > 0 and ${box}[height] > 0
 
 Arm Image Upload
     [Documentation]    Write a 1×1 PNG, record the editor (`Remember Editor`),
