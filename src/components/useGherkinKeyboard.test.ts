@@ -8,7 +8,7 @@ import { GherkinImage, isImageSelected, protectSelectedImage } from "./GherkinIm
 import { GherkinParagraph } from "./GherkinParagraph";
 import { GherkinDataTable } from "./GherkinDataTable";
 import { narrowNodeSelection, narrowNodeSelectionPlugin } from "./NarrowNodeSelection";
-import { positionAfterSelection } from "./useGherkinKeyboard";
+import { BlockRect, blockIndexAtY, positionAfterBlockAtY, positionAfterSelection } from "./useGherkinKeyboard";
 
 const schema = getSchema([
   StarterKit.configure({ undoRedo: false, paragraph: false, trailingNode: false, link: false, underline: false }),
@@ -133,5 +133,77 @@ describe("narrowNodeSelection", () => {
       const local = state.apply(state.tr.setSelection(NodeSelection.create(state.doc, 0)));
       expect(local.selection).toBeInstanceOf(NodeSelection);
     });
+  });
+});
+
+describe("blockIndexAtY", () => {
+  // Blocks at 100–130, 140–170, 180–210 (only tops matter).
+  const tops = [100, 140, 180];
+
+  it("picks the block under the point", () => {
+    expect(blockIndexAtY(tops, 155)).toBe(1);
+  });
+
+  it("picks the upper block in the gap between two blocks", () => {
+    expect(blockIndexAtY(tops, 135)).toBe(0);
+  });
+
+  it("picks the upper block in the gap even when the point is nearer the lower block", () => {
+    expect(blockIndexAtY(tops, 139)).toBe(0);
+  });
+
+  it("picks the last block below every block", () => {
+    expect(blockIndexAtY(tops, 500)).toBe(2);
+  });
+
+  it("picks the first block above every block", () => {
+    expect(blockIndexAtY(tops, 20)).toBe(0);
+  });
+
+  it("picks the block whose top is exactly at the point", () => {
+    expect(blockIndexAtY(tops, 140)).toBe(1);
+  });
+
+  it("returns 0 when there are no blocks", () => {
+    expect(blockIndexAtY([], 100)).toBe(0);
+  });
+});
+
+describe("positionAfterBlockAtY", () => {
+  // Then "Before" (0–8), image (8–9), And "After" (9–16)
+  const rects: Record<number, BlockRect | null> = {
+    0: { top: 100, width: 600, height: 30 },
+    8: { top: 140, width: 600, height: 200 },
+    9: { top: 350, width: 600, height: 30 },
+  };
+  const rectOf = (overrides: Record<number, BlockRect | null> = {}) =>
+    (offset: number) => (offset in overrides ? overrides[offset] : rects[offset]);
+
+  it("returns the position after the block under the point", () => {
+    expect(positionAfterBlockAtY(middleDoc, rectOf(), 200)).toBe(9);
+  });
+
+  it("returns the end of the document below the last block", () => {
+    expect(positionAfterBlockAtY(middleDoc, rectOf(), 900)).toBe(16);
+  });
+
+  it("returns the position after the first block above every block", () => {
+    expect(positionAfterBlockAtY(middleDoc, rectOf(), 0)).toBe(8);
+  });
+
+  it("skips a block with no DOM", () => {
+    expect(positionAfterBlockAtY(middleDoc, rectOf({ 8: null }), 120)).toBe(8);
+  });
+
+  it("skips a zero-size block, whose top of 0 would otherwise sit above Then", () => {
+    expect(positionAfterBlockAtY(middleDoc, rectOf({ 8: { top: 0, width: 0, height: 0 } }), 120)).toBe(8);
+  });
+
+  it("returns the end of the document when no block is rendered", () => {
+    expect(positionAfterBlockAtY(lastDoc, () => null, 50)).toBe(9);
+  });
+
+  it("returns 0 for an empty document", () => {
+    expect(positionAfterBlockAtY(schema.nodes.doc.create(null, []), rectOf(), 100)).toBe(0);
   });
 });

@@ -2,6 +2,7 @@ import { useCallback, useEffect, useLayoutEffect, useRef, useState, MutableRefOb
 import { Editor } from "@tiptap/react";
 import { EditorState, NodeSelection, TextSelection, Transaction } from "@tiptap/pm/state";
 import { GapCursor } from "@tiptap/pm/gapcursor";
+import { Node as PMNode } from "@tiptap/pm/model";
 import {
   GherkinBlockType,
   NEXT_BLOCK_ON_ENTER,
@@ -82,7 +83,58 @@ export function positionAfterSelection(state: EditorState): number | null {
   return null;
 }
 
-function insertAtomNodeAt(editor: Editor, node: import("@tiptap/pm/model").Node, pos: number) {
+/**
+ * Which top-level block a drop at viewport coordinate `y` goes after, given
+ * each block's top edge in document order: the last block whose top is at or
+ * above `y`, or the first block when `y` is above them all. A drop in the gap
+ * between two blocks therefore picks the upper one, so the image lands in
+ * that gap.
+ */
+export function blockIndexAtY(tops: number[], y: number): number {
+  let index = 0;
+  for (let i = 0; i < tops.length; i++) {
+    if (tops[i] <= y) index = i;
+    else break;
+  }
+  return index;
+}
+
+export interface BlockRect {
+  top: number;
+  width: number;
+  height: number;
+}
+
+/**
+ * The document position after the top-level block at viewport coordinate
+ * `clientY` (see `blockIndexAtY`). `rectOf` gives the rendered rect of the
+ * top-level node at an offset, or null when it has no DOM yet. Blocks with no
+ * DOM or a zero-size rect (hidden or detached) are skipped, so they never
+ * break the order of tops and are never picked. With no rendered block the
+ * image goes at the end of the document.
+ */
+export function positionAfterBlockAtY(
+  doc: PMNode,
+  rectOf: (offset: number) => BlockRect | null,
+  clientY: number
+): number {
+  const tops: number[] = [];
+  const ends: number[] = [];
+  doc.forEach((node, offset) => {
+    const rect = rectOf(offset);
+    if (rect === null || (rect.width === 0 && rect.height === 0)) return;
+    tops.push(rect.top);
+    ends.push(offset + node.nodeSize);
+  });
+  return ends.length === 0 ? doc.content.size : ends[blockIndexAtY(tops, clientY)];
+}
+
+function renderedRect(editor: Editor, offset: number): BlockRect | null {
+  const dom = editor.view.nodeDOM(offset);
+  return dom instanceof Element ? dom.getBoundingClientRect() : null;
+}
+
+function insertAtomNodeAt(editor: Editor, node: PMNode, pos: number) {
   const { state, view } = editor;
   const $pos = state.doc.resolve(Math.min(pos, state.doc.content.size));
   // A remote change may leave a tracked position inside a block.
@@ -93,7 +145,7 @@ function insertAtomNodeAt(editor: Editor, node: import("@tiptap/pm/model").Node,
   view.dispatch(tr);
 }
 
-function insertAtomNode(editor: Editor, node: import("@tiptap/pm/model").Node) {
+function insertAtomNode(editor: Editor, node: PMNode) {
   const insertPos = positionAfterSelection(editor.state);
   if (insertPos !== null) insertAtomNodeAt(editor, node, insertPos);
 }
@@ -129,6 +181,8 @@ function insertImageFromFile(file: File, editor: Editor, target: TrackedPosition
     const src = e.target?.result as string;
     insertAtomNodeAt(editor, editor.state.schema.nodes.gherkin_image.create({ src, alt: file.name }), target.current());
   };
+  // A failed or aborted read inserts nothing, but must still stop tracking.
+  reader.onerror = reader.onabort = () => target?.stop();
   reader.readAsDataURL(file);
 }
 
@@ -145,6 +199,8 @@ export function useGherkinKeyboard(
   handleToolbarInsert: (type: InsertableType) => void;
   getContentText: () => string;
   insertImageFromFile: (file: File) => void;
+  insertDroppedImage: (file: File, clientY: number) => void;
+  cancelImageUpload: () => void;
 } {
   const [pickerState, setPickerState] = useState<PickerState>(CLOSED_PICKER);
   const pickerStateRef = useRef(pickerState);
@@ -326,6 +382,25 @@ export function useGherkinKeyboard(
     [editorRef]
   );
 
+  // A drop goes after the block under the pointer. It ignores the cursor and
+  // any open file dialog's target, which keeps its own position.
+  const insertDroppedImage = useCallback(
+    (file: File, clientY: number) => {
+      const editor = editorRef.current;
+      if (!editor) return;
+      const pos = positionAfterBlockAtY(editor.state.doc, (offset) => renderedRect(editor, offset), clientY);
+      insertImageFromFile(file, editor, trackPosition(editor, pos));
+    },
+    [editorRef]
+  );
+
+  // The file dialog closed without a file: drop its target so it stops
+  // tracking and a late change event cannot insert at the stale position.
+  const cancelImageUpload = useCallback(() => {
+    uploadTargetRef.current?.stop();
+    uploadTargetRef.current = null;
+  }, []);
+
   const handleToolbarInsert = useCallback(
     (type: InsertableType) => {
       insertBlock(type, false, false);
@@ -333,5 +408,5 @@ export function useGherkinKeyboard(
     [insertBlock]
   );
 
-  return { handleKeyDown, pickerState, closePicker, handlePickerSelect, handleToolbarInsert, getContentText, insertImageFromFile: insertImage };
+  return { handleKeyDown, pickerState, closePicker, handlePickerSelect, handleToolbarInsert, getContentText, insertImageFromFile: insertImage, insertDroppedImage, cancelImageUpload };
 }

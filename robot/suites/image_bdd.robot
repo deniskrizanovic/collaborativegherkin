@@ -7,9 +7,7 @@ Documentation       Business-language twin of image.robot: spec §3.8 image
 ...                 steps live in ../resources/steps/gherkin_editor.resource and
 ...                 shared.resource. The When step arms `Promise To Upload File`
 ...                 before the click, so "a file picker opens" fails if no file
-...                 chooser opens (design D8). SC-3.8.3 (drag and drop at the
-...                 drop position) is excluded until issue #54 is fixed: the
-...                 drop handler ignores the drop coordinates.
+...                 chooser opens (design D8).
 
 Resource            ../resources/common.resource
 Resource            ../resources/files.resource
@@ -34,6 +32,17 @@ SC-3.8.2: Slash-command Image selection opens file picker and embeds image
     When the user types / and selects Image from the block picker
     Then a file picker opens
     And selecting an image file embeds it as an image block immediately after the current block
+
+SC-3.8.3: Drag and drop image embeds at drop position
+    Given a user is in a session editor with the cursor in the Feature block
+    When the user drops an image file onto the Then block
+    Then the image is embedded as an image block immediately after the Then block
+    And the Feature block is still followed by the block that followed it before the drop
+
+SC-3.8.5: Image dropped outside every block embeds after the nearest block — below the last block
+    Given a user is in a session editor with the cursor in the Feature block
+    When the user drops an image file below the last block
+    Then the image is embedded as an image block at the end of the document
 
 SC-3.12.1: Clicking an image selects it
     Given a document contains an image block that is not selected

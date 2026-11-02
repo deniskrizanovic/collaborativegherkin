@@ -46,7 +46,7 @@ function GherkinEditor({ sessionId, wsUrl }, ref) {
   // editor via ref so it can be called before useEditor returns.
   const editorRef = useRef<import("@tiptap/react").Editor | null>(null);
 
-  const { handleKeyDown, pickerState, closePicker, handlePickerSelect, handleToolbarInsert, getContentText, insertImageFromFile } =
+  const { handleKeyDown, pickerState, closePicker, handlePickerSelect, handleToolbarInsert, getContentText, insertImageFromFile, insertDroppedImage, cancelImageUpload } =
     useGherkinKeyboard(editorRef, () => fileInputRef.current?.click());
 
   const editor = useEditor({
@@ -179,6 +179,14 @@ function GherkinEditor({ sessionId, wsUrl }, ref) {
   }) ?? { prevBlockType: null };
   const validNext = getValidNextTypes(prevBlockType);
 
+  // React has no onCancel for inputs, so listen for the dialog closing natively.
+  useEffect(() => {
+    const input = fileInputRef.current;
+    if (!input) return;
+    input.addEventListener("cancel", cancelImageUpload);
+    return () => input.removeEventListener("cancel", cancelImageUpload);
+  }, [cancelImageUpload]);
+
   const handleFileInputChange = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
       const file = e.target.files?.[0];
@@ -203,7 +211,7 @@ function GherkinEditor({ sessionId, wsUrl }, ref) {
         const file = e.dataTransfer?.files?.[0];
         if (file?.type.startsWith("image/") && editor) {
           e.preventDefault();
-          insertImageFromFile(file);
+          insertDroppedImage(file, e.clientY);
         }
       }}
       onDragOver={(e) => e.preventDefault()}
