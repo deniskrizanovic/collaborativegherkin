@@ -1,4 +1,4 @@
-import { Page } from "@playwright/test";
+import { expect, Page } from "@playwright/test";
 
 export async function pressEnterAndWait(page: Page, expectedType: string): Promise<void> {
   const before = await page.locator(`[data-gherkin-type="${expectedType}"]`).count();
@@ -23,8 +23,18 @@ export async function openSession(page: Page, title = "Test session"): Promise<s
   const id = await createSession(page, title);
   await page.goto(`/sessions/${id}`);
   await page.waitForSelector('[data-gherkin-type="feature"]');
+  await waitForSync(page);
   await page.locator('[data-gherkin-type="feature"]').click();
   return id;
+}
+
+/**
+ * Wait until the sync banner is gone. The banner sits above the toolbar, so
+ * it vanishing on connect shifts every block and button — a click aimed
+ * before that can land on the wrong element.
+ */
+export async function waitForSync(page: Page): Promise<void> {
+  await expect(page.locator(".gherkin-conn-banner")).toHaveCount(0);
 }
 
 /**

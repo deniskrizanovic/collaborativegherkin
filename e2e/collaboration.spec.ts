@@ -1,5 +1,5 @@
 import { test, expect, Browser, Page } from "@playwright/test";
-import { createSession, documentNodes } from "./helpers";
+import { createSession, cursorPosition, documentNodes, waitForSync } from "./helpers";
 import path from "path";
 import fs from "fs";
 import os from "os";
@@ -21,6 +21,7 @@ async function removeSelectedImageRemotely(page: Page, browser: Browser, imageLa
   const url = `http://localhost:3000/sessions/${sessionId}`;
   await page.goto(url);
   await page.waitForSelector('[data-gherkin-type="then"]');
+  await waitForSync(page);
 
   await page.locator('[data-gherkin-type="then"]').click();
   await page.keyboard.type("Before image");
@@ -32,6 +33,8 @@ async function removeSelectedImageRemotely(page: Page, browser: Browser, imageLa
   const tmpImg = path.join(os.tmpdir(), `test-img-${Date.now()}.png`);
   fs.writeFileSync(tmpImg, PNG_1x1);
   await page.locator('[data-gherkin-type="then"]').click();
+  // The image goes after the block holding the selection, so it must be Then.
+  await expect.poll(async () => (await cursorPosition(page)).index).toBe(4);
   await page.locator(".gherkin-toolbar-btn", { hasText: "Image" }).click();
   await page.locator('input[type="file"]').setInputFiles(tmpImg);
   fs.unlinkSync(tmpImg);
