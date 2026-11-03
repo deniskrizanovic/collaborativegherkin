@@ -138,6 +138,13 @@ jobs:
       - name: E2e tests
         run: pnpm run test:e2e
 
+      - name: Upload Playwright results
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-results
+          path: test-results/
+
       - name: Robot e2e tests
         run: pnpm run test:robot
 
