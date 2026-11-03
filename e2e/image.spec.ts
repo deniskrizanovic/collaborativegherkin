@@ -24,6 +24,8 @@ async function buildThenImageAnd(page: Page, imageLast = false) {
   const tmpImg = path.join(os.tmpdir(), `test-img-${Date.now()}.png`);
   fs.writeFileSync(tmpImg, PNG_1x1);
   await page.locator('[data-gherkin-type="then"]').click();
+  // The image goes after the block holding the selection, so it must be Then.
+  await expect.poll(async () => (await cursorPosition(page)).index).toBe(4);
   await page.locator(".gherkin-toolbar-btn", { hasText: "Image" }).click();
   await page.locator('input[type="file"]').setInputFiles(tmpImg);
   fs.unlinkSync(tmpImg);
