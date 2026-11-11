@@ -1,16 +1,7 @@
 import { test, expect, Page } from "@playwright/test";
-import { cursorPosition, documentNodes, endUndoStep, openSession } from "./helpers";
-import path from "path";
-import fs from "fs";
-import os from "os";
+import { chooseImageFile, cursorPosition, documentNodes, endUndoStep, openSession, PNG_1x1 } from "./helpers";
 
 // spec §3.3, §3.4, §3.6, §3.8
-
-const PNG_1x1 = Buffer.from(
-  "89504e470d0a1a0a0000000d49484452000000010000000108020000009001" +
-  "2e00000000c4944415478016360f8cfc00000000200016c3455300000000049454e44ae426082",
-  "hex"
-);
 
 // Then "Before image", an image, and (unless imageLast) And "After image".
 async function buildThenImageAnd(page: Page, imageLast = false) {
@@ -21,14 +12,11 @@ async function buildThenImageAnd(page: Page, imageLast = false) {
     await page.locator(".gherkin-toolbar-btn", { hasText: "And" }).click();
     await page.keyboard.type("After image");
   }
-  const tmpImg = path.join(os.tmpdir(), `test-img-${Date.now()}.png`);
-  fs.writeFileSync(tmpImg, PNG_1x1);
   await page.locator('[data-gherkin-type="then"]').click();
   // The image goes after the block holding the selection, so it must be Then.
   await expect.poll(async () => (await cursorPosition(page)).index).toBe(4);
   await page.locator(".gherkin-toolbar-btn", { hasText: "Image" }).click();
-  await page.locator('input[type="file"]').setInputFiles(tmpImg);
-  fs.unlinkSync(tmpImg);
+  await chooseImageFile(page);
   await expect(page.locator(".gherkin-image-block")).toBeVisible();
 }
 
@@ -58,12 +46,10 @@ async function dropImageAt(page: Page, x: number, y: number) {
 test.describe("image blocks", () => {
   test("SC-3.8.1: Image toolbar button opens file picker and embeds image", async ({ page }) => {
     await openSession(page);
-    const tmpImg = path.join(os.tmpdir(), `test-img-${Date.now()}.png`);
-    fs.writeFileSync(tmpImg, PNG_1x1);
 
     await page.locator('[data-gherkin-type="then"]').last().click();
     await page.locator(".gherkin-toolbar-btn", { hasText: "Image" }).click();
-    await page.locator('input[type="file"]').setInputFiles(tmpImg);
+    await chooseImageFile(page);
 
     await expect(page.locator(".gherkin-image-block")).toBeVisible();
     const img = page.locator(".gherkin-image-block img");
@@ -73,13 +59,10 @@ test.describe("image blocks", () => {
     expect(box!.width).toBeGreaterThan(0);
     expect(box!.height).toBeGreaterThan(0);
 
-    fs.unlinkSync(tmpImg);
   });
 
   test("SC-3.8.2: Slash-command Image selection opens file picker and embeds image", async ({ page }) => {
     await openSession(page);
-    const tmpImg = path.join(os.tmpdir(), `test-img-${Date.now()}.png`);
-    fs.writeFileSync(tmpImg, PNG_1x1);
 
     await page.locator('[data-gherkin-type="then"]').last().click();
     await page.keyboard.type("/");
@@ -90,10 +73,9 @@ test.describe("image blocks", () => {
     const count = await buttons.count();
     await buttons.nth(count - 1).click();
 
-    await page.locator('input[type="file"]').setInputFiles(tmpImg);
+    await chooseImageFile(page);
     await expect(page.locator(".gherkin-image-block")).toBeVisible();
 
-    fs.unlinkSync(tmpImg);
   });
 
   test("SC-3.8.3: Drag and drop image embeds at drop position", async ({ page }) => {

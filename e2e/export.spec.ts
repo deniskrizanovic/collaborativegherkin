@@ -1,5 +1,5 @@
 import { test, expect } from "@playwright/test";
-import { openSession } from "./helpers";
+import { chooseImageFile, openSession } from "./helpers";
 import * as path from "path";
 import * as fs from "fs";
 import * as os from "os";
@@ -76,17 +76,10 @@ test.describe("export", () => {
   test("SC-3.6.1: Export downloads plain-text file in document order — image data-URI included", async ({ page }) => {
     await openSession(page);
 
-    const PNG_1x1 = Buffer.from(
-      "89504e470d0a1a0a0000000d49484452000000010000000108020000009001" +
-      "2e00000000c4944415478016360f8cfc00000000200016c3455300000000049454e44ae426082",
-      "hex"
-    );
-    const tmpImg = path.join(os.tmpdir(), `test-img-export-${Date.now()}.png`);
-    fs.writeFileSync(tmpImg, PNG_1x1);
 
     await page.locator('[data-gherkin-type="then"]').last().click();
     await page.locator(".gherkin-toolbar-btn", { hasText: "Image" }).click();
-    await page.locator('input[type="file"]').setInputFiles(tmpImg);
+    await chooseImageFile(page);
     await page.waitForSelector(".gherkin-image-block");
 
     const downloadPromise = page.waitForEvent("download");
@@ -97,7 +90,6 @@ test.describe("export", () => {
     await download.saveAs(tmpTxt);
     const content = fs.readFileSync(tmpTxt, "utf-8");
     fs.unlinkSync(tmpTxt);
-    fs.unlinkSync(tmpImg);
 
     expect(content).toContain("data:image");
   });

@@ -1,8 +1,5 @@
 import { test, expect } from "@playwright/test";
-import { documentNodes, openSession, pressEnterAndWait } from "./helpers";
-import path from "path";
-import fs from "fs";
-import os from "os";
+import { chooseImageFile, documentNodes, openSession, pressEnterAndWait } from "./helpers";
 
 // spec §3.2 — all 9 rows of the enter-progression table + image Enter
 
@@ -160,18 +157,9 @@ test.describe("enter-key auto-progression", () => {
     await pressEnterAndWait(page, "then");
 
     // Insert an image after the 'then' block via the toolbar Image button
-    const tmpImg = path.join(os.tmpdir(), "test-gherkin.png");
-    // minimal 1×1 red PNG
-    const PNG_1x1 = Buffer.from(
-      "89504e470d0a1a0a0000000d49484452000000010000000108020000009001" +
-      "2e00000000c4944415478016360f8cfc00000000200016c3455300000000049454e44ae426082",
-      "hex"
-    );
-    fs.writeFileSync(tmpImg, PNG_1x1);
-
     await page.locator('[data-gherkin-type="then"]').last().click();
     await page.locator(".gherkin-toolbar-btn", { hasText: "Image" }).click();
-    await page.locator('input[type="file"]').setInputFiles(tmpImg);
+    await chooseImageFile(page);
 
     // Wait for image block to appear
     await page.waitForSelector(".gherkin-image-block");
@@ -192,7 +180,5 @@ test.describe("enter-key auto-progression", () => {
     );
     const nodes = await documentNodes(page);
     expect(nodes[nodes.indexOf("image") + 1]).toBe("and");
-
-    fs.unlinkSync(tmpImg);
   });
 });

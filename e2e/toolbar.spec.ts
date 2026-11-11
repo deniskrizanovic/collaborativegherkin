@@ -1,16 +1,7 @@
 import { test, expect } from "@playwright/test";
-import { documentNodes, openSession } from "./helpers";
-import path from "path";
-import fs from "fs";
-import os from "os";
+import { chooseImageFile, documentNodes, openSession } from "./helpers";
 
 // spec §3.4, §3.12
-
-const PNG_1x1 = Buffer.from(
-  "89504e470d0a1a0a0000000d49484452000000010000000108020000009001" +
-  "2e00000000c4944415478016360f8cfc00000000200016c3455300000000049454e44ae426082",
-  "hex"
-);
 
 test.describe("toolbar", () => {
   test("SC-3.4.1: Toolbar shows valid next blocks and Image — no Feature shown on Feature block", async ({ page }) => {
@@ -54,12 +45,9 @@ test.describe("toolbar", () => {
 
   test("SC-3.12.5: Toolbar insert with an image selected places the block after the image", async ({ page }) => {
     await openSession(page);
-    const tmpImg = path.join(os.tmpdir(), `test-img-${Date.now()}.png`);
-    fs.writeFileSync(tmpImg, PNG_1x1);
     await page.locator('[data-gherkin-type="then"]').click();
     await page.locator(".gherkin-toolbar-btn", { hasText: "Image" }).click();
-    await page.locator('input[type="file"]').setInputFiles(tmpImg);
-    fs.unlinkSync(tmpImg);
+    await chooseImageFile(page);
     await expect(page.locator(".gherkin-image-block")).toBeVisible();
 
     await page.locator(".gherkin-image-block").click();

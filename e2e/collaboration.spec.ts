@@ -1,14 +1,5 @@
 import { test, expect, Browser, Page } from "@playwright/test";
-import { createSession, cursorPosition, documentNodes, waitForSync } from "./helpers";
-import path from "path";
-import fs from "fs";
-import os from "os";
-
-const PNG_1x1 = Buffer.from(
-  "89504e470d0a1a0a0000000d49484452000000010000000108020000009001" +
-  "2e00000000c4944415478016360f8cfc00000000200016c3455300000000049454e44ae426082",
-  "hex"
-);
+import { chooseImageFile, createSession, cursorPosition, documentNodes, waitForSync } from "./helpers";
 
 // SC-3.12.6 — the first user selects an image, the second user deletes it.
 // y-prosemirror restores the first user's NodeSelection after the remote
@@ -30,14 +21,11 @@ async function removeSelectedImageRemotely(page: Page, browser: Browser, imageLa
     await page.keyboard.type("After image");
   }
 
-  const tmpImg = path.join(os.tmpdir(), `test-img-${Date.now()}.png`);
-  fs.writeFileSync(tmpImg, PNG_1x1);
   await page.locator('[data-gherkin-type="then"]').click();
   // The image goes after the block holding the selection, so it must be Then.
   await expect.poll(async () => (await cursorPosition(page)).index).toBe(4);
   await page.locator(".gherkin-toolbar-btn", { hasText: "Image" }).click();
-  await page.locator('input[type="file"]').setInputFiles(tmpImg);
-  fs.unlinkSync(tmpImg);
+  await chooseImageFile(page);
   await expect(page.locator(".gherkin-image-block")).toBeVisible();
   expect(await documentNodes(page)).toEqual(
     imageLast
