@@ -90,3 +90,20 @@ export function editorLocator(page: Page) {
 export async function clickEditor(page: Page) {
   await editorLocator(page).click();
 }
+
+// Minimal 1×1 PNG.
+export const PNG_1x1 = Buffer.from(
+  "89504e470d0a1a0a0000000d49484452000000010000000108020000009001" +
+  "2e00000000c4944415478016360f8cfc00000000200016c3455300000000049454e44ae426082",
+  "hex"
+);
+
+/**
+ * Give the toolbar/slash file input an image. The bytes go over in memory: a
+ * path makes the browser read the file lazily when the editor's FileReader
+ * runs, so deleting a temp file straight after this call can lose the race and
+ * the editor silently inserts nothing.
+ */
+export async function chooseImageFile(page: Page, name = "test-img.png"): Promise<void> {
+  await page.locator('input[type="file"]').setInputFiles({ name, mimeType: "image/png", buffer: PNG_1x1 });
+}
