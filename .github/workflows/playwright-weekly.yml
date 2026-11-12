@@ -1,0 +1,133 @@
+name: Playwright weekly
+
+# The Robot suite is the e2e suite CI runs on every change. The Playwright suite
+# (e2e/) is kept as the parity reference; this workflow runs it weekly against
+# main so its tests don't go stale unnoticed. A failed scheduled run opens (or
+# comments on) one `playwright-drift` issue; the next green run on main
+# comments on it and closes it. Drift issues never block merges.
+#
+# See openspec/changes/run-only-robot-e2e (design D7).
+
+on:
+  schedule:
+    # Every Monday at 03:00 UTC. GitHub runs schedules on the default branch only.
+    - cron: '0 3 * * 1'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  playwright:
+    runs-on: ubuntu-latest
+
+    env:
+      DATABASE_URL: file:./ci.db
+      AUTH_SECRET: ci-secret-not-for-production
+      TEST_AUTH_SECRET: ci-test-bypass-secret
+      TEST_AUTH_EMAIL: e2e-test@example.com
+
+    steps:
+      - uses: actions/checkout@v4
+
+      # Reads the pnpm version from package.json "packageManager".
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Generate Prisma client
+        run: ./node_modules/.bin/prisma generate
+
+      - name: Run database migrations
+        run: ./node_modules/.bin/prisma migrate deploy
+
+      - name: Seed database
+        run: pnpm run seed
+
+      - name: Share Playwright browser path
+        run: echo "PLAYWRIGHT_BROWSERS_PATH=$HOME/.cache/ms-playwright" >> "$GITHUB_ENV"
+
+      - name: Cache browser downloads
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: browsers-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml') }}
+
+      - name: Install Playwright browsers
+        run: pnpm exec playwright install --with-deps chromium
+
+      # The json reporter writes results.json so the drift step can name the
+      # failing tests. Playwright's webServer starts `pnpm dev`.
+      - name: Playwright e2e tests
+        run: pnpm run test:e2e --reporter=list,json
+        env:
+          PLAYWRIGHT_JSON_OUTPUT_NAME: test-results/results.json
+
+      - name: Upload Playwright results
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-results
+          path: test-results/
+
+      # Test titles reach the issue only through --body-file, never the shell.
+      - name: Open or update drift issue
+        if: failure() && github.event_name == 'schedule'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+          run_url="$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID"
+          results="test-results/results.json"
+          body_file="$RUNNER_TEMP/drift-body.md"
+
+          {
+            echo "The scheduled Playwright run on \`main\` failed: $run_url"
+            echo
+            if [ -f "$results" ]; then
+              echo "Failing tests:"
+              echo
+              jq -r '[.. | objects | select(has("specs")) | .specs[] | select(.ok == false) | "- \(.file) › \(.title)"] | unique | .[]' "$results"
+            else
+              echo "No \`$results\` was written; the run failed before the tests finished. See the run log."
+            fi
+            echo
+            echo "Fix the Playwright test or the app, keep its Robot test and \`robot/PARITY.md\` row in step, and re-run the workflow. The next green run on \`main\` closes this issue."
+          } > "$body_file"
+
+          gh label create playwright-drift --force \
+            --color "d93f0b" \
+            --description "Weekly Playwright run on main is failing"
+
+          issue="$(gh issue list --label playwright-drift --state open --json number --limit 1 --jq '.[0].number // empty')"
+          if [ -n "$issue" ]; then
+            gh issue comment "$issue" --body-file "$body_file"
+          else
+            gh issue create --label playwright-drift \
+              --title "Playwright suite failing on main" \
+              --body-file "$body_file"
+          fi
+
+      - name: Close drift issue
+        if: success() && github.ref == 'refs/heads/main'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+          run_url="$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID"
+          issue="$(gh issue list --label playwright-drift --state open --json number --limit 1 --jq '.[0].number // empty')"
+          if [ -n "$issue" ]; then
+            body_file="$RUNNER_TEMP/drift-close.md"
+            echo "The Playwright run on \`main\` passed: $run_url" > "$body_file"
+            gh issue comment "$issue" --body-file "$body_file"
+            gh issue close "$issue"
+          fi

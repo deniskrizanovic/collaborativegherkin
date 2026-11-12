@@ -215,8 +215,11 @@ Visit `http://localhost:3000` — you'll be redirected to the sign-in page. Ente
 | `pnpm dev`            | Start the server (Next.js HTTP + Y.js sync WebSocket, same origin) |
 | `pnpm build`          | Build for production                           |
 | `pnpm test`           | Run Vitest unit tests                          |
-| `pnpm test:e2e`       | Run Playwright end-to-end tests                |
+| `pnpm test:robot`     | Run the Robot Framework end-to-end suite (`robot/`) — the e2e suite CI runs on every change |
+| `pnpm test:e2e`       | Run the Playwright end-to-end tests by hand — the parity reference for Robot; CI runs them weekly |
+| `pnpm test:all`       | Typecheck, every lint gate, unit tests, and Robot for e2e (not Playwright) |
 | `pnpm lint`           | Lint the codebase                              |
+| `pnpm lint:e2e-parity` | Check every Playwright test has a `robot/PARITY.md` row and a Robot test with the same title |
 | `pnpm exec prisma migrate dev` | Apply database migrations                      |
 | `pnpm exec prisma studio`      | Browse the database in a UI                    |
 

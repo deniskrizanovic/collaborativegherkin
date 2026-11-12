@@ -13,14 +13,25 @@ Columns:
   and lines, computed styles, explicit timeouts, extra contexts, cleanup).
 - **Robot suite**: target file in `robot/suites/`.
 - **Chunk**: delivery chunk (design D14). Tests carry the tag `chunk<N>`.
-- **Status**: `pending` until ported. A row flips to `ported` in the same chunk
-  that ports the test, never later. `SC-3.5.2` ends as `skip` (ported as a
-  Robot test tagged `skip`, with the same reason).
+- **Status**: `ported`, or `skip` for a skipped Playwright test (`SC-3.5.2`,
+  ported as a Robot test tagged `skip`, with the same reason).
+
+`pnpm lint:e2e-parity` enforces these rows in the pre-commit hook, in CI and in
+`pnpm test:all`. It lists the Playwright tests with `playwright test --list` and
+fails when a test has no row, a row names no test, a status is not `ported` or
+`skip`, the Robot suite has no test with exactly the title, or the Playwright
+test, its row and its Robot `skip` tag disagree on being skipped. Any change
+that adds, renames, removes or skips a Playwright test must update its row and
+its Robot test in the same change.
 
 All tests start from `openSession` (create via API, open, wait for and click
 the Feature block) unless noted otherwise.
 
-## Totals
+## Totals (port history)
+
+How the port was delivered, chunk by chunk (design D14 of the archived change).
+Historical only: the counts are not kept up to date, and the gate does not
+check them.
 
 | Chunk | Tests | Files |
 |---|---|---|

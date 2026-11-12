@@ -1,10 +1,14 @@
 # Robot Framework e2e suite
 
-A second e2e suite, written in [Robot Framework](https://robotframework.org/)
+The e2e suite, written in [Robot Framework](https://robotframework.org/)
 with the [Browser library](https://robotframework-browser.org/) (which drives
-Playwright underneath). It runs alongside the Playwright TypeScript suite in
-`e2e/`, which stays in place. Every Playwright test has one Robot counterpart;
-`PARITY.md` tracks the mapping.
+Playwright underneath). Robot is the e2e suite that runs: in CI on every push
+and pull request, and in `pnpm test:all`. The Playwright TypeScript suite in
+`e2e/` stays in place as the parity reference. Every Playwright test has one
+Robot counterpart with the same name, `PARITY.md` tracks the mapping, and
+`pnpm lint:e2e-parity` (pre-commit hook, CI, `test:all`) enforces it. CI runs
+the Playwright suite weekly (`.github/workflows/playwright-weekly.yml`) and
+files a `playwright-drift` issue when it fails.
 
 ## Install and run
 
@@ -26,8 +30,9 @@ pnpm test:robot         # run every suite under robot/suites/
 3. runs `uv run robot --outputdir robot/results robot/suites`;
 4. exits with Robot's exit code (non-zero when any test fails).
 
-Do not run it at the same time as `pnpm test:e2e`: both suites share one
-SQLite database, and some tests delete every session.
+If you run `pnpm test:e2e` by hand, do not run it at the same time as
+`pnpm test:robot`: both suites share one SQLite database, and some tests
+delete every session.
 
 ### Run part of the suite
 
