@@ -81,4 +81,5 @@
 
 - [x] 7.1 Run `pnpm lint`, `pnpm typecheck`, `pnpm test -- --run`, `pnpm lint:specs`, `pnpm lint:given`, `pnpm lint:robot-steps` and `pnpm lint:e2e-parity`. Confirm all are green.
 - [x] 7.2 Run `openspec validate run-only-robot-e2e --strict` and confirm it passes.
-- [ ] 7.3 Report to the user and wait. After merge, the user dispatches `playwright-weekly.yml` once on `main` to confirm a green run (design Migration Plan step 3). Record the outcome here.
+- [x] 7.3 Report to the user and wait. After merge, the user dispatches `playwright-weekly.yml` once on `main` to confirm a green run (design Migration Plan step 3). Record the outcome here.
+  - **Outcome (2026-11-12):** merged to `main` as `e28216c`. Dispatched `playwright-weekly.yml` on `main` ([run 43169797598](https://github.com/deniskrizanovic/collaborativegherkin/actions/runs/43169797598)): success, 122 passed and 1 skipped (`SC-3.5.2`). The drift-issue and upload steps were skipped, and "Close drift issue" found no open issue. CI on the same commit ([run 43169771715](https://github.com/deniskrizanovic/collaborativegherkin/actions/runs/43169771715)): success. "Lint e2e parity" and "Robot e2e tests" passed, and no Playwright step ran. Opening and closing a drift issue is not yet exercised on GitHub.
