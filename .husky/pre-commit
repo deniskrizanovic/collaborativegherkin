@@ -23,6 +23,11 @@ pnpm run lint:robot
 # no network; sibling of lint:specs.
 pnpm run lint:robot-steps
 
+# E2e parity gate — every Playwright test in e2e/ must have a robot/PARITY.md
+# row and a Robot test with exactly its title. Whole-tree, offline (reads
+# `playwright test --list`, no server or browser); sibling of lint:robot-steps.
+pnpm run lint:e2e-parity
+
 # Dependabot config gate — .github/dependabot.yml must parse, assign the owner,
 # and only ignore dependencies documented in ADR 0004. Pure filesystem check,
 # no network; sibling of lint:specs.

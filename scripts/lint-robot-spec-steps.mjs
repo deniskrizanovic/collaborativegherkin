@@ -127,16 +127,18 @@ function hasBddTag(cells) {
 
 /**
  * Parse a Robot suite: whether it opts in with the `bdd` tag, and its tests
- * (each with its own `bdd` flag from `[Tags]`).
+ * (each with its own `bdd` flag from `[Tags]`, and its full tag list: the
+ * suite's `Test Tags` / `Force Tags` / `Default Tags` followed by `[Tags]`).
  * @param {string} content
  * @param {string} [file]
- * @returns {{ bdd: boolean, tests: { name: string, file: string, line: number, bdd: boolean, steps: { word: string, kind: string, text: string, line: number }[], other: { text: string, line: number }[] }[] }}
+ * @returns {{ bdd: boolean, tests: { name: string, file: string, line: number, bdd: boolean, tags: string[], steps: { word: string, kind: string, text: string, line: number }[], other: { text: string, line: number }[] }[] }}
  */
 export function parseRobotSuite(content, file = "<memory>") {
   const lines = content.split(/\r?\n/);
   const tests = [];
   let section = "";
   let bdd = false;
+  const suiteTags = [];
   let current = null;
   let setting = ""; // the setting a `...` line continues
 
@@ -156,13 +158,16 @@ export function parseRobotSuite(content, file = "<memory>") {
 
     if (section === "settings") {
       if (cells[0] !== "...") setting = normalizeSection(cells[0]);
-      if (SUITE_TAG_SETTINGS.has(setting) && hasBddTag(cells.slice(1))) bdd = true;
+      if (SUITE_TAG_SETTINGS.has(setting)) {
+        suiteTags.push(...cells.slice(1));
+        if (hasBddTag(cells.slice(1))) bdd = true;
+      }
       continue;
     }
     if (section !== "testcases") continue;
 
     if (!/^\s/.test(raw)) {
-      current = { name: line, file, line: i + 1, bdd: false, steps: [], other: [] };
+      current = { name: line, file, line: i + 1, bdd: false, tags: [], steps: [], other: [] };
       tests.push(current);
       setting = "";
       continue;
@@ -170,7 +175,10 @@ export function parseRobotSuite(content, file = "<memory>") {
     if (!current) continue;
 
     if (cells[0] !== "...") setting = cells[0].startsWith("[") ? normalizeSection(cells[0]) : "";
-    if (setting === "[tags]" && hasBddTag(cells.slice(1))) current.bdd = true;
+    if (setting === "[tags]") {
+      current.tags.push(...cells.slice(1));
+      if (hasBddTag(cells.slice(1))) current.bdd = true;
+    }
     if (cells[0].startsWith("[") || cells[0] === "...") continue; // test settings, continuations
     const step = ROBOT_STEP_RE.exec(line);
     if (step) {
@@ -181,6 +189,7 @@ export function parseRobotSuite(content, file = "<memory>") {
   }
 
   for (const t of tests) {
+    t.tags = [...suiteTags, ...t.tags];
     const kinds = governingKinds(t.steps);
     t.steps.forEach((step, i) => (step.kind = kinds[i]));
   }

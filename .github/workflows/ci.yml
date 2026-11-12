@@ -103,6 +103,9 @@ jobs:
       - name: Lint robot (spec steps)
         run: pnpm run lint:robot-steps
 
+      - name: Lint e2e parity
+        run: pnpm run lint:e2e-parity
+
       - name: Type check
         run: pnpm run typecheck
 
@@ -134,16 +137,6 @@ jobs:
 
       - name: Install Robot toolchain
         run: pnpm run test:robot:init
-
-      - name: E2e tests
-        run: pnpm run test:e2e
-
-      - name: Upload Playwright results
-        if: failure()
-        uses: actions/upload-artifact@v4
-        with:
-          name: playwright-results
-          path: test-results/
 
       - name: Robot e2e tests
         run: pnpm run test:robot

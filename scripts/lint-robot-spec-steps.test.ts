@@ -86,6 +86,27 @@ describe("parsers", () => {
     expect(perTest.tests.map((t) => t.bdd)).toEqual([true, false]);
   });
 
+  it("collects [Tags] cells, including a continuation line", () => {
+    const parsed = parseRobotSuite(
+      suite("A\n    [Tags]    smoke    skip\n    Given x\n\nB\n    [Tags]    one\n    ...    two\n    Given y", "")
+    );
+    expect(parsed.tests.map((t) => t.tags)).toEqual([
+      ["smoke", "skip"],
+      ["one", "two"],
+    ]);
+  });
+
+  it("merges suite-level Test Tags, Force Tags and Default Tags into each test", () => {
+    const content =
+      "*** Settings ***\nTest Tags    chunk5    collab\nForce Tags    forced\nDefault Tags    dflt\n...    more\n\n" +
+      "*** Test Cases ***\nA\n    [Tags]    skip\n    Click    .x\n";
+    expect(parseRobotSuite(content).tests[0].tags).toEqual(["chunk5", "collab", "forced", "dflt", "more", "skip"]);
+  });
+
+  it("gives an empty tag list to a test with no tags", () => {
+    expect(parseRobotSuite("*** Test Cases ***\nA\n    Click    .x\n").tests[0].tags).toEqual([]);
+  });
+
   it("drops a trailing comment from a step", () => {
     const [test] = parseRobotSuite(suite("A\n    Given the block picker menu is open    # opens on Feature")).tests;
     expect(test.steps[0].text).toBe("the block picker menu is open");
