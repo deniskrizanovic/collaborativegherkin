@@ -17,6 +17,7 @@ on:
       - 'pnpm-workspace.yaml'
       - '.github/**'
       - 'eslint.config.mjs'
+      - 'biome.json'
       - 'tsconfig.json'
       - 'next.config.*'
       - 'vitest.config.*'
@@ -38,6 +39,7 @@ on:
       - 'pnpm-workspace.yaml'
       - '.github/**'
       - 'eslint.config.mjs'
+      - 'biome.json'
       - 'tsconfig.json'
       - 'next.config.*'
       - 'vitest.config.*'
@@ -55,7 +57,11 @@ jobs:
       TEST_AUTH_EMAIL: e2e-test@example.com
 
     steps:
+      # Full history so `lint:format` (biome ci --changed) can diff against
+      # the PR base or the pre-push commit.
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       # Reads the pnpm version from package.json "packageManager".
       - uses: pnpm/action-setup@v4
@@ -79,6 +85,19 @@ jobs:
 
       - name: Lint
         run: pnpm run lint
+
+      # Formatting and import order, checked only for files changed since the
+      # PR base (pull_request) or the pre-push commit (push). Falls back to
+      # HEAD^ when that base is empty, all zeros (first push) or not in the
+      # clone (force push).
+      - name: Lint format
+        env:
+          BASE: ${{ github.event.pull_request.base.sha || github.event.before }}
+        run: |
+          if [ -z "$BASE" ] || [ "$BASE" = "0000000000000000000000000000000000000000" ] || ! git cat-file -e "$BASE^{commit}" 2>/dev/null; then
+            BASE="HEAD^"
+          fi
+          pnpm run lint:format --since="$BASE"
 
       - name: Lint specs (traceability)
         run: pnpm run lint:specs

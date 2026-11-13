@@ -219,9 +219,17 @@ Visit `http://localhost:3000` — you'll be redirected to the sign-in page. Ente
 | `pnpm test:e2e`       | Run the Playwright end-to-end tests by hand — the parity reference for Robot; CI runs them weekly |
 | `pnpm test:all`       | Typecheck, every lint gate, unit tests, and Robot for e2e (not Playwright) |
 | `pnpm lint`           | Lint the codebase                              |
+| `pnpm lint:format`    | Check Biome formatting and import order on files changed against `main` |
 | `pnpm lint:e2e-parity` | Check every Playwright test has a `robot/PARITY.md` row and a Robot test with the same title |
 | `pnpm exec prisma migrate dev` | Apply database migrations                      |
 | `pnpm exec prisma studio`      | Browse the database in a UI                    |
+
+Biome formats TS/TSX/JS/JSON/CSS and sorts imports; ESLint does the linting.
+The pre-commit hook formats staged files automatically, and there is no
+whole-tree format script. If `lint:format` fails in CI, fix the named files
+with `pnpm exec biome check --write <path>`. To format on save, install the
+Biome plugin for your editor (in WebStorm, enable it under Settings → Languages
+& Frameworks → Biome).
 
 ---
 

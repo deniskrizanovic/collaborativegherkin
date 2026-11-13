@@ -17,13 +17,14 @@
     "lint:robot": "node scripts/lint-robot-no-sleep.mjs",
     "lint:robot-steps": "node scripts/lint-robot-spec-steps.mjs",
     "lint:e2e-parity": "node scripts/lint-e2e-parity.mjs",
+    "lint:format": "biome ci --changed --no-errors-on-unmatched",
     "typecheck": "tsc --noEmit",
     "test": "vitest",
     "test:e2e": "playwright test",
     "test:robot:init": "uv sync --locked && uv run rfbrowser init chromium",
     "test:robot": "node scripts/run-robot.mjs",
     "e2e:all": "run-s test:robot",
-    "test:all": "run-s typecheck && run-p lint lint:specs lint:given lint:issue-link lint:schema-parity lint:dependabot lint:robot lint:robot-steps lint:e2e-parity \"test -- --run\" e2e:all",
+    "test:all": "run-s typecheck && run-p lint lint:specs lint:given lint:issue-link lint:schema-parity lint:dependabot lint:robot lint:robot-steps lint:e2e-parity lint:format \"test -- --run\" e2e:all",
     "seed": "tsx prisma/seed.ts",
     "db:generate:postgres": "prisma generate --config prisma/postgres/prisma.config.ts",
     "db:migrate:dev:postgres": "prisma migrate dev --config prisma/postgres/prisma.config.ts && prisma generate --config prisma/postgres/prisma.config.ts",
@@ -32,8 +33,12 @@
   },
   "lint-staged": {
     "*.{ts,tsx}": [
+      "biome check --write --no-errors-on-unmatched --files-ignore-unknown=true",
       "eslint --max-warnings=0",
       "bash -c 'tsc --noEmit'"
+    ],
+    "*.{js,mjs,cjs,json,jsonc,css}": [
+      "biome check --write --no-errors-on-unmatched --files-ignore-unknown=true"
     ]
   },
   "dependencies": {
@@ -68,6 +73,7 @@
     "zod": "^4.6.7"
   },
   "devDependencies": {
+    "@biomejs/biome": "2.6.7",
     "@playwright/test": "^1.65.0",
     "@types/jsdom": "^30.0.0",
     "@types/node": "^26.6.6",
