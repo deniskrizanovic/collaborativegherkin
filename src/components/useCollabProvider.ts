@@ -1,10 +1,13 @@
 import { useEffect, useState } from "react";
-import * as Y from "yjs";
 import { WebsocketProvider } from "y-websocket";
+import * as Y from "yjs";
 
 export type ConnStatus = "connecting" | "connected" | "disconnected";
 
-export function useCollabProvider(sessionId: string, wsUrl: string): {
+export function useCollabProvider(
+  sessionId: string,
+  wsUrl: string,
+): {
   ydoc: Y.Doc;
   provider: WebsocketProvider | null;
   connStatus: ConnStatus;
@@ -28,14 +31,14 @@ export function useCollabProvider(sessionId: string, wsUrl: string): {
     };
     p.on("status", onStatus);
 
-    /* eslint-disable react-hooks/set-state-in-effect --
+    /* oxlint-disable react/set-state-in-effect --
        The effect owns the socket, so the provider exists only once it runs and
        must reach render through state. y-websocket v3 starts connecting in the
        constructor; a WebSocket cannot open synchronously, so a new provider is
        always "connecting" here. */
     setConnStatus("connecting");
     setProvider(p);
-    /* eslint-enable react-hooks/set-state-in-effect */
+    /* oxlint-enable react/set-state-in-effect */
 
     return () => {
       p.off("status", onStatus);

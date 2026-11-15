@@ -20,7 +20,7 @@
 ### Out of scope
 - Logging (`logger`, log files) — non-functional
 - Test infrastructure (Vitest, Playwright, `TEST_AUTH_SECRET` credentials provider)
-- Build tooling, ESLint, TypeScript, package management
+- Build tooling, oxlint, TypeScript, package management
 - Tiptap intra-editor UI affordances that do not cross the boundary (slash menu, modal open/close, copy-link clipboard write)
 
 ---

@@ -27,11 +27,13 @@ There is no one-shot reformat commit and no `pnpm format` script that could rewr
 
 ### Next step: oxlint
 
+Superseded by [ADR 0007](0007-oxlint-replaces-eslint.md): oxlint replaced ESLint outright, with no hybrid period.
+
 Linting moves to oxlint in a separate change. During the transition, `eslint-plugin-oxlint` turns off the ESLint rules oxlint already covers, so ESLint runs only the rules oxlint lacks (for example `react-hooks/set-state-in-effect` and `@next/next/no-img-element`). ESLint goes once oxlint covers them. Formatting and linting have separate configuration, so this ADR does not constrain that change.
 
 ## Consequences
 
 - The first commit that touches a file reformats the whole file, so those diffs carry some formatting churn. This was accepted over a single repo-wide reformat.
 - A Biome version bump can change formatter output. Because CI checks only changed files, a bump flags at most the files changed in the same PR.
-- Biome, ESLint and the spec gates each own one job; ESLint's configuration and its ADR 0004 exception are unchanged.
+- Biome, the linter and the spec gates each own one job. ADR 0006 left ESLint's configuration and its ADR 0004 exception unchanged; ADR 0007 later replaced ESLint with oxlint and removed that exception.
 - Editors should use the Biome plugin as the formatter for in-scope files (WebStorm settings live in the gitignored `.idea/`).

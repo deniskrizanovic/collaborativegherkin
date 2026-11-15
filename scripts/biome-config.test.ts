@@ -39,9 +39,9 @@ const packageJson = JSON.parse(readFileSync(join(ROOT, "package.json"), "utf8"))
 describe("Biome formatter config", () => {
   it("Biome reports no lint diagnostics", () => {
     // Biome's stdin mode bypasses file scope and lint reporting, so check a
-    // real file. It lives outside the repo so `eslint .` running in parallel
-    // under test:all never sees it; VCS is off because the file is outside
-    // the Git root.
+    // real file. It lives outside the repo so `pnpm lint` (oxlint) running in
+    // parallel under test:all never sees it; VCS is off because the file is
+    // outside the Git root.
     const dir = mkdtempSync(join(tmpdir(), "biome-config-test-"));
     try {
       writeFileSync(
@@ -122,12 +122,12 @@ describe("Biome formatter config", () => {
     expect(result.status).toBe(0);
   });
 
-  it("lint-staged runs Biome write before ESLint", () => {
+  it("lint-staged runs Biome write before oxlint", () => {
     const tsTasks: string[] = packageJson["lint-staged"]["*.{ts,tsx}"];
     const biomeIndex = tsTasks.findIndex((task) => task.startsWith("biome check --write"));
-    const eslintIndex = tsTasks.findIndex((task) => task.startsWith("eslint"));
+    const oxlintIndex = tsTasks.findIndex((task) => task.startsWith("oxlint"));
     expect(biomeIndex).toBe(0);
-    expect(eslintIndex).toBeGreaterThan(biomeIndex);
+    expect(oxlintIndex).toBeGreaterThan(biomeIndex);
 
     const otherTasks: string[] = packageJson["lint-staged"]["*.{js,mjs,cjs,json,jsonc,css}"];
     expect(otherTasks).toEqual([expect.stringMatching(/^biome check --write/)]);
