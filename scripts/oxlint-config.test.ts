@@ -172,7 +172,7 @@ describe("oxlint config", () => {
     expect(result.diagnostics.map(ruleOf)).toEqual(["no-unused-vars"]);
   });
 
-  it("no eslint-disable outside generated code", () => {
+  it("no eslint disable directives outside generated code", () => {
     // Built from parts so this file does not match its own search.
     const needle = ["eslint", "disable"].join("-");
     const tracked = execFileSync("git", ["ls-files"], { cwd: ROOT, encoding: "utf8" })
