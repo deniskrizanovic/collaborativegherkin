@@ -100,7 +100,7 @@ Project source outside the generated Prisma client SHALL NOT contain
 - **THEN** it reports the unused variable and does not report the `<img>` element
 
 #### Scenario: No ESLint suppression comments remain in project source
-> **Tests:** [`scripts/oxlint-config.test.ts`](../../../scripts/oxlint-config.test.ts) — no eslint-disable outside generated code
+> **Tests:** [`scripts/oxlint-config.test.ts`](../../../scripts/oxlint-config.test.ts) — no eslint disable directives outside generated code
 - **GIVEN** the tracked TypeScript and JavaScript files outside `src/generated/`
 - **WHEN** they are searched for `eslint-disable`
 - **THEN** no file contains it
