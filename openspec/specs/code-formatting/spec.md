@@ -10,8 +10,8 @@ TBD - created by archiving change introduce-biome-formatter. Update Purpose afte
 
 The repository SHALL use Biome (`@biomejs/biome`, configured by a root
 `biome.json`) as its only source-code formatter. Biome's linter SHALL be
-disabled, so lint diagnostics come only from the project's linter (ESLint
-today). The Biome `organizeImports` assist action SHALL be enabled, so import
+disabled, so lint diagnostics come only from the project's linter (oxlint).
+The Biome `organizeImports` assist action SHALL be enabled, so import
 order is part of formatting. `@biomejs/biome` SHALL be pinned to an exact
 version in `package.json` (no `^` or `~` range), because formatter output can
 change between releases.
@@ -77,12 +77,12 @@ Prisma client (`src/generated/**`) and `next-env.d.ts`.
 
 The repository SHALL NOT be reformatted wholesale. The husky pre-commit hook,
 via `lint-staged`, SHALL run Biome with write mode on staged in-scope files,
-re-stage the result, and run Biome before ESLint for `*.{ts,tsx}` files. Files
+re-stage the result, and run Biome before oxlint for `*.{ts,tsx}` files. Files
 that are not staged SHALL NOT be modified by the hook. The repository SHALL NOT
 provide a script that formats the whole tree.
 
 #### Scenario: Staged off-style file is formatted on commit
-> **Tests:** [`scripts/biome-config.test.ts`](../../../scripts/biome-config.test.ts) — lint-staged runs Biome write before ESLint
+> **Tests:** [`scripts/biome-config.test.ts`](../../../scripts/biome-config.test.ts) — lint-staged runs Biome write before oxlint
 - **GIVEN** a staged TypeScript file that uses single quotes
 - **WHEN** the developer commits
 - **THEN** the committed file uses double quotes

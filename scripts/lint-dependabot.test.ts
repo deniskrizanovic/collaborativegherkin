@@ -1,4 +1,4 @@
-import { describe, it, expect } from "vitest";
+import { describe, expect, it } from "vitest";
 import { lintDependabot } from "./lint-dependabot.mjs";
 
 const CONFIG_PATH = ".github/dependabot.yml";
@@ -9,10 +9,6 @@ const adr = `# ADR 0004 — Latest Stable Dependency Principle
 ### Exception: \`next-auth\`
 
 \`next-auth\` is pinned. \`@auth/core\` and \`@auth/prisma-adapter\` move in lockstep.
-
-### Exception: \`eslint\`
-
-ESLint 10 is deferred until every plugin in \`eslint-config-next\` accepts it.
 `;
 
 const validConfig = `version: 2
@@ -30,8 +26,6 @@ updates:
           - "patch"
     ignore:
       - dependency-name: "next-auth"
-        update-types: ["version-update:semver-major"]
-      - dependency-name: "eslint"
         update-types: ["version-update:semver-major"]
       - dependency-name: "@auth/core"
       - dependency-name: "@auth/prisma-adapter"
@@ -87,7 +81,7 @@ describe("lintDependabot — YAML validity", () => {
 
 describe("lintDependabot — ignore rules documented in ADR 0004", () => {
   it("accepts ignore entries cited in the ADR", () => {
-    expect(lint(npmConfig({ ignore: ["eslint", "@auth/core"] }))).toEqual([]);
+    expect(lint(npmConfig({ ignore: ["next-auth", "@auth/core"] }))).toEqual([]);
   });
 
   it("flags an ignore entry not cited in the ADR", () => {
@@ -121,7 +115,7 @@ describe("lintDependabot — assignees", () => {
     const violations = lint(
       npmConfig({
         extra: '    assignees: ["deniskrizanovic"]\n    reviewers: ["deniskrizanovic"]\n',
-      })
+      }),
     );
     expect(violations).toHaveLength(1);
     expect(violations[0]).toContain("reviewers");

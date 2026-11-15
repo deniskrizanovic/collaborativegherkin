@@ -1,7 +1,7 @@
 "use client";
 
-import { useState } from "react";
 import { signIn } from "next-auth/react";
+import { useState } from "react";
 
 export default function SignInForm({ devLoginEnabled }: { devLoginEnabled: boolean }) {
   const [email, setEmail] = useState("");
@@ -44,11 +44,17 @@ export default function SignInForm({ devLoginEnabled }: { devLoginEnabled: boole
 
   return (
     <div className="container" style={{ maxWidth: 480, paddingTop: "3rem" }}>
-      {/* eslint-disable-next-line @next/next/no-img-element */}
+      {/* oxlint-disable-next-line nextjs/no-img-element */}
       <img
         src="/hero.png"
         alt="Two pickle characters writing Gherkin on a whiteboard"
-        style={{ width: "100%", height: "auto", display: "block", borderRadius: "var(--radius)", marginBottom: "1.75rem" }}
+        style={{
+          width: "100%",
+          height: "auto",
+          display: "block",
+          borderRadius: "var(--radius)",
+          marginBottom: "1.75rem",
+        }}
       />
       <header className="home-header" style={{ marginBottom: "2rem" }}>
         <p className="home-eyebrow">Collaborative Gherkin</p>
@@ -62,7 +68,9 @@ export default function SignInForm({ devLoginEnabled }: { devLoginEnabled: boole
         <div className="nsw-in-page-alert nsw-in-page-alert--info" role="alert">
           <div className="nsw-in-page-alert__content">
             <p className="nsw-in-page-alert__title">Check your email</p>
-            <p>We&apos;ve sent a sign-in link to <strong>{email}</strong>.</p>
+            <p>
+              We&apos;ve sent a sign-in link to <strong>{email}</strong>.
+            </p>
           </div>
         </div>
       ) : (
@@ -98,8 +106,12 @@ export default function SignInForm({ devLoginEnabled }: { devLoginEnabled: boole
       )}
 
       {devLoginEnabled && (
-        <div style={{ marginTop: "2rem", paddingTop: "1.5rem", borderTop: "1px solid var(--border)" }}>
-          <p className="home-eyebrow" style={{ marginBottom: "0.75rem" }}>Dev login</p>
+        <div
+          style={{ marginTop: "2rem", paddingTop: "1.5rem", borderTop: "1px solid var(--border)" }}
+        >
+          <p className="home-eyebrow" style={{ marginBottom: "0.75rem" }}>
+            Dev login
+          </p>
           <button
             className="nsw-button nsw-button--outline"
             type="button"

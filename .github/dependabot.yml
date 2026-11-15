@@ -18,8 +18,6 @@ updates:
     ignore:
       - dependency-name: "next-auth"
         update-types: ["version-update:semver-major"]
-      - dependency-name: "eslint"
-        update-types: ["version-update:semver-major"]
       # Held in lockstep with the exact next-auth pin; moved by hand with it.
       - dependency-name: "@auth/core"
       - dependency-name: "@auth/prisma-adapter"

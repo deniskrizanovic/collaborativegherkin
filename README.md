@@ -224,12 +224,13 @@ Visit `http://localhost:3000` — you'll be redirected to the sign-in page. Ente
 | `pnpm exec prisma migrate dev` | Apply database migrations                      |
 | `pnpm exec prisma studio`      | Browse the database in a UI                    |
 
-Biome formats TS/TSX/JS/JSON/CSS and sorts imports; ESLint does the linting.
+Biome formats TS/TSX/JS/JSON/CSS and sorts imports; oxlint does the linting.
 The pre-commit hook formats staged files automatically, and there is no
 whole-tree format script. If `lint:format` fails in CI, fix the named files
 with `pnpm exec biome check --write <path>`. To format on save, install the
 Biome plugin for your editor (in WebStorm, enable it under Settings → Languages
-& Frameworks → Biome).
+& Frameworks → Biome). For in-editor lint diagnostics, install the oxlint
+extension for your editor in place of ESLint; the project has no ESLint config.
 
 ---
 

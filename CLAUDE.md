@@ -12,7 +12,8 @@ tools like Jira. The app is a workspace, not a permanent archive.
 - **Database:** SQLite (dev) / PostgreSQL (production) via Prisma
 - **Auth:** NextAuth.js v5
 - **Validation:** Zod
-- **Formatting:** Biome (formatter + import sorting only; linter off, ESLint lints)
+- **Formatting:** Biome (formatter + import sorting only; linter off, oxlint lints)
+- **Linting:** oxlint (`.oxlintrc.json`, parity with the former Next.js ESLint preset; any warning fails)
 - **Logging:** Pino → logs/app.log and logs/error.log
 - **Testing:** Vitest (unit); Robot Framework (`robot/`) is the e2e suite
   that runs in CI and `test:all`; Playwright (`e2e/`) is kept as Robot's
@@ -23,7 +24,7 @@ tools like Jira. The app is a workspace, not a permanent archive.
 pnpm dev       # start the server (Next.js HTTP + Y.js sync WebSocket) at http://localhost:3000
 pnpm build     # production build
 pnpm test      # run tests with Vitest
-pnpm lint      # lint with Next.js ESLint config
+pnpm lint      # lint with oxlint
 pnpm lint:format  # Biome format/import-order check on files changed vs main (pre-commit formats staged files)
 pnpm test:robot       # Robot e2e suite — the e2e suite CI and test:all run
 pnpm test:e2e         # Playwright e2e — parity reference, manual (CI runs it weekly)

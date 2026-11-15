@@ -44,9 +44,9 @@ undocumented dependency.
 
 #### Scenario: Ignore rule backed by an ADR exception passes
 > **Tests:** [`scripts/lint-dependabot.test.ts`](../../../scripts/lint-dependabot.test.ts) — accepts ignore entries cited in the ADR
-- **GIVEN** `.github/dependabot.yml` ignores semver-major updates to `eslint`, and ADR 0004 has an `eslint` exception section
+- **GIVEN** `.github/dependabot.yml` ignores semver-major updates to `next-auth`, and ADR 0004 has a `next-auth` exception section
 - **WHEN** the `lint:dependabot` gate runs
-- **THEN** the gate reports no violation for the `eslint` ignore rule
+- **THEN** the gate reports no violation for the `next-auth` ignore rule
 
 #### Scenario: Undocumented ignore rule is rejected
 > **Tests:** [`scripts/lint-dependabot.test.ts`](../../../scripts/lint-dependabot.test.ts) — flags an ignore entry not cited in the ADR
@@ -124,6 +124,6 @@ schema, script and test paths.
 
 #### Scenario: Lint configuration change runs CI
 > **Tests:** none
-- **GIVEN** a pull request against `main` that changes only `eslint.config.mjs`
+- **GIVEN** a pull request against `main` that changes only `.oxlintrc.json`
 - **WHEN** the pull request is opened or updated
 - **THEN** the `ci` check runs and reports its result on the pull request
