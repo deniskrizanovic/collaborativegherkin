@@ -29,4 +29,4 @@
 - [x] 6.1 Replace each `> **Tests:** none` in this change's delta specs with the test file and case name that now covers it, keeping `none` only where no test exists. Use `../../../../../scripts/...` relative links.
 - [x] 6.2 Run `pnpm -s lint:specs`, `lint:given`, `lint`, `typecheck`, `lint:format` and `lint:crap`; each exits 0.
 - [x] 6.3 Run `pnpm test:all` in the background; it exits 0.
-- [ ] 6.4 At commit time (only when the user asks): commit the `pnpm format` output alone, then add `.git-blame-ignore-revs` holding that commit's SHA in a follow-up commit (design "Reformat in its own commit").
+- [x] 6.4 At commit time (only when the user asks): commit the `pnpm format` output alone, then add `.git-blame-ignore-revs` holding that commit's SHA in a follow-up commit (design "Reformat in its own commit").
