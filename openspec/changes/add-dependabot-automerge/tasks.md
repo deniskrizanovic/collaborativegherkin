@@ -26,5 +26,5 @@
 ## 5. Verification
 
 - [x] 5.1 Run `pnpm lint:specs`, `pnpm lint:given`, `pnpm lint:dependabot`, `pnpm lint` and `pnpm lint:format`. All pass.
-- [ ] 5.2 After merge to `main`, on the next Dependabot `minor-and-patch` PR, confirm that the `Dependabot auto-merge` run enabled auto-merge and that GitHub merged the PR only after `ci` passed. Confirm that the PR got exactly one "auto-merge enabled" comment. Confirm that major PRs (for example #67 after a rebase) show auto-merge not enabled and no auto-merge comment.
+- [x] 5.2 After merge to `main`, on the next Dependabot `minor-and-patch` PR, confirm that the `Dependabot auto-merge` run enabled auto-merge and that GitHub merged the PR only after `ci` passed. Confirm that the PR got exactly one "auto-merge enabled" comment. Confirm that major PRs (for example #67 after a rebase) show auto-merge not enabled and no auto-merge comment.
 - [ ] 5.3 On the first Dependabot PR whose `ci` fails, confirm that the `Dependabot CI alert` run posted a comment linking the failed run. If the comment step fails on permissions, report it; don't widen permissions or scope without the owner.
