@@ -18,10 +18,7 @@ connection to a **same-origin** URL (derived from the current page origin, e.g.
 `session-{sessionId}`, synchronise the Y.js document, and become interactive. The
 connection is authenticated by the same-origin session cookie (see
 `realtime-collaboration`); the editor only becomes interactive once an authenticated
-connection is established. A newly empty document MUST be seeded exactly once per
-document lifetime with five empty scaffold blocks — Feature, Scenario, Given, When,
-Then — with the cursor at the start of the Feature block. Subsequent users receive
-the document via Y.js sync and MUST NOT trigger re-seeding.
+connection is established.
 
 #### Scenario: Editor establishes WebSocket and becomes interactive
 > **Tests:** [`e2e/websocket-auth.spec.ts`](../../../e2e/websocket-auth.spec.ts) · [`robot/suites/websocket_auth.robot`](../../../robot/suites/websocket_auth.robot) — authenticated upgrade to a valid room succeeds and receives sync state; [`e2e/collaboration.spec.ts`](../../../e2e/collaboration.spec.ts) · [`robot/suites/collaboration.robot`](../../../robot/suites/collaboration.robot) — editor becomes interactive and syncs over the authenticated socket
@@ -30,6 +27,13 @@ the document via Y.js sync and MUST NOT trigger re-seeding.
 - **THEN** an authenticated WebSocket connection is established to the same-origin sync URL in the room `session-{sessionId}`
 - **AND** the Y.js document state is synchronised with the server and any other connected peers
 - **AND** the editor becomes interactive once the connection is established
+
+### Requirement: New document seeding
+
+A newly empty document MUST be seeded exactly once per document lifetime with
+five empty scaffold blocks — Feature, Scenario, Given, When, Then — with the
+cursor at the start of the Feature block. Subsequent users receive the document
+via Y.js sync and MUST NOT trigger re-seeding.
 
 #### Scenario: New document seeded with 5 scaffold blocks once
 > **Tests:** [`e2e/initial-content.spec.ts`](../../../e2e/initial-content.spec.ts) · [`robot/suites/initial_content.robot`](../../../robot/suites/initial_content.robot) — order · empty text · cursor on Feature; [`e2e/collaboration.spec.ts`](../../../e2e/collaboration.spec.ts) · [`robot/suites/collaboration.robot`](../../../robot/suites/collaboration.robot) — second joiner does not re-seed; [`robot/suites/initial_content_bdd.robot`](../../../robot/suites/initial_content_bdd.robot) — order · empty text · cursor on Feature · second joiner does not re-seed
@@ -162,13 +166,7 @@ A user SHALL be able to insert an image block via the Image toolbar button, the
 slash-command Image option, or drag-and-drop. Toolbar and slash-command
 insertion open a file picker and embed the selected image immediately after the
 current block. Drag-and-drop MUST embed the image immediately after the
-top-level block under the drop point, regardless of where the cursor is. A drop
-that is not over a block MUST embed the image after the nearest block above
-the drop point: in the gap between two blocks, after the upper one; after the
-first block when the drop is above it; and at the end of the document when the
-drop is below the last block. An image block MUST
-be displayed inline at full available width and MAY appear after any keyword
-block.
+top-level block under the drop point, regardless of where the cursor is.
 
 #### Scenario: Image toolbar button opens file picker and embeds image
 > **Tests:** [`e2e/image.spec.ts`](../../../e2e/image.spec.ts) · [`robot/suites/image.robot`](../../../robot/suites/image.robot) · [`robot/suites/image_bdd.robot`](../../../robot/suites/image_bdd.robot)
@@ -191,11 +189,23 @@ block.
 - **THEN** the image is embedded as an image block immediately after the Then block
 - **AND** the Feature block is still followed by the block that followed it before the drop
 
+### Requirement: Image block display
+
+An image block MUST be displayed inline at full available width and MAY appear
+after any keyword block.
+
 #### Scenario: Image block displayed inline at full width
 > **Tests:** none
 - **GIVEN** an image block is in the document
 - **THEN** the image is displayed inline at full available width
 - **AND** the image block may appear after any keyword block type
+
+### Requirement: Image dropped outside every block
+
+A drop that is not over a block MUST embed the image after the nearest block
+above the drop point: in the gap between two blocks, after the upper one; after
+the first block when the drop is above it; and at the end of the document when
+the drop is below the last block.
 
 #### Scenario: Image dropped outside every block embeds after the nearest block
 > **Tests:** [`e2e/image.spec.ts`](../../../e2e/image.spec.ts) · [`robot/suites/image.robot`](../../../robot/suites/image.robot) · [`robot/suites/image_bdd.robot`](../../../robot/suites/image_bdd.robot) — below the last block · on the toolbar above the first block
@@ -205,14 +215,13 @@ block.
 
 ### Requirement: Image block selection
 
-A user SHALL be able to select an image block by clicking it, or by moving
-onto it with the arrow keys from the block next to it. A selected image MUST
-be visibly highlighted. While an image is selected, typing or pasting text,
-including text entered through an input method, MUST NOT replace or delete
-the image, Backspace or Delete MUST remove the image, and a
-toolbar block insert MUST place the new block immediately after the image.
-When a collaborator removes an image that a user has selected, that user's
-editor MUST keep working.
+A user SHALL be able to select an image block by clicking it, or by arrowing
+onto it from an adjacent block. A selected image MUST be visibly highlighted.
+While an image is selected, typing or pasting text (including input-method
+text) MUST NOT replace or delete it, Backspace or Delete MUST remove it, and a
+toolbar block insert MUST place the new block immediately after it. When a
+collaborator removes an image a user has selected, that user's editor MUST
+keep working.
 
 #### Scenario: Clicking an image selects it
 > **Tests:** [`e2e/image.spec.ts`](../../../e2e/image.spec.ts) · [`robot/suites/image.robot`](../../../robot/suites/image.robot) · [`robot/suites/image_bdd.robot`](../../../robot/suites/image_bdd.robot) — image highlighted after click
@@ -283,12 +292,7 @@ A "Table" button SHALL be shown when the cursor is on a step block or on a data
 table following a step. Clicking it, or choosing "Table" in the slash-command
 block picker, MUST insert a 2×2 empty stub after the current block with the
 cursor in the first cell, so that text typed next goes into that cell without
-a click. Only the user who inserted the table gets this focus: a
-collaborator's focus and cursor MUST NOT move when the table appears in their
-editor. The slash-command picker MUST include "Table" when on a step block.
-Tab and Shift+Tab MUST move focus between cells, and "Add row"/"Add column"
-controls MUST be available. (Data table export formatting is specified in
-`gherkin-export`.)
+a click. The slash-command picker MUST include "Table" when on a step block.
 
 #### Scenario: Table button shown when cursor is on step or data table
 > **Tests:** [`e2e/data-table.spec.ts`](../../../e2e/data-table.spec.ts) · [`robot/suites/data_table.robot`](../../../robot/suites/data_table.robot) — visible on Given · absent on Feature; [`robot/suites/data_table_bdd.robot`](../../../robot/suites/data_table_bdd.robot) — on Given
@@ -317,12 +321,24 @@ controls MUST be available. (Data table export formatting is specified in
 - **AND** the cursor is placed inside the first cell
 - **AND** text the user types next appears in the first cell
 
+### Requirement: Inserting a table keeps collaborators' focus
+
+Only the user who inserted the table gets the first-cell focus: a
+collaborator's focus and cursor MUST NOT move when the table appears in their
+editor.
+
 #### Scenario: Inserting a table does not move a collaborator's cursor
 > **Tests:** [`e2e/collaboration.spec.ts`](../../../e2e/collaboration.spec.ts) · [`robot/suites/collaboration.robot`](../../../robot/suites/collaboration.robot) · [`robot/suites/collaboration_bdd.robot`](../../../robot/suites/collaboration_bdd.robot)
 - **GIVEN** two users are editing the same session and the second user's cursor is in a Gherkin block
 - **WHEN** the first user inserts a data table
 - **THEN** the second user sees the new table
 - **AND** text the second user types next appears in the block where their cursor was, not in the table
+
+### Requirement: Data table cell navigation and controls
+
+Tab and Shift+Tab MUST move focus between cells, and "Add row"/"Add column"
+controls MUST be available. (Data table export formatting is specified in
+`gherkin-export`.)
 
 #### Scenario: Tab moves focus to next cell
 > **Tests:** [`e2e/data-table.spec.ts`](../../../e2e/data-table.spec.ts) · [`robot/suites/data_table.robot`](../../../robot/suites/data_table.robot) · [`robot/suites/data_table_bdd.robot`](../../../robot/suites/data_table_bdd.robot) — within a row · to the next row

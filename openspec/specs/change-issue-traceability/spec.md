@@ -13,14 +13,13 @@ a linked, open ticket.
 
 ### Requirement: Active change declares a GitHub issue
 
-Every active OpenSpec change SHALL declare exactly one GitHub issue in its
-`proposal.md`. An active change is a directory directly under
-`openspec/changes/`, excluding `openspec/changes/archive/**`. The declaration
-SHALL be a `## GitHub Issue` section whose body contains the full issue URL of
-the form `https://github.com/deniskrizanovic/collaborativegherkin/issues/N`
-(where `N` is one or more digits); the gate parses the issue number `N` from that
-URL. A change whose `proposal.md` omits the section, leaves it empty, or contains
-no recognisable issue URL SHALL fail the `lint:issue-link` gate.
+Every active OpenSpec change (a directory directly under `openspec/changes/`,
+excluding `archive/**`) SHALL declare exactly one GitHub issue in its
+`proposal.md`. It SHALL be a `## GitHub Issue` section holding the full URL
+`https://github.com/deniskrizanovic/collaborativegherkin/issues/N`, where `N`
+is one or more digits. The gate parses `N` from that URL. A `proposal.md` that
+omits the section, leaves it empty, or has no recognisable issue URL SHALL fail
+the `lint:issue-link` gate.
 
 #### Scenario: Change links a valid open issue
 > **Tests:** [`scripts/lint-issue-link.test.ts`](../../changes/gate-changes-on-github-issue/specs/change-issue-traceability/spec.md) — accepts a proposal with a `## GitHub Issue` URL for an open issue

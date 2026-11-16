@@ -11,12 +11,7 @@ Persistence constraints for the `Session` and `User` records.
 A `Session` SHALL have a CUID `id`, a `title` that is a non-empty string of at
 most 200 characters, a `createdAt` set automatically at creation, an
 `updatedAt` updated automatically on every save, and exactly one associated
-`User` via `userId`. A `Session` SHALL also persist two optional coaching
-attributes — `prompt` and `model` — each a nullable string, which store the
-per-session LLM-review configuration written by `PATCH /api/sessions/[id]`.
-These attributes SHALL be present in every supported database engine (SQLite
-and PostgreSQL) so the write path behaves identically in development and
-production.
+`User` via `userId`.
 
 #### Scenario: Session has CUID, title constraints, timestamps, and user
 > **Tests:** none
@@ -26,6 +21,14 @@ production.
 - **AND** its `createdAt` is set automatically at creation time
 - **AND** its `updatedAt` is updated automatically on every save
 - **AND** it is associated with exactly one `User` record via `userId`
+
+### Requirement: Session coaching attributes
+
+A `Session` SHALL also persist two optional coaching attributes — `prompt` and
+`model` — each a nullable string, which store the per-session LLM-review
+configuration written by `PATCH /api/sessions/[id]`. These attributes SHALL be
+present in every supported database engine (SQLite and PostgreSQL) so the write
+path behaves identically in development and production.
 
 #### Scenario: Session persists optional coaching prompt and model
 > **Tests:** none
@@ -63,11 +66,11 @@ nullable. These attributes SHALL be present in every supported database engine
 
 ### Requirement: Cross-engine schema parity
 
-The SQLite and PostgreSQL Drizzle schema modules SHALL define the same set of
-tables and, for each table, the same set of columns with the same nullability.
-The only sanctioned differences between the two modules are the dialect-specific
-column types (for example, a SQLite integer timestamp versus a PostgreSQL
-`timestamp`) and how a default value is expressed. No table SHALL exist in one
+The SQLite and PostgreSQL Drizzle schema modules SHALL define the same tables
+and, for each table, the same columns with the same nullability. The only
+sanctioned differences are dialect-specific column types (for example, a SQLite
+integer timestamp versus a PostgreSQL `timestamp`) and how a default value is
+expressed. No table SHALL exist in one
 module without existing in the other. A parity check SHALL enforce this and
 MUST fail the build when the table, column or nullability sets diverge.
 

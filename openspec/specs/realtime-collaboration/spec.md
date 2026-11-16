@@ -11,18 +11,12 @@ showing remote cursors.
 ### Requirement: Authenticated WebSocket sync connection
 
 The real-time sync WebSocket SHALL accept a connection only from a caller with a
-valid authenticated session. The server MUST verify the NextAuth session JWT
-presented via the same-origin `authjs.session-token` cookie on the upgrade request,
-using the shared `AUTH_SECRET`. A connection with a missing or invalid token MUST be
-rejected before the sync handshake begins and MUST NOT join any room, read any
-document state, or receive any awareness data. The rejection MUST emit a
-content-free security log event via the Pino logger.
-
-Authorization follows the capability model of ADR-0005: an authenticated caller is
-authorized for room `session-{sessionId}` by holding the room name; no per-session
-ownership or membership lookup is performed. The room name MUST match the
-`session-{sessionId}` form; a malformed or unstructured room name MUST be rejected
-even for an authenticated caller.
+valid authenticated session. The server MUST verify the NextAuth session JWT in
+the same-origin `authjs.session-token` cookie on the upgrade request, using the
+shared `AUTH_SECRET`. A connection with a missing or invalid token MUST be
+rejected before the sync handshake and MUST NOT join a room, read document
+state or receive awareness data. The rejection MUST emit a content-free
+security log event through Pino.
 
 #### Scenario: Authenticated user connects and syncs
 > **Tests:** [`e2e/collaboration.spec.ts`](../../../e2e/collaboration.spec.ts) · [`robot/suites/collaboration.robot`](../../../robot/suites/collaboration.robot)
@@ -36,6 +30,14 @@ even for an authenticated caller.
 - **WHEN** it attempts to open the sync WebSocket to any `session-{sessionId}` room
 - **THEN** the upgrade is refused before the sync handshake, no room is joined, and no document or awareness state is sent
 - **AND** a content-free security log event is emitted via the Pino logger
+
+### Requirement: Sync rooms follow the capability model
+
+Authorization follows the capability model of ADR-0005: an authenticated caller is
+authorized for room `session-{sessionId}` by holding the room name; no per-session
+ownership or membership lookup is performed. The room name MUST match the
+`session-{sessionId}` form; a malformed or unstructured room name MUST be rejected
+even for an authenticated caller.
 
 #### Scenario: Authenticated holder of the session id is authorized
 > **Tests:** [`e2e/websocket-auth.spec.ts`](../../../e2e/websocket-auth.spec.ts) · [`robot/suites/websocket_auth.robot`](../../../robot/suites/websocket_auth.robot) — authenticated upgrade to a valid room succeeds; [`src/lib/wsAuth.test.ts`](../../../src/lib/wsAuth.test.ts) — valid JWT accepted for a well-formed room

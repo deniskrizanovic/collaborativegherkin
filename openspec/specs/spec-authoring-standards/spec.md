@@ -71,9 +71,8 @@ clause describing its initial state, in both the archived baseline
 (`openspec/specs/**`) and unarchived change deltas
 (`openspec/changes/*/specs/**`). The GIVEN clause MUST appear among the
 scenario's bullet lines, before the next `#### Scenario:`, `### Requirement:`,
-or `## ` boundary. A scenario MUST NOT be written as a bare WHEN/THEN pair,
-because an absent precondition hides the state a reader or test author needs to
-reproduce the example.
+or `## ` boundary. A scenario MUST NOT be a bare WHEN/THEN pair, because a
+missing precondition hides the state needed to reproduce it.
 
 #### Scenario: Scenario with a GIVEN clause passes the gate
 > **Tests:** [`scripts/lint-spec-given-clause.test.ts`](../../../scripts/lint-spec-given-clause.test.ts) — passes when GIVEN present
@@ -137,9 +136,7 @@ guidance before authoring scenarios. The `specs` artifact instruction in
 `openspec/schemas/spec-driven/schema.yaml` MUST reference the skill by name, and
 the `specs` rule in `openspec/config.yaml` MUST reinforce it, so the trigger is
 deterministic within the flow rather than relying on the skill's `description`
-alone. The ported skill MUST carry a note that OpenSpec specs use the markdown
-`#### Scenario:` + `- **GIVEN**` bullet dialect, not real `.feature` syntax, so
-its syntax reference is not applied literally.
+alone.
 
 #### Scenario: Schema instruction names the gherkin-authoring skill
 > **Tests:** none
@@ -147,6 +144,12 @@ its syntax reference is not applied literally.
 - **WHEN** the spec-writing flow reads the instruction before authoring scenarios
 - **THEN** the instruction directs the author to invoke the `gherkin-authoring` skill and apply its GIVEN/WHEN/THEN guidance
 - **AND** the `specs` rule in `openspec/config.yaml` reinforces the same directive
+
+### Requirement: The ported gherkin-authoring skill notes the OpenSpec dialect
+
+The ported `gherkin-authoring` skill MUST carry a note that OpenSpec specs use the markdown
+`#### Scenario:` + `- **GIVEN**` bullet dialect, not real `.feature` syntax, so
+its syntax reference is not applied literally.
 
 #### Scenario: Ported skill notes the OpenSpec markdown dialect
 > **Tests:** none

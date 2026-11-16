@@ -11,16 +11,13 @@ menu, and Enter-key auto-progression.
 
 ### Requirement: Block types
 
-A Gherkin document SHALL be composed of typed blocks. Keyword blocks have a
-keyword prefix and free-form text; the valid keyword types are `feature`,
-`rule`, `background`, `scenario`, `given`, `when`, `then`, `and`, and `but`.
-Documents MAY also contain image blocks (an embedded base64 data-URI plus
-alt text) and data table blocks (a 2D array of string cells). Image and data
-table blocks carry no Gherkin step semantics and are NOT subject to
-`canFollow()` rules. An image block MAY appear after any keyword block. A data
-table block MAY appear immediately after any step block (`given`, `when`,
-`then`, `and`, `but`) or after another data table; placement is enforced in the
-editor layer.
+A Gherkin document SHALL consist of typed blocks. A keyword block has a
+prefix, free text and a type: `feature`, `rule`, `background`,
+`scenario` or a step type (`given`, `when`, `then`, `and`, `but`). Documents
+MAY hold image blocks (base64 data-URI plus alt text) and data table
+blocks (rows of string cells), exempt from step semantics and `canFollow()`.
+An image block MAY follow any keyword block. A data table MAY directly follow
+a step block or another data table. The editor enforces this.
 
 #### Scenario: Keyword, image, and data table blocks compose a document
 > **Tests:** none (block model exercised indirectly via editor/import/export tests)

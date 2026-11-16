@@ -2,20 +2,23 @@
 
 ## Purpose
 
-TBD - created by archiving change add-robot-framework-e2e-suite. Update Purpose after archive.
+The Robot Framework suite under `robot/` is the e2e suite that runs on every
+change, in CI and `test:all`. This capability covers how it installs, runs and
+authenticates; its one-to-one parity with the Playwright suite, which is kept
+as a reference and run weekly; the robustness techniques its tests must keep;
+and the business-language suites whose tests follow their spec scenarios line
+by line.
 
 ## Requirements
 
 ### Requirement: The Robot suite installs and runs with one command
 
-The project SHALL provide a Robot Framework e2e suite under `robot/` that uses the
-`robotframework-browser` library. Python dependencies MUST be pinned in
-`pyproject.toml` and `uv.lock` and managed by `uv`. A `pnpm test:robot:init`
-script MUST install the Python dependencies and the Browser library's Playwright
-runtime (`rfbrowser init`). A `pnpm test:robot` script MUST mint the auth storage
-states, run every suite under `robot/suites/`, and exit non-zero when any test
-fails. Robot output (`output.xml`, `log.html`, `report.html`) MUST be written to
-`robot/results/`, which MUST be git-ignored.
+A Robot Framework e2e suite under `robot/` SHALL use `robotframework-browser`. Python dependencies MUST be pinned in
+`pyproject.toml` and `uv.lock` and managed by `uv`. `pnpm test:robot:init` MUST
+install them and the Playwright runtime (`rfbrowser init`). `pnpm test:robot`
+MUST mint the auth storage states, run every suite in `robot/suites/`, and exit
+non-zero when any test fails. Robot output (`output.xml`, `log.html`,
+`report.html`) MUST go to `robot/results/`, which MUST be git-ignored.
 
 #### Scenario: A fresh checkout runs the Robot suite
 > **Tests:** none
@@ -69,23 +72,7 @@ exercises the same behaviour with assertions at least as strong. This includes
 each test a single `test(...)` call generates, for example in a loop. A
 `test.skip` SHALL map to a Robot test tagged `skip` with the same reason. Each
 Robot test name MUST equal the Playwright test title exactly, so it keeps the
-`SC-x.y.z` identifier when one is present. A checklist at `robot/PARITY.md` MUST
-have exactly one row per Playwright test, naming its spec file, title and Robot
-suite. Every row MUST be marked `ported`, or `skip` for a skipped test. A change
-that adds, renames, removes or skips a Playwright test MUST update its Robot
-counterpart and its `PARITY.md` row in the same change.
-
-An offline lint gate, `pnpm lint:e2e-parity`, SHALL enforce this requirement. It
-MUST read the Playwright tests from `playwright test --list`, not by parsing
-source, so generated titles are seen. It MUST NOT start a server or open a
-browser. It MUST run in the husky pre-commit hook, in CI and in `pnpm test:all`.
-It MUST exit non-zero and name the spec file and title of each mismatch when:
-
-- a Playwright test has no `PARITY.md` row;
-- a `PARITY.md` row names a Playwright test that does not exist;
-- a row is marked anything other than `ported` or `skip`;
-- the row's Robot suite has no test case with exactly the Playwright title;
-- the Playwright test, its row and its Robot test do not agree on being skipped.
+`SC-x.y.z` identifier when one is present.
 
 #### Scenario: A ported test keeps its scenario identifier
 > **Tests:** none
@@ -93,11 +80,43 @@ It MUST exit non-zero and name the spec file and title of each mismatch when:
 - **WHEN** it is ported
 - **THEN** `robot/suites/import.robot` contains a test case with exactly that name, and `robot/PARITY.md` maps the two
 
+### Requirement: The parity checklist lists every Playwright test
+
+A checklist at `robot/PARITY.md` MUST have exactly one row per Playwright test,
+naming its spec file, title and Robot suite. Every row MUST be marked `ported`,
+or `skip` for a skipped test. A change that adds, renames, removes or skips a
+Playwright test MUST update its Robot counterpart and its `PARITY.md` row in the
+same change.
+
 #### Scenario: The parity checklist is complete at the end
 > **Tests:** none
 - **GIVEN** the Playwright suite, `robot/PARITY.md` and `robot/suites/` as they stand when this change lands
 - **WHEN** `pnpm lint:e2e-parity` runs
 - **THEN** it exits zero, because every Playwright test has a Robot counterpart and no row is marked pending
+
+### Requirement: An offline gate enforces e2e parity
+
+An offline lint gate, `pnpm lint:e2e-parity`, SHALL enforce Robot parity. It
+MUST read the Playwright tests from `playwright test --list`, not by parsing
+source, so generated titles are seen. It MUST NOT start a server or open a
+browser. It MUST run in the husky pre-commit hook, in CI and in `pnpm test:all`.
+
+#### Scenario: A test generated in a loop is checked
+> **Tests:** [`scripts/lint-e2e-parity.test.ts`](../../../scripts/lint-e2e-parity.test.ts) — checks every listed title, including generated ones
+- **GIVEN** a Playwright `test(...)` call inside a loop that produces two titles, only one of which has a `PARITY.md` row
+- **WHEN** the e2e parity gate runs
+- **THEN** it fails and names the title without a row
+
+### Requirement: The e2e parity gate names each mismatch
+
+The e2e parity gate MUST exit non-zero and name the spec file and title of each
+mismatch when:
+
+- a Playwright test has no `PARITY.md` row;
+- a `PARITY.md` row names a Playwright test that does not exist;
+- a row is marked anything other than `ported` or `skip`;
+- the row's Robot suite has no test case with exactly the Playwright title;
+- the Playwright test, its row and its Robot test do not agree on being skipped.
 
 #### Scenario: A new Playwright test without a Robot twin is rejected
 > **Tests:** [`scripts/lint-e2e-parity.test.ts`](../../../scripts/lint-e2e-parity.test.ts) — fails on a listed test with no PARITY.md row
@@ -123,12 +142,6 @@ It MUST exit non-zero and name the spec file and title of each mismatch when:
 - **WHEN** the e2e parity gate runs
 - **THEN** it fails and names the suite and the missing title
 
-#### Scenario: A test generated in a loop is checked
-> **Tests:** [`scripts/lint-e2e-parity.test.ts`](../../../scripts/lint-e2e-parity.test.ts) — checks every listed title, including generated ones
-- **GIVEN** a Playwright `test(...)` call inside a loop that produces two titles, only one of which has a `PARITY.md` row
-- **WHEN** the e2e parity gate runs
-- **THEN** it fails and names the title without a row
-
 #### Scenario: Skip status must agree
 > **Tests:** [`scripts/lint-e2e-parity.test.ts`](../../../scripts/lint-e2e-parity.test.ts) — fails when Playwright skip, row status and Robot skip tag disagree
 - **GIVEN** a Playwright `test.skip` whose Robot test is not tagged `skip`
@@ -140,22 +153,8 @@ It MUST exit non-zero and name the spec file and title of each mismatch when:
 Robot tests SHALL keep every robustness technique of the Playwright test they port.
 They MUST NOT replace one with a weaker form. In particular:
 
-- **No fixed sleeps.** Waits MUST use Browser's auto-waiting assertions (`Get Element Count`, `Get Text`, `Get Attribute` with an assertion operator), `Wait For Elements State`, `Wait For Condition`, or `Wait For Function`. `Sleep` and inline delays (`time.sleep(`, `setTimeout(`, `waitForTimeout(`) are forbidden in `robot/suites/**` and `robot/resources/**`, and fixed delays are forbidden in the keyword libraries under `robot/libraries/**`.
 - **Wait for a count to grow before acting**, as `pressEnterAndWait` does, rather than assuming a keypress has taken effect.
-- **Click the editor block before sending keyboard input**, because Tiptap focus differs from DOM focus.
 - **Isolated browser contexts** for multi-user sync tests, so `BroadcastChannel` cannot bridge them and sync has to go through the WebSocket server.
-- **Held network routes** that keep a request in flight until the test releases it, for in-flight UI-state assertions.
-- **Response-status assertions** on the real request the UI fires (GET or PATCH), not only on the visible outcome.
-- **Download content assertions**: the suggested filename and the downloaded file's lines are checked, not only that a download happened.
-- **Raw WebSocket upgrade probes** with an exactly controlled `Cookie` header, asserting no open, a 401 status, and no data received.
-- **Guaranteed cleanup** of extra contexts and temp files through teardown (`[Teardown]` or `Run Keyword And Ignore Error` blocks), equivalent to `try/finally`.
-- **Synthetic DOM events** where the Playwright test uses them (native value setter for over-length input, `DataTransfer` drop) and **computed-style assertions** where it uses them.
-
-#### Scenario: In-flight state is asserted while a request is held
-> **Tests:** none
-- **GIVEN** an open session whose `/api/llm-review` route is held by the test
-- **WHEN** the user clicks Get AI Coaching
-- **THEN** the button reads `Reviewing…` and is disabled, the model select is disabled, and only after the test releases the route does the result modal appear and the button re-enable
 
 #### Scenario: Sync is proven across isolated contexts
 > **Tests:** none
@@ -163,11 +162,38 @@ They MUST NOT replace one with a weaker form. In particular:
 - **WHEN** text is typed into the Feature block in the first context
 - **THEN** the second context's Feature block contains that text within 5 seconds
 
+### Requirement: Robot tests keep input, request and download techniques
+
+Robot tests SHALL also keep:
+
+- **Click the editor block before keyboard input**, because Tiptap focus differs from DOM focus.
+- **Held network routes** that keep a request in flight until the test releases it, for in-flight UI-state assertions.
+- **Response-status assertions** on the real request the UI fires (GET or PATCH), not only on the visible outcome.
+- **Download content assertions**: the suggested filename and the file's lines are checked, not only that a download happened.
+
+#### Scenario: In-flight state is asserted while a request is held
+> **Tests:** none
+- **GIVEN** an open session whose `/api/llm-review` route is held by the test
+- **WHEN** the user clicks Get AI Coaching
+- **THEN** the button reads `Reviewing…` and is disabled, the model select is disabled, and only after the test releases the route does the result modal appear and the button re-enable
+
+### Requirement: Robot tests keep raw WebSocket probes, cleanup and synthetic events
+
+Robot tests SHALL also keep:
+
+- **Raw WebSocket upgrade probes** with an exactly controlled `Cookie` header, asserting no open, a 401 status, and no data received.
+- **Guaranteed cleanup** of extra contexts and temp files through teardown (`[Teardown]` or `Run Keyword And Ignore Error` blocks), equivalent to `try/finally`.
+- **Synthetic DOM events** (native value setter for over-length input, `DataTransfer` drop) and **computed-style assertions** where the Playwright test uses them.
+
 #### Scenario: Unauthenticated WebSocket upgrade is refused
 > **Tests:** none
 - **GIVEN** an existing session and a raw WebSocket client sending no cookie
 - **WHEN** the client requests an upgrade to `ws://localhost:3000/session-<id>`
 - **THEN** the upgrade does not open, the response status is 401, and no data is received
+
+### Requirement: Robot tests use no fixed sleeps
+
+Robot tests SHALL use **no fixed sleeps**. Waits MUST use Browser's auto-waiting assertions (`Get Element Count`, `Get Text`, `Get Attribute` with an assertion operator), `Wait For Elements State`, `Wait For Condition`, or `Wait For Function`. `Sleep` and inline delays (`time.sleep(`, `setTimeout(`, `waitForTimeout(`) are forbidden in `robot/suites/**` and `robot/resources/**`, and fixed delays are forbidden in the keyword libraries under `robot/libraries/**`.
 
 #### Scenario: A fixed sleep is rejected
 > **Tests:** [`scripts/lint-robot-no-sleep.test.ts`](../../../scripts/lint-robot-no-sleep.test.ts) — fails on a Sleep call and reports file and line
@@ -244,13 +270,11 @@ MUST NOT file anything, and a drift issue MUST NOT block merges.
 
 Next to each editor-area technical suite (`initial_content`,
 `enter_progression`, `toolbar`, `visual_separation`, `image`, `data_table`,
-`export`, `import`, `collaboration`, `llm_review`) the Robot suite SHALL
-contain a business-language suite with the same base name and the suffix
-`_bdd` (for example `robot/suites/toolbar_bdd.robot`). Each one MUST carry the
-`bdd` tag in its `Test Tags`, plus the same area tag as its technical suite.
-It MUST NOT replace the technical suite, and both MUST stay in
-`pnpm test:robot`. `block_picker_bdd.robot` already exists and keeps this
-form.
+`export`, `import`, `collaboration`, `llm_review`) there SHALL be a
+business-language suite with the same base name plus `_bdd`. Each one MUST
+carry the `bdd` tag in its `Test Tags`, plus the same area tag as its technical
+suite. It MUST NOT replace the technical suite, and both MUST stay in
+`pnpm test:robot`. `block_picker_bdd.robot` already has this form.
 
 #### Scenario: A business-language suite runs next to its technical suite
 > **Tests:** none
@@ -258,21 +282,13 @@ form.
 - **WHEN** the developer runs `pnpm test:robot --include toolbar`
 - **THEN** the tests of both suites run, and the command exits zero only when all of them pass
 
-### Requirement: Business-language tests follow their spec scenario
+### Requirement: Business-language tests are named after their spec scenario
 
 Every test in a `bdd` suite SHALL be named `SC-x.y.z: <spec scenario title>`,
 optionally followed by ` — <variant>`. `<spec scenario title>` MUST be the
 title of exactly one `#### Scenario:` in `openspec/specs/**`, even where the
-Playwright test title for that scenario differs. A test body MUST contain only
-Given/When/Then/And/But steps. Each step MUST be a line of that scenario, or
-that line followed by more words that make it concrete (a refinement). Taken
-together, the tests for a scenario MUST exercise every one of its lines.
-`pnpm lint:robot-steps` enforces these rules.
-
-A technical test variant that matches no line of its scenario MUST stay
-technical-only. A scenario with a line the browser cannot observe MUST get no
-business-language test. `robot/PARITY.md` MUST list each exclusion and its
-reason.
+Playwright test title for that scenario differs. `pnpm lint:robot-steps`
+enforces this.
 
 #### Scenario: A test named after the Playwright title instead of the spec title is rejected
 > **Tests:** [`scripts/lint-robot-spec-steps.test.ts`](../../../scripts/lint-robot-spec-steps.test.ts) — fails on a test whose title matches no scenario
@@ -280,11 +296,27 @@ reason.
 - **WHEN** `pnpm lint:robot-steps` runs
 - **THEN** it fails and reports that no spec scenario has that title
 
+### Requirement: Business-language tests follow their spec scenario
+
+A `bdd` test body MUST contain only Given/When/Then/And/But steps. Each step
+MUST be a line of the scenario the test is named after, or that line followed
+by more words that make it concrete. Together, the tests for a scenario MUST exercise every one of
+its lines. `pnpm lint:robot-steps` enforces these rules. Step keywords MUST be
+lower-case sentences; technical helpers MUST be Title Case and MUST NOT appear
+in a `bdd` test body.
+
 #### Scenario: A spec line no business-language test exercises is rejected
 > **Tests:** [`scripts/lint-robot-spec-steps.test.ts`](../../../scripts/lint-robot-spec-steps.test.ts) — fails on a step that drifted from the spec, and reports the uncovered spec line
 - **GIVEN** `bdd` tests for `Export MD downloads markdown file in document order` that never add an image block
 - **WHEN** `pnpm lint:robot-steps` runs
 - **THEN** it fails and names the line `image blocks appear as inline images using ![alt](src) syntax`
+
+### Requirement: Exclusions from business-language tests are recorded
+
+A technical test variant that matches no line of its scenario MUST stay
+technical-only. A scenario with a line the browser cannot observe MUST get no
+business-language test. `robot/PARITY.md` MUST list each exclusion and its
+reason.
 
 #### Scenario: An excluded variant is recorded
 > **Tests:** none
@@ -299,17 +331,21 @@ states, as far as the browser can observe it. When the spec line says more
 than the technical counterpart asserts, the Then step MUST assert the spec
 line, not copy the technical test's weaker check. For example, `the cursor is
 placed at the start of the new block's text` MUST be asserted by typing into
-the editor and checking that the text lands in the new block. When part of a
-line happens on the server, the step MUST assert the part the browser can see,
-and its `[Documentation]` MUST name the boundary. A step MUST keep every
-robustness technique required of Robot tests: no fixed sleeps, wait for
-counts to grow, click before typing, and held routes for in-flight state.
+the editor and checking that the text lands in the new block.
 
 #### Scenario: Cursor placement is proven, not assumed
 > **Tests:** none
 - **GIVEN** a fresh session whose cursor is at the end of the Feature block
 - **WHEN** the business-language test for `Enter at end of block inserts auto-progression type` presses Enter
 - **THEN** its Then steps check that the new block right after Feature is a Scenario, and that text typed next appears in that block
+
+### Requirement: Then steps name the browser boundary and stay robust
+
+When part of a Then step's spec line happens on the server, the step MUST
+assert the part the browser can see, and its `[Documentation]` MUST name the
+boundary. A step MUST keep every robustness technique required of Robot tests:
+no fixed sleeps, wait for counts to grow, click before typing, and held routes
+for in-flight state.
 
 #### Scenario: "Without a new API call" is counted
 > **Tests:** none
@@ -320,14 +356,12 @@ counts to grow, click before typing, and held routes for in-flight state.
 ### Requirement: Step keywords are organised by spec capability
 
 Business-language step keywords SHALL live in `robot/resources/steps/`, one
-resource per spec capability, named after the capability folder (for example
-`steps/gherkin_editor.resource` for `openspec/specs/gherkin-editor/`). A step
-whose text appears in scenarios of more than one capability MUST live in
-`steps/shared.resource` instead. Each step keyword MUST be defined exactly
-once across `robot/resources/`. Step keywords MUST be lower-case sentences;
-technical helpers MUST be Title Case and MUST NOT appear in a `bdd` test body.
-A step keyword MUST NOT contain a selector literal. It uses the selector
-variables of `editor.resource` or of its own resource.
+resource per spec capability, named after its folder (`gherkin-editor` →
+`steps/gherkin_editor.resource`). A step used by more than one capability's
+scenarios MUST live in `steps/shared.resource`. Each step keyword MUST be
+defined exactly once across `robot/resources/`. A step keyword MUST NOT
+contain a selector literal; it uses selector variables from `editor.resource`
+or its own resource.
 
 #### Scenario: A step shared by two capabilities is defined once
 > **Tests:** none
@@ -358,14 +392,18 @@ the page, browser contexts and cookies. `editor.resource` covers editor
 blocks, the toolbar, the block picker, image insertion, data tables and the
 editor selectors. `files.resource` covers temp files and downloads. A suite
 MUST NOT redefine a selector variable or keyword that one of these resources
-provides. Moving a helper into a shared resource MUST NOT weaken any
-assertion of the tests that use it.
+provides.
 
 #### Scenario: The picker selector has one definition
 > **Tests:** none
 - **GIVEN** the refactor is complete
 - **WHEN** the developer searches `robot/` for `[style*="position: fixed"]`
 - **THEN** it is defined only in `editor.resource`, and every suite or step resource that needs the picker uses that variable
+
+### Requirement: Moving a helper keeps its tests' assertions
+
+Moving a helper into a shared resource MUST NOT weaken any assertion of the
+tests that use it.
 
 #### Scenario: The refactor keeps every existing test green
 > **Tests:** none
