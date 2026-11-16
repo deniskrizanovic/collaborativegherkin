@@ -73,13 +73,12 @@ Prisma client (`src/generated/**`) and `next-env.d.ts`.
 - **WHEN** Biome is asked to check that file
 - **THEN** Biome processes no file and reports no problems
 
-### Requirement: Only files being committed are formatted
+### Requirement: The pre-commit hook formats only staged files
 
-The repository SHALL NOT be reformatted wholesale. The husky pre-commit hook,
-via `lint-staged`, SHALL run Biome with write mode on staged in-scope files,
-re-stage the result, and run Biome before oxlint for `*.{ts,tsx}` files. Files
-that are not staged SHALL NOT be modified by the hook. The repository SHALL NOT
-provide a script that formats the whole tree.
+The husky pre-commit hook, via `lint-staged`, SHALL run Biome with write mode
+on staged in-scope files, re-stage the result, and run Biome before oxlint for
+`*.{ts,tsx}` files. Files that are not staged SHALL NOT be modified by the
+hook.
 
 #### Scenario: Staged off-style file is formatted on commit
 > **Tests:** [`scripts/biome-config.test.ts`](../../../scripts/biome-config.test.ts) — lint-staged runs Biome write before oxlint
@@ -93,35 +92,51 @@ provide a script that formats the whole tree.
 - **WHEN** the developer commits
 - **THEN** the unstaged file's content is unchanged
 
-### Requirement: Changed files are checked for formatting
-
-A `lint:format` script SHALL check formatting and import order, without
-writing, for files changed relative to a comparison base (`main` by default).
-It SHALL exit non-zero when any of those files is not formatted. Files not
-changed relative to that base SHALL NOT be flagged. When there are no changed
-in-scope files, the check SHALL pass.
-
-#### Scenario: Unformatted changed file fails the check
-> **Tests:** none
-- **GIVEN** a branch that commits a change to a TypeScript file leaving it with single quotes
-- **WHEN** the `lint:format` check runs
-- **THEN** the check names that file and exits non-zero
-
-#### Scenario: Unformatted untouched file does not fail the check
-> **Tests:** none
-- **GIVEN** a branch whose only change is a formatted file, while an off-style file elsewhere is unchanged since `main`
-- **WHEN** the `lint:format` check runs
-- **THEN** the check exits zero
-
 ### Requirement: The format check gates CI and test:all
 
-The `lint:format` check SHALL run in `pnpm test:all` and as a CI step. In CI,
-the comparison base SHALL be the pull request's base commit for
-`pull_request` events and the commit before the push for `push` events. The
-checkout SHALL fetch enough history for that base to be available.
+The `lint:format` check SHALL run in `pnpm test:all` and as a CI step. The CI
+step SHALL run it with no comparison base.
 
 #### Scenario: Check runs in CI and test:all
 > **Tests:** [`scripts/biome-config.test.ts`](../../../scripts/biome-config.test.ts) — lint:format wired into CI and test:all
 - **GIVEN** the CI workflow and the `test:all` script
 - **WHEN** their steps are listed
-- **THEN** both include the `lint:format` check
+- **THEN** both include the `lint:format` check, and the CI step passes it no `--since` base
+
+### Requirement: The whole tree is formatted with one command
+
+A `format` script SHALL format and sort imports, with write mode, in every
+in-scope file in the repository. It SHALL leave out-of-scope files (Markdown,
+YAML, the generated Prisma client, `next-env.d.ts` and Git-ignored files)
+unchanged.
+
+#### Scenario: Off-style files anywhere in the tree are rewritten
+> **Tests:** none
+- **GIVEN** two off-style TypeScript files in different directories, neither of them staged or changed since `main`
+- **WHEN** the developer runs `pnpm format`
+- **THEN** both files are in house style
+
+#### Scenario: Out-of-scope files are untouched by the format script
+> **Tests:** [`scripts/biome-config.test.ts`](../../../scripts/biome-config.test.ts) — ignores Markdown and YAML; ignores generated client
+- **GIVEN** an OpenSpec `spec.md` file and a file under `src/generated/prisma/`
+- **WHEN** the developer runs `pnpm format`
+- **THEN** neither file's content changes
+
+### Requirement: Every in-scope file is checked for formatting
+
+A `lint:format` script SHALL check formatting and import order, without
+writing, in every in-scope file in the repository, whether or not the file
+changed. It SHALL exit non-zero and name the file when any in-scope file is not
+in house style.
+
+#### Scenario: Off-style untouched file fails the check
+> **Tests:** none
+- **GIVEN** a branch whose only change is a formatted file, while an off-style TypeScript file elsewhere is unchanged since `main`
+- **WHEN** the `lint:format` check runs
+- **THEN** the check names the off-style file and exits non-zero
+
+#### Scenario: The current tree passes the check
+> **Tests:** none
+- **GIVEN** the repository at the end of this change
+- **WHEN** `pnpm lint:format` runs
+- **THEN** it exits zero
