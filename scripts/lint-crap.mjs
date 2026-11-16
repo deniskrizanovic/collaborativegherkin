@@ -6,7 +6,8 @@
 // function scoring above 30 fails the gate. There is no allowlist, baseline
 // or suppression comment: lower a score by adding tests or simplifying code.
 //
-// Complexity comes from the TypeScript compiler API: 1 plus each `if`, `?:`,
+// Complexity comes from `@babel/parser`, the parser istanbul instruments with,
+// so function spans line up with coverage locations: 1 plus each `if`, `?:`,
 // `for`, `for…in`, `for…of`, `while`, `do…while`, `case` (not `default`),
 // `catch`, `&&`, `||` and `??` in the function's body. Nested functions are
 // scored on their own and do not add to their parent. Coverage comes from a
@@ -17,22 +18,23 @@
 //
 // Runs the whole unit suite under coverage, so it is in `test:all` and CI but
 // not the husky pre-commit hook. Exit 0 = pass, 1 = offenders, 2 = an unknown
-// option, a `--file` path matching no scored file, or a Vitest run that failed
-// or produced no coverage.
+// option, a `--file` path matching no scored file, a Vitest run that failed
+// or produced no coverage, or a source file that does not parse.
 //
 // Options (`test:all` and CI pass none):
 //   --all          list every scored function, worst first, not just offenders
 //   --file <path>  limit the report and exit code to that file or directory
 //
-// See openspec/changes/add-crap-metric-gate (design D1–D5) and
-// openspec/changes/retro-tooling-gates.
+// See openspec/changes/add-crap-metric-gate (design D1–D5),
+// openspec/changes/retro-tooling-gates and
+// openspec/changes/decouple-crap-from-ts-api.
 
 import { execFileSync } from "node:child_process";
 import { readdirSync, readFileSync, rmSync } from "node:fs";
 import { join, relative, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { parseArgs as parseNodeArgs } from "node:util";
-import ts from "typescript";
+import { parse } from "@babel/parser";
 
 export const CRAP_THRESHOLD = 30;
 
@@ -40,55 +42,87 @@ const SOURCE_EXTENSIONS = [".ts", ".tsx"];
 const EXCLUDED_FILE_RE = /\.(test|spec)\.[^/]+$|\.d\.ts$/;
 const COVERAGE_DIR = "coverage/crap";
 
-const DECISION_KINDS = new Set([
-  ts.SyntaxKind.IfStatement,
-  ts.SyntaxKind.ConditionalExpression,
-  ts.SyntaxKind.ForStatement,
-  ts.SyntaxKind.ForInStatement,
-  ts.SyntaxKind.ForOfStatement,
-  ts.SyntaxKind.WhileStatement,
-  ts.SyntaxKind.DoStatement,
-  ts.SyntaxKind.CaseClause,
-  ts.SyntaxKind.CatchClause,
+const DECISION_TYPES = new Set([
+  "IfStatement",
+  "ConditionalExpression",
+  "ForStatement",
+  "ForInStatement",
+  "ForOfStatement",
+  "WhileStatement",
+  "DoWhileStatement",
+  "CatchClause",
+  // `&&`, `||` and `??`: the only LogicalExpression operators.
+  "LogicalExpression",
 ]);
-const DECISION_OPERATORS = new Set([
-  ts.SyntaxKind.AmpersandAmpersandToken,
-  ts.SyntaxKind.BarBarToken,
-  ts.SyntaxKind.QuestionQuestionToken,
+// Overload signatures, `declare` functions and abstract methods parse as
+// TSDeclareFunction / TSDeclareMethod, so they are not in this set.
+const FUNCTION_TYPES = new Set([
+  "FunctionDeclaration",
+  "FunctionExpression",
+  "ArrowFunctionExpression",
+  "ClassMethod",
+  "ClassPrivateMethod",
+  "ObjectMethod",
 ]);
-const FUNCTION_KINDS = new Set([
-  ts.SyntaxKind.FunctionDeclaration,
-  ts.SyntaxKind.FunctionExpression,
-  ts.SyntaxKind.ArrowFunction,
-  ts.SyntaxKind.MethodDeclaration,
-  ts.SyntaxKind.Constructor,
-  ts.SyntaxKind.GetAccessor,
-  ts.SyntaxKind.SetAccessor,
+// An anonymous function directly under one of these takes its `id` or `key`.
+const NAMING_PARENT_TYPES = new Set([
+  "VariableDeclarator",
+  "ObjectProperty",
+  "ClassProperty",
+  "ClassPrivateProperty",
+  "ClassAccessorProperty",
 ]);
 
-/** A function-like node with a body (overload signatures and `declare`s have none). */
+/** A source file Babel could not parse, located at `file:line:column`. */
+class SourceParseError extends Error {
+  constructor(err, file) {
+    // Babel appends ` (line:column)` to its message; the report adds its own.
+    super(err.message.replace(/ \(\d+:\d+\)$/, ""), { cause: err });
+    this.file = file;
+    this.line = err.loc?.line;
+    this.column = err.loc?.column;
+  }
+}
+
+/** A function-like node with a body. */
 function isScoredFunction(node) {
-  return FUNCTION_KINDS.has(node.kind) && node.body !== undefined;
+  return FUNCTION_TYPES.has(node.type) && node.body != null;
 }
 
 function isDecisionPoint(node) {
-  return (
-    DECISION_KINDS.has(node.kind) ||
-    (node.kind === ts.SyntaxKind.BinaryExpression &&
-      DECISION_OPERATORS.has(node.operatorToken.kind))
-  );
+  // A `default` clause has `test: null`.
+  if (node.type === "SwitchCase") return node.test !== null;
+  return DECISION_TYPES.has(node.type);
+}
+
+/** Call `visit(child, node)` for every AST node held directly by `node`. */
+function forEachChild(node, visit) {
+  for (const [key, value] of Object.entries(node)) {
+    if (key === "loc" || key === "extra" || /comments$/i.test(key)) continue;
+    for (const child of Array.isArray(value) ? value : [value]) {
+      if (child && typeof child.type === "string") visit(child, node);
+    }
+  }
+}
+
+/**
+ * The name of `owner`'s `id` or `key` as written, `[...]` for a computed key.
+ * An Identifier's span also covers its type annotation, so use its name.
+ */
+function keyText(owner, content) {
+  const key = owner.id ?? owner.key;
+  if (!key) return undefined;
+  const text = key.type === "Identifier" ? key.name : content.slice(key.start, key.end);
+  return owner.computed ? `[${text}]` : text;
 }
 
 /** The declaration name, method/property key or assigned variable, else `<anonymous>`. */
-function functionName(node, sourceFile) {
-  if (node.kind === ts.SyntaxKind.Constructor) return "constructor";
-  if (node.name) return node.name.getText(sourceFile);
-  const parent = node.parent;
-  const named =
-    ts.isVariableDeclaration(parent) ||
-    ts.isPropertyAssignment(parent) ||
-    ts.isPropertyDeclaration(parent);
-  return named && parent.name ? parent.name.getText(sourceFile) : "<anonymous>";
+function functionName(node, parent, content) {
+  if (node.kind === "constructor") return "constructor";
+  const own = keyText(node, content);
+  if (own) return own;
+  const named = NAMING_PARENT_TYPES.has(parent?.type) ? keyText(parent, content) : undefined;
+  return named ?? "<anonymous>";
 }
 
 /** Count decision points under `node`, not descending into nested functions. */
@@ -97,16 +131,10 @@ function countDecisions(node) {
   const visit = (child) => {
     if (isScoredFunction(child)) return;
     if (isDecisionPoint(child)) count++;
-    ts.forEachChild(child, visit);
+    forEachChild(child, visit);
   };
-  ts.forEachChild(node, visit);
+  forEachChild(node, visit);
   return count;
-}
-
-/** Istanbul-style position: 1-based line, 0-based column. */
-function positionOf(sourceFile, pos) {
-  const { line, character } = sourceFile.getLineAndCharacterOfPosition(pos);
-  return { line: line + 1, column: character };
 }
 
 /**
@@ -143,30 +171,49 @@ export function collectSourceFiles(root) {
 
 /**
  * Find every function in a source file with its name, span and complexity.
+ * Throws a `SourceParseError` carrying `file`, `line` and `column` when the
+ * file does not parse.
  * @param {string} content
  * @param {string} [file]
  * @returns {{ file: string, name: string, line: number, start: {line: number, column: number}, end: {line: number, column: number}, complexity: number }[]}
  */
 export function measureFunctions(content, file = "<memory>") {
-  const scriptKind = file.endsWith(".tsx") ? ts.ScriptKind.TSX : ts.ScriptKind.TS;
-  const sourceFile = ts.createSourceFile(file, content, ts.ScriptTarget.Latest, true, scriptKind);
+  const plugins = ["typescript", "decorators", "decoratorAutoAccessors"];
+  if (file.endsWith(".tsx")) plugins.push("jsx");
+  let ast;
+  try {
+    ast = parse(content, { sourceType: "module", plugins });
+  } catch (err) {
+    throw new SourceParseError(err, file);
+  }
   const functions = [];
-  const visit = (node) => {
+  const visit = (node, parent) => {
     if (isScoredFunction(node)) {
-      const start = positionOf(sourceFile, node.getStart(sourceFile));
+      const { start, end } = node.loc;
       functions.push({
         file,
-        name: functionName(node, sourceFile),
+        name: functionName(node, parent, content),
         line: start.line,
-        start,
-        end: positionOf(sourceFile, node.getEnd()),
+        start: { line: start.line, column: start.column },
+        end: { line: end.line, column: end.column },
         complexity: 1 + countDecisions(node),
       });
     }
-    ts.forEachChild(node, visit);
+    forEachChild(node, visit);
   };
-  visit(sourceFile);
+  visit(ast.program, ast);
   return functions;
+}
+
+/**
+ * The report for a source file that does not parse: exit 2, no scores.
+ * @param {{ file: string, line: number, column: number, message: string }} err
+ * @param {string} cwd the file path is shown relative to this
+ * @returns {{ exitCode: number, output: string }}
+ */
+export function parseFailureReport(err, cwd) {
+  const where = `${relative(cwd, err.file)}:${err.line}:${err.column}`;
+  return { exitCode: 2, output: `✗ crap: cannot parse ${where} — ${err.message}` };
 }
 
 function isBefore(a, b) {
@@ -383,7 +430,16 @@ function main() {
     file,
     content: readFileSync(file, "utf8"),
   }));
-  const { exitCode, output } = reportFor(scoreFunctions(sources, coverageMap), cwd, options);
+  let scored;
+  try {
+    scored = scoreFunctions(sources, coverageMap);
+  } catch (err) {
+    if (!(err instanceof SourceParseError)) throw err;
+    console.error(parseFailureReport(err, cwd).output);
+    process.exitCode = 2;
+    return;
+  }
+  const { exitCode, output } = reportFor(scored, cwd, options);
   (exitCode === 0 ? console.log : console.error)(output);
   process.exitCode = exitCode;
 }
