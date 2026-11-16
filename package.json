@@ -14,6 +14,7 @@
     "lint:spec-layout": "node scripts/lint-spec-layout.mjs",
     "lint:openspec": "OPENSPEC_TELEMETRY=0 openspec validate --all --strict --no-interactive",
     "lint:issue-link": "node scripts/lint-issue-link.mjs",
+    "lint:unarchived": "node scripts/lint-unarchived.mjs",
     "lint:schema-parity": "node scripts/lint-schema-parity.mjs",
     "lint:dependabot": "node scripts/lint-dependabot.mjs",
     "lint:robot": "node scripts/lint-robot-no-sleep.mjs",
