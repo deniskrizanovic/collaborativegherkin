@@ -9,7 +9,7 @@ tools like Jira. The app is a workspace, not a permanent archive.
 ## Stack
 - **Framework:** Next.js 15 (App Router) — TypeScript front end and back end
 - **Editor:** Tiptap with Y.js for real-time collaboration
-- **Database:** SQLite (dev) / PostgreSQL (production) via Prisma
+- **Database:** SQLite (dev, CI) / PostgreSQL (production) via Drizzle ORM
 - **Auth:** NextAuth.js v5
 - **Validation:** Zod
 - **Formatting:** Biome (formatter + import sorting only; linter off, oxlint lints)
@@ -33,8 +33,10 @@ pnpm test:e2e         # Playwright e2e — parity reference, manual (CI runs it 
 pnpm lint:e2e-parity  # every Playwright test has a robot/PARITY.md row + same-named Robot test
 pnpm lint:crap        # CRAP score (complexity × unit-test coverage) per src/ function; fails above 30
 pnpm seed      # seed dev database with placeholder user
-pnpm exec prisma migrate dev   # run database migrations in development
-pnpm exec prisma studio        # open database browser UI
+pnpm db:migrate       # apply SQLite migrations (drizzle/sqlite/) to DATABASE_URL
+pnpm db:generate      # after editing src/db/schema.*.ts: new migration for both engines
+pnpm db:migrate:prod  # apply PostgreSQL migrations (drizzle/pg/) to DATABASE_URL
+pnpm db:studio        # open Drizzle Studio on the local database
 ```
 
 `pnpm dev` runs one process serving both HTTP and the real-time sync
@@ -61,9 +63,15 @@ src/
   lib/
     gherkin.ts    # Gherkin block types, validation rules, export logic
     logger.ts     # Pino logger — use this everywhere, not console.log
-    db.ts         # Prisma client singleton
-prisma/
-  schema.prisma   # Database schema
+    db.ts         # Drizzle db singleton — engine picked from DATABASE_URL
+  db/
+    schema.sqlite.ts  # SQLite schema (dev, CI) — parity with schema.pg.ts
+    schema.pg.ts      # PostgreSQL schema (production)
+    testing.ts        # createTestDb("sqlite" | "pg") for unit tests
+drizzle/
+  sqlite/         # SQLite migrations (drizzle-kit)
+  pg/             # PostgreSQL migrations (drizzle-kit)
+scripts/
   seed.ts         # Dev seed — creates dev@example.com user
 server.js               # Custom Node server — Next.js HTTP + authenticated Y.js WebSocket
 logs/             # Written at runtime — never commit
@@ -139,5 +147,5 @@ before writing any code.
 1. `src/lib/gherkin.ts` — the Gherkin block structure and validation rules
 2. Tiptap + Y.js collaboration configuration once real-time sync is working
 3. NextAuth.js configuration once real users are logging in
-4. Any Prisma migration that has run against real data
+4. Any database migration that has run against real data
 5. The export logic once people are relying on it for Jira exports

@@ -52,14 +52,15 @@ be sorted by the `organizeImports` action.
 - **WHEN** Biome formats the file
 - **THEN** the file content is identical to before
 
-### Requirement: Formatting scope is limited to source and config code
+### Requirement: Formatting covers source and config code only
 
 Biome SHALL process only TypeScript, TSX, JavaScript (`.js`, `.mjs`, `.cjs`),
 JSON/JSONC and CSS files. It SHALL NOT format Markdown or YAML, because the
 spec gates (`lint:specs`, `lint:given`, `lint:robot-steps`) parse OpenSpec
 Markdown and `lint:dependabot` parses `.github/dependabot.yml`. It SHALL
-respect the repository's Git ignore files and SHALL exclude the generated
-Prisma client (`src/generated/**`) and `next-env.d.ts`.
+respect the repository's Git ignore files and SHALL exclude the Drizzle
+migration metadata that `drizzle-kit` writes (`drizzle/**/meta/**`) and
+`next-env.d.ts`.
 
 #### Scenario: Spec Markdown is out of scope
 > **Tests:** [`scripts/biome-config.test.ts`](../../../scripts/biome-config.test.ts) — ignores Markdown and YAML
@@ -67,9 +68,9 @@ Prisma client (`src/generated/**`) and `next-env.d.ts`.
 - **WHEN** Biome is asked to check both files
 - **THEN** Biome processes neither file and reports no problems
 
-#### Scenario: Generated Prisma client is out of scope
-> **Tests:** [`scripts/biome-config.test.ts`](../../../scripts/biome-config.test.ts) — ignores generated client
-- **GIVEN** a file under `src/generated/prisma/` that is not in house style
+#### Scenario: Drizzle migration metadata is out of scope
+> **Tests:** [`scripts/biome-config.test.ts`](../../../scripts/biome-config.test.ts) — ignores Drizzle migration metadata
+- **GIVEN** a JSON file under `drizzle/sqlite/meta/` that is not in house style
 - **WHEN** Biome is asked to check that file
 - **THEN** Biome processes no file and reports no problems
 
@@ -107,7 +108,7 @@ step SHALL run it with no comparison base.
 
 A `format` script SHALL format and sort imports, with write mode, in every
 in-scope file in the repository. It SHALL leave out-of-scope files (Markdown,
-YAML, the generated Prisma client, `next-env.d.ts` and Git-ignored files)
+YAML, Drizzle migration metadata, `next-env.d.ts` and Git-ignored files)
 unchanged.
 
 #### Scenario: Off-style files anywhere in the tree are rewritten
@@ -117,8 +118,8 @@ unchanged.
 - **THEN** both files are in house style
 
 #### Scenario: Out-of-scope files are untouched by the format script
-> **Tests:** [`scripts/biome-config.test.ts`](../../../scripts/biome-config.test.ts) — ignores Markdown and YAML; ignores generated client
-- **GIVEN** an OpenSpec `spec.md` file and a file under `src/generated/prisma/`
+> **Tests:** [`scripts/biome-config.test.ts`](../../../scripts/biome-config.test.ts) — ignores Markdown and YAML; ignores Drizzle migration metadata
+- **GIVEN** an OpenSpec `spec.md` file and a JSON file under `drizzle/pg/meta/`
 - **WHEN** the developer runs `pnpm format`
 - **THEN** neither file's content changes
 

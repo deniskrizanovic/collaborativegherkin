@@ -42,9 +42,15 @@ src/
   lib/
     gherkin.ts    # Gherkin block types, validation rules, export logic
     logger.ts     # Pino logger — use this everywhere, not console.log
-    db.ts         # Prisma client singleton
-prisma/
-  schema.prisma   # Database schema
+    db.ts         # Drizzle db singleton — engine picked from DATABASE_URL
+  db/
+    schema.sqlite.ts  # SQLite schema (dev, CI)
+    schema.pg.ts      # PostgreSQL schema (production)
+    testing.ts        # createTestDb() for unit tests
+drizzle/
+  sqlite/         # SQLite migrations (drizzle-kit)
+  pg/             # PostgreSQL migrations (drizzle-kit)
+scripts/
   seed.ts         # Dev seed — creates placeholder user
 server.js               # Custom Node server — Next.js HTTP + authenticated Y.js WebSocket
 ```
@@ -76,20 +82,30 @@ All structural rules live here and nowhere else:
 
 ### Database
 
-SQLite in dev, PostgreSQL in production, via Prisma. Prisma's `provider` is a compile-time literal, not a runtime env var, so two separate schema files exist:
+SQLite in development and CI, PostgreSQL in production, via **Drizzle ORM**
+(`drizzle-orm` + `drizzle-kit`, no generated client). Each dialect has its own
+table builder, so there are two hand-maintained schema modules with the same
+exports and SQL names:
 
-| Schema | Provider | Migrations |
-|--------|----------|------------|
-| `prisma/schema.prisma` | `sqlite` | `prisma/migrations/` |
-| `prisma/postgres/schema.prisma` | `postgresql` | `prisma/postgres/migrations/` |
+| Schema | Driver | Migrations | Config |
+|--------|--------|------------|--------|
+| `src/db/schema.sqlite.ts` | `better-sqlite3` | `drizzle/sqlite/` | `drizzle.sqlite.config.ts` |
+| `src/db/schema.pg.ts` | `pg` | `drizzle/pg/` | `drizzle.pg.config.ts` |
 
-**Local development** — no extra steps, `prisma/schema.prisma` is the default used by `pnpm exec prisma migrate dev` and `pnpm exec prisma studio`.
+`src/lib/db.ts` picks the engine at runtime: a `DATABASE_URL` starting with
+`file:` opens SQLite (the path is relative to the working directory, so
+`file:./dev.db` is the repo-root `dev.db`), anything else opens PostgreSQL. It
+exports `db` (typed as the PostgreSQL database; the SQLite instance is cast to
+that type), the matching `tables`, and `closeDb()` for scripts. Because of the
+cast, application code uses only builder operations both dialects run the same
+way when awaited — the list is in the comment at the top of `db.ts`. No
+synchronous `.run()`/`.all()`/`.get()`, no transactions.
 
-**First-time production setup** — generate the PostgreSQL migration history once against a real Postgres instance:
+**Local development** — `pnpm db:migrate` applies `drizzle/sqlite/` to
+`DATABASE_URL`, then `pnpm seed`. `pnpm db:studio` opens Drizzle Studio.
 
-```bash
-DATABASE_URL="postgresql://..." pnpm db:migrate:dev:postgres
-```
+**Changing the schema** — edit both schema modules identically, then
+`pnpm db:generate`, which writes a migration for each engine. Commit both.
 
 **Every production deploy** — apply pending migrations:
 
@@ -97,24 +113,32 @@ DATABASE_URL="postgresql://..." pnpm db:migrate:dev:postgres
 DATABASE_URL="postgresql://..." pnpm db:migrate:prod
 ```
 
-Four models: `User`, `Account`, `Session`, `VerificationToken`. The `Session` model carries optional `prompt` and `model` columns for per-session coaching configuration; both are `null` by default and fall back to the constants in `src/lib/llm-constants.ts`. The session's `content` field stores `{}` by default — actual document state lives in Y.js (in-memory in the WebSocket server), not in the database.
+Four tables: `User`, `Account`, `Session`, `VerificationToken`. Ids are cuid2
+(`@paralleldrive/cuid2`), generated in the application. The `Session` table
+carries optional `prompt` and `model` columns for per-session coaching
+configuration; both are `null` by default and fall back to the constants in
+`src/lib/llm-constants.ts`. The session's `content` column stores `{}` by
+default — actual document state lives in Y.js (in-memory in the WebSocket
+server), not in the database.
 
-**Schema parity** — because the two files are hand-maintained, they can drift (a
-field added to one engine but not the other surfaces only at runtime in the
-other engine — findings ENG-030/031). `prisma/schema.prisma` (SQLite) is the
-reference: it matches the running application code and the single generated
-client. To add or change a model or field, **edit both `prisma/schema.prisma`
-and `prisma/postgres/schema.prisma` identically** (only the datasource
-`provider`, the generator `output` path, and engine-native `@db.*` attributes
-may differ), then generate a migration for each engine. The
-`lint:schema-parity` gate (`scripts/lint-schema-parity.mjs`) parses both files
-and fails the build when their model/field sets diverge. It is offline-safe and
-runs in `test:all`, in CI, and in the husky pre-commit hook, alongside
-`lint:specs`.
+**Tests** — `src/db/testing.ts` `createTestDb("sqlite" | "pg")` applies the
+committed migrations to an in-memory better-sqlite3 database or an in-process
+PGlite instance. Data-layer tests (`src/lib/session.test.ts`,
+`src/lib/user.test.ts`) run every case on both engines, so the PostgreSQL
+migrations and queries are exercised without a Postgres server.
+
+**Schema parity** — because the two modules are hand-maintained, they can
+drift (a column added to one engine but not the other surfaces only at runtime
+in the other engine — findings ENG-030/031). The `lint:schema-parity` gate
+(`scripts/lint-schema-parity.mjs`) imports both modules, reduces each table to
+its columns and nullability with `getTableConfig`, and fails the build when
+the table, column or nullability sets diverge (dialect column types and default
+expressions may differ). It needs no database and runs in `test:all`, in CI,
+and in the husky pre-commit hook, alongside `lint:specs`.
 
 ### Auth
 
-NextAuth.js v5 (`src/auth.ts`) — magic link via **Resend**, JWT session strategy (avoids naming conflict with the Gherkin `Session` model), `PrismaAdapter` for token persistence.
+NextAuth.js v5 (`src/auth.ts`) — magic link via **Resend**, JWT session strategy (avoids naming conflict with the Gherkin `Session` model), `DrizzleAdapter` (`@auth/drizzle-adapter`, built by `authAdapter` in `src/lib/user.ts`) for user and verification-token persistence.
 
 - Every route is gated by `src/middleware.ts` — unauthenticated requests redirect to the NextAuth sign-in page.
 - Any authenticated user can view/edit any session. Only the session owner (creator) can delete it.

@@ -1,6 +1,7 @@
 import type { NextAuthConfig } from "next-auth";
 
-// Edge-compatible config subset — no Node.js-only imports (no Prisma, no pg).
+// Edge-compatible config subset — no Node.js-only imports (no database
+// drivers: no better-sqlite3, no pg).
 // Used by middleware.ts (Edge Runtime). The full config lives in src/auth.ts.
 export const authConfig: NextAuthConfig = {
   session: { strategy: "jwt" },

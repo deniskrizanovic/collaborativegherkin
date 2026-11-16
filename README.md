@@ -195,8 +195,9 @@ Edit `.env.local` and fill in:
 | `DATABASE_URL`       | Already set to`file:./dev.db` for local SQLite         |
 
 ```bash
-# 3. Run database migrations
-pnpm exec prisma migrate dev
+# 3. Create the local SQLite database (repo-root dev.db) from the Drizzle migrations
+#    (an old prisma/dev.db from before the Drizzle switch is not used; delete it)
+pnpm db:migrate
 
 # 4. Seed the dev database
 pnpm seed
@@ -221,8 +222,10 @@ Visit `http://localhost:3000` — you'll be redirected to the sign-in page. Ente
 | `pnpm lint`           | Lint the codebase                              |
 | `pnpm lint:format`    | Check Biome formatting and import order on files changed against `main` |
 | `pnpm lint:e2e-parity` | Check every Playwright test has a `robot/PARITY.md` row and a Robot test with the same title |
-| `pnpm exec prisma migrate dev` | Apply database migrations                      |
-| `pnpm exec prisma studio`      | Browse the database in a UI                    |
+| `pnpm db:migrate`     | Apply the SQLite migrations (`drizzle/sqlite/`) to `DATABASE_URL` |
+| `pnpm db:migrate:prod` | Apply the PostgreSQL migrations (`drizzle/pg/`) to `DATABASE_URL` |
+| `pnpm db:generate`    | Generate a new migration for both engines after editing `src/db/schema.*.ts` |
+| `pnpm db:studio`      | Browse the local database in Drizzle Studio   |
 
 Biome formats TS/TSX/JS/JSON/CSS and sorts imports; oxlint does the linting.
 The pre-commit hook formats staged files automatically, and there is no

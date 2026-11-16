@@ -184,7 +184,6 @@ describe("collectSourceFiles", () => {
       "src/lib/session.test.ts",
       "src/app/View.spec.tsx",
       "src/types/declarations.d.ts",
-      "src/generated/prisma/client.ts",
       "src/app/globals.css",
       "scripts/tool.ts",
     ];
@@ -198,7 +197,7 @@ describe("collectSourceFiles", () => {
     rmSync(root, { recursive: true, force: true });
   });
 
-  it("collects .ts and .tsx under src/, skipping tests, declarations, generated code and scripts/", () => {
+  it("collects .ts and .tsx under src/, skipping tests, declarations and scripts/", () => {
     const rel = collectSourceFiles(root)
       .map((f: string) => f.slice(root.length + 1))
       .sort();

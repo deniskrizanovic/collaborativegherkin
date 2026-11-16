@@ -9,9 +9,9 @@ pnpm run lint:specs
 # Also whole-tree and offline-safe; sibling of lint:specs.
 pnpm run lint:given
 
-# Cross-engine schema parity — the SQLite and Postgres Prisma schemas must
-# define the same models/fields. Pure filesystem check, no network; sibling
-# of lint:specs.
+# Cross-engine schema parity — the SQLite and Postgres Drizzle schema modules
+# must define the same tables, columns and nullability. No database or
+# network; sibling of lint:specs.
 pnpm run lint:schema-parity
 
 # Robot no-sleep gate — no `Sleep` keyword calls in robot/suites/** or

@@ -111,12 +111,11 @@ function positionOf(sourceFile, pos) {
 
 /**
  * Recursively collect the files the gate scores: `.ts` and `.tsx` under
- * `root/src/`, minus tests, `*.d.ts` and `src/generated/`.
+ * `root/src/`, minus tests and `*.d.ts`.
  * @param {string} root
  * @returns {string[]}
  */
 export function collectSourceFiles(root) {
-  const generated = join(root, "src", "generated");
   const walk = (dir) => {
     let entries;
     try {
@@ -128,7 +127,7 @@ export function collectSourceFiles(root) {
     for (const entry of entries) {
       const full = join(dir, entry.name);
       if (entry.isDirectory()) {
-        if (full !== generated) files.push(...walk(full));
+        files.push(...walk(full));
       } else if (
         entry.isFile() &&
         SOURCE_EXTENSIONS.some((ext) => entry.name.endsWith(ext)) &&
@@ -346,7 +345,6 @@ function runCoverage(cwd) {
         "--coverage.exclude=**/*.test.*",
         "--coverage.exclude=**/*.spec.*",
         "--coverage.exclude=**/*.d.ts",
-        "--coverage.exclude=src/generated/**",
       ],
       { cwd, encoding: "utf8", stdio: "pipe", maxBuffer: 64 * 1024 * 1024 },
     );

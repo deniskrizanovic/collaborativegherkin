@@ -1,8 +1,8 @@
-import { PrismaAdapter } from "@auth/prisma-adapter";
 import NextAuth, { type NextAuthConfig } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
 import ResendProvider from "next-auth/providers/resend";
-import { db } from "@/lib/db";
+import { db, tables } from "@/lib/db";
+import { authAdapter, ensureUserByEmail } from "@/lib/user";
 
 declare module "next-auth" {
   interface Session {
@@ -32,19 +32,14 @@ if (process.env.NODE_ENV !== "production" && process.env.TEST_AUTH_SECRET) {
         const submitted =
           (credentials.secret as string | undefined) ?? process.env.TEST_AUTH_SECRET;
         if (submitted !== process.env.TEST_AUTH_SECRET) return null;
-        return db.user.upsert({
-          where: { email: credentials.email as string },
-          update: {},
-          create: { email: credentials.email as string },
-          select: { id: true, email: true, name: true },
-        });
+        return ensureUserByEmail(db, tables, credentials.email as string);
       },
     }),
   );
 }
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
-  adapter: PrismaAdapter(db as Parameters<typeof PrismaAdapter>[0]),
+  adapter: authAdapter(db, tables),
   session: { strategy: "jwt" },
   pages: {
     signIn: "/auth/signin",

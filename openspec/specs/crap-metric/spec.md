@@ -74,21 +74,20 @@ coverage.
 - **WHEN** the gate scores the component's functions
 - **THEN** each of them is reported with 0% coverage
 
-### Requirement: The gate scores application code under src/
+### Requirement: The gate scores source files under src/
 
 The gate SHALL score every `.ts` and `.tsx` file under `src/`. It SHALL skip
-test files (`*.test.*`, `*.spec.*`), type declaration files (`*.d.ts`) and
-generated code under `src/generated/`. Files outside `src/` SHALL NOT be
-scored.
+test files (`*.test.*`, `*.spec.*`) and type declaration files (`*.d.ts`).
+Files outside `src/` SHALL NOT be scored.
 
-#### Scenario: Test and generated files are not scored
-> **Tests:** [`scripts/lint-crap.test.ts`](../../../scripts/lint-crap.test.ts) — collects .ts and .tsx under src/, skipping tests, declarations, generated code and scripts/
-- **GIVEN** a complex untested function in `src/lib/session.test.ts` and another in a file under `src/generated/`
+#### Scenario: Test files are not scored
+> **Tests:** [`scripts/lint-crap.test.ts`](../../../scripts/lint-crap.test.ts) — collects .ts and .tsx under src/, skipping tests, declarations and scripts/
+- **GIVEN** a complex untested function in `src/lib/session.test.ts`
 - **WHEN** the gate runs
-- **THEN** neither function appears in its report and neither affects its exit code
+- **THEN** that function does not appear in its report and does not affect its exit code
 
 #### Scenario: Scripts outside src/ are not scored
-> **Tests:** [`scripts/lint-crap.test.ts`](../../../scripts/lint-crap.test.ts) — collects .ts and .tsx under src/, skipping tests, declarations, generated code and scripts/
+> **Tests:** [`scripts/lint-crap.test.ts`](../../../scripts/lint-crap.test.ts) — collects .ts and .tsx under src/, skipping tests, declarations and scripts/
 - **GIVEN** a complex untested function in a file under `scripts/`
 - **WHEN** the gate runs
 - **THEN** that function does not appear in its report

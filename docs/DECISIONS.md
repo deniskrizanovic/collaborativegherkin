@@ -129,3 +129,17 @@ Reason: the session id is an unguessable `cuid`, so holding it is equivalent to
 holding the invite link. GET/PATCH stay open to any authenticated holder; only
 the irreversible DELETE is owner-gated. Reaffirms ADR-0003.
 Date: 2026-07-09
+
+---
+
+## Drizzle ORM replaces Prisma
+See ADR-0009. Issue #62.
+Alternatives considered: keep Prisma; PostgreSQL in every environment; one
+repository implementation per dialect.
+Reason: Drizzle has no generated client, no engine binaries and plain SQL
+migrations, and the data layer is small enough that the switch is cheap now.
+SQLite stays for dev and CI, PostgreSQL for production, with one schema module
+per engine kept at parity by `lint:schema-parity` and every query tested on
+both engines. Supersedes the "Prisma makes this swap a one-line change" note in
+the SQLite-for-development entry.
+Date: 2026-11-16

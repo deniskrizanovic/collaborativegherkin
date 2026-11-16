@@ -116,8 +116,13 @@ describe("Biome formatter config", () => {
     expect(result.status).toBe(0);
   });
 
-  it("ignores generated client", () => {
-    const result = biome(["check", "--no-errors-on-unmatched", "src/generated/prisma/client.ts"]);
+  it("ignores Drizzle migration metadata", () => {
+    const result = biome([
+      "check",
+      "--no-errors-on-unmatched",
+      "drizzle/sqlite/meta/_journal.json",
+      "drizzle/pg/meta/0000_snapshot.json",
+    ]);
     expect(result.stderr).toMatch(/Checked 0 files/);
     expect(result.status).toBe(0);
   });

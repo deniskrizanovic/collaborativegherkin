@@ -1,18 +1,16 @@
+import { eq } from "drizzle-orm";
 import { NextRequest } from "next/server";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { db, tables } from "@/lib/db";
+import { Session } from "@/lib/session";
 
 const VALID_USER_ID = "cm0000000000000000000000";
+const OTHER_USER_ID = "cm0000000000000000000001";
 
-const fakeSessionTable = {
-  findMany: vi.fn(),
-  create: vi.fn(),
-  findUnique: vi.fn(),
-  delete: vi.fn(),
-};
-
-vi.mock("@/lib/db", () => ({
-  db: { session: fakeSessionTable },
-}));
+vi.mock("@/lib/db", async () => {
+  const { createTestDb } = await import("@/db/testing");
+  return createTestDb("sqlite");
+});
 
 vi.mock("@/lib/logger", () => ({
   default: { info: vi.fn(), error: vi.fn() },
@@ -22,8 +20,18 @@ vi.mock("@/auth", () => ({
   auth: vi.fn(),
 }));
 
-beforeEach(() => {
+beforeEach(async () => {
   vi.clearAllMocks();
+  await db.delete(tables.sessions);
+  await db.delete(tables.users);
+  await db.insert(tables.users).values([
+    { id: VALID_USER_ID, email: "test@example.com" },
+    { id: OTHER_USER_ID, email: "other@example.com" },
+  ]);
+});
+
+afterEach(() => {
+  vi.restoreAllMocks();
 });
 
 async function importRoute() {
@@ -49,10 +57,10 @@ describe("GET /api/sessions", () => {
 
   it("returns 200 with sessions owned by the authenticated user", async () => {
     await mockAuth(VALID_USER_ID);
-    const rows = [
+    await db.insert(tables.sessions).values([
       { id: "abc", title: "My session", createdAt: new Date("2024-01-01"), userId: VALID_USER_ID },
-    ];
-    fakeSessionTable.findMany.mockResolvedValue(rows);
+      { id: "theirs", title: "Their session", userId: OTHER_USER_ID },
+    ]);
 
     const { GET } = await importRoute();
     const res = await GET();
@@ -61,14 +69,11 @@ describe("GET /api/sessions", () => {
     expect(res.status).toBe(200);
     expect(body).toHaveLength(1);
     expect(body[0]).toMatchObject({ id: "abc", title: "My session", userId: VALID_USER_ID });
-    expect(fakeSessionTable.findMany).toHaveBeenCalledWith(
-      expect.objectContaining({ where: { userId: VALID_USER_ID } }),
-    );
   });
 
   it("returns 500 when service throws", async () => {
     await mockAuth(VALID_USER_ID);
-    fakeSessionTable.findMany.mockRejectedValue(new Error("db down"));
+    vi.spyOn(Session.prototype, "list").mockRejectedValue(new Error("db down"));
 
     const { GET } = await importRoute();
     const res = await GET();
@@ -96,14 +101,6 @@ describe("POST /api/sessions", () => {
 
   it("returns 201 with created session on valid body", async () => {
     await mockAuth(VALID_USER_ID);
-    const created = {
-      id: "xyz",
-      title: "New session",
-      createdAt: new Date("2024-01-01"),
-      userId: VALID_USER_ID,
-    };
-    fakeSessionTable.create.mockResolvedValue(created);
-
     const { POST } = await importRoute();
     const req = new NextRequest("http://localhost/api/sessions", {
       method: "POST",
@@ -114,7 +111,9 @@ describe("POST /api/sessions", () => {
     const body = await res.json();
 
     expect(res.status).toBe(201);
-    expect(body).toMatchObject({ id: "xyz", title: "New session", userId: VALID_USER_ID });
+    expect(body).toMatchObject({ title: "New session", userId: VALID_USER_ID });
+    const rows = await db.select().from(tables.sessions).where(eq(tables.sessions.id, body.id));
+    expect(rows).toHaveLength(1);
   });
 
   it("returns 400 when title is empty", async () => {
@@ -151,7 +150,7 @@ describe("POST /api/sessions", () => {
 
   it("returns 500 when service throws", async () => {
     await mockAuth(VALID_USER_ID);
-    fakeSessionTable.create.mockRejectedValue(new Error("db down"));
+    vi.spyOn(Session.prototype, "create").mockRejectedValue(new Error("db down"));
 
     const { POST } = await importRoute();
     const req = new NextRequest("http://localhost/api/sessions", {

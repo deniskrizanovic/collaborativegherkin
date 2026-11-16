@@ -10,9 +10,10 @@ const fakeSessionRecord = {
   userId: "user-1",
 };
 
-vi.mock("@/lib/db", () => ({
-  db: { session: {} },
-}));
+vi.mock("@/lib/db", async () => {
+  const { createTestDb } = await import("@/db/testing");
+  return createTestDb("sqlite");
+});
 
 vi.mock("@/lib/session", async (importOriginal) => {
   const actual = await importOriginal<typeof import("@/lib/session")>();

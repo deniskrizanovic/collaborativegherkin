@@ -1,6 +1,6 @@
 // Guards the oxlint contract in openspec code-linting spec: oxlint is the only
 // linter, the rule set matches the former Next.js ESLint preset, any warning
-// fails, suppressions use oxlint comments, generated code is out of scope, and
+// fails, suppressions use oxlint comments, tool output is out of scope, and
 // the lint is wired into lint-staged, CI and test:all. Runs the real oxlint
 // binary (execFileSync, no shell, no vi.mock) against fixtures in a temp dir
 // outside the repo, so a parallel `pnpm lint` under test:all never sees them.
@@ -172,13 +172,12 @@ describe("oxlint config", () => {
     expect(result.diagnostics.map(ruleOf)).toEqual(["no-unused-vars"]);
   });
 
-  it("no eslint disable directives outside generated code", () => {
+  it("no eslint disable directives in project source", () => {
     // Built from parts so this file does not match its own search.
     const needle = ["eslint", "disable"].join("-");
     const tracked = execFileSync("git", ["ls-files"], { cwd: ROOT, encoding: "utf8" })
       .split("\n")
       .filter((path) => /\.(ts|tsx|mts|cts|js|jsx|mjs|cjs)$/.test(path))
-      .filter((path) => !path.startsWith("src/generated/"))
       // Tracked files deleted in the working tree are still listed until staged.
       .filter((path) => existsSync(join(ROOT, path)));
     const offenders = tracked.filter((path) =>
@@ -187,13 +186,17 @@ describe("oxlint config", () => {
     expect(offenders).toEqual([]);
   });
 
-  it("ignores generated client", () => {
+  it("ignores next-env.d.ts", () => {
+    // oxlint skips no-unused-vars in declaration files, so the unused variable
+    // is declared with `var` and `any`, which do fire there — as the control
+    // copy under another name shows.
+    const declaration = "declare var unused: any;\n";
     const result = lintFixture({
-      "src/generated/prisma/bad.ts": "export function f() {\n  const unused = 1;\n  return 2;\n}\n",
-      "src/ok.ts": "export const ok = 1;\n",
+      "next-env.d.ts": declaration,
+      "control-env.d.ts": declaration,
     });
-    expect(result.diagnostics.filter((d) => d.filename.includes("bad.ts"))).toEqual([]);
-    expect(result.status).toBe(0);
+    expect(result.diagnostics.filter((d) => d.filename.includes("next-env.d.ts"))).toEqual([]);
+    expect(result.diagnostics.some((d) => d.filename.includes("control-env.d.ts"))).toBe(true);
   });
 
   it("reports a console call in application code", () => {

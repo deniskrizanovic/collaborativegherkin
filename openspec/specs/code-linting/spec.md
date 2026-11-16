@@ -90,8 +90,7 @@ deliberate change to that list.
 A deliberate rule exception in project source SHALL be written as an
 `oxlint-disable-next-line <rule>` or `oxlint-disable <rule>` /
 `oxlint-enable <rule>` comment that names the oxlint rule and says why.
-Project source outside the generated Prisma client SHALL NOT contain
-`eslint-disable` comments.
+Project source SHALL NOT contain `eslint-disable` comments.
 
 #### Scenario: A named suppression silences only its rule
 > **Tests:** [`scripts/oxlint-config.test.ts`](../../../scripts/oxlint-config.test.ts) — oxlint-disable-next-line suppresses the named rule
@@ -100,24 +99,23 @@ Project source outside the generated Prisma client SHALL NOT contain
 - **THEN** it reports the unused variable and does not report the `<img>` element
 
 #### Scenario: No ESLint suppression comments remain in project source
-> **Tests:** [`scripts/oxlint-config.test.ts`](../../../scripts/oxlint-config.test.ts) — no eslint disable directives outside generated code
-- **GIVEN** the tracked TypeScript and JavaScript files outside `src/generated/`
+> **Tests:** [`scripts/oxlint-config.test.ts`](../../../scripts/oxlint-config.test.ts) — no eslint disable directives in project source
+- **GIVEN** the tracked TypeScript and JavaScript files in the repository
 - **WHEN** they are searched for `eslint-disable`
 - **THEN** no file contains it
 
-### Requirement: Lint scope excludes generated and tool output
+### Requirement: Lint scope excludes tool output
 
 The lint SHALL respect the repository's Git ignore files. It SHALL also
-exclude the generated Prisma client (`src/generated/**`) and `next-env.d.ts`,
-even though both are tracked, and the gitignored test and tool output
-directories (`test-results/`, `playwright-report/`, `.venv/`,
+exclude `next-env.d.ts`, even though it is tracked, and the gitignored test and
+tool output directories (`test-results/`, `playwright-report/`, `.venv/`,
 `robot/results/`).
 
-#### Scenario: Generated Prisma client is not linted
-> **Tests:** [`scripts/oxlint-config.test.ts`](../../../scripts/oxlint-config.test.ts) — ignores generated client
-- **GIVEN** a directory linted with the project config that contains `src/generated/prisma/bad.ts`, which declares an unused variable and has no suppression header
+#### Scenario: Next.js type declarations are not linted
+> **Tests:** [`scripts/oxlint-config.test.ts`](../../../scripts/oxlint-config.test.ts) — ignores next-env.d.ts
+- **GIVEN** a directory linted with the project config that contains a `next-env.d.ts` which declares an unused variable and has no suppression header
 - **WHEN** the lint runs on the whole directory
-- **THEN** it reports no diagnostics for `bad.ts`
+- **THEN** it reports no diagnostics for `next-env.d.ts`
 
 ### Requirement: The lint gates commits, CI and test:all
 
@@ -137,8 +135,8 @@ include `lint`.
 `.oxlintrc.json` SHALL enable `no-console` as an error for files under `src/`,
 so application code logs through the Pino logger (`src/lib/logger.ts`). Test
 files (`*.test.*`, `*.spec.*`) under `src/` SHALL be exempt. Files outside
-`src/`, such as `scripts/`, `server.js`, `prisma/seed.ts` and `e2e/`, SHALL NOT
-be checked by this rule.
+`src/`, such as `scripts/` (including the database seed), `server.js` and
+`e2e/`, SHALL NOT be checked by this rule.
 
 #### Scenario: A console call in application code is reported
 > **Tests:** [`scripts/oxlint-config.test.ts`](../../../scripts/oxlint-config.test.ts) — reports a console call in application code
