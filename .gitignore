@@ -60,3 +60,6 @@ __pycache__/
 
 # Coverage output (lint:crap writes coverage/crap/)
 coverage/
+
+# Per-user Claude Code settings
+.claude/settings.local.json

@@ -134,15 +134,13 @@ describe("Biome formatter config", () => {
   });
 
   it("lint:format wired into CI and test:all", () => {
-    expect(packageJson.scripts["lint:format"]).toMatch(/^biome ci --changed/);
+    expect(packageJson.scripts["lint:format"]).toBe("biome ci .");
+    expect(packageJson.scripts.format).toBe("biome check --write .");
     expect(packageJson.scripts["test:all"]).toMatch(/\blint:format\b/);
-    expect(packageJson.scripts.format).toBeUndefined();
 
     const ci = parse(readFileSync(join(ROOT, ".github", "workflows", "ci.yml"), "utf8"));
-    const steps: { uses?: string; run?: string; with?: Record<string, unknown> }[] =
-      ci.jobs.ci.steps;
-    const checkout = steps.find((step) => step.uses?.startsWith("actions/checkout"));
-    expect(checkout?.with?.["fetch-depth"]).toBe(0);
-    expect(steps.some((step) => step.run?.includes("pnpm run lint:format"))).toBe(true);
+    const steps: { name?: string; run?: string }[] = ci.jobs.ci.steps;
+    const lintFormat = steps.find((step) => step.name === "Lint format");
+    expect(lintFormat?.run).toBe("pnpm run lint:format");
   });
 });

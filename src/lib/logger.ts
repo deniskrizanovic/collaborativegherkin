@@ -1,7 +1,7 @@
-import pino from "pino";
-import path from "path";
 import fs from "fs";
 import { createRequire } from "module";
+import path from "path";
+import pino from "pino";
 
 // The custom Node server (`server.js`) imports this module from a plain ESM
 // entry point where the CommonJS `require` global is absent, so build a local
@@ -38,10 +38,11 @@ function createDevDestination(): pino.MultiStreamRes {
     ]);
   } catch (err) {
     // Content-free: the logger isn't up yet, so warn on stderr directly.
+    // oxlint-disable-next-line no-console -- the Pino logger is what failed to start
     console.warn(
       `[logger] could not open disk log files, using stdout only: ${
         err instanceof Error ? err.message : String(err)
-      }`
+      }`,
     );
     return pino.multistream([prettyStream]);
   }
@@ -52,7 +53,7 @@ const logger = pino(
     level: process.env.LOG_LEVEL ?? "info",
     base: { service: "collaborativegherkin" },
   },
-  process.env.NODE_ENV !== "production" ? createDevDestination() : undefined
+  process.env.NODE_ENV !== "production" ? createDevDestination() : undefined,
 );
 
 export default logger;
