@@ -1,0 +1,9 @@
+#!/usr/bin/env sh
+
+# Unarchived-change gate — a merge commit must not land while an active
+# OpenSpec change has every task checked but is still under openspec/changes/.
+# Archive on the feature branch first. Runs here (not pre-commit or CI) because
+# a branch legitimately has all tasks checked between finishing and archiving.
+# Pure filesystem check, no network; fast-forward merges skip this hook, the
+# workflow merges with --no-ff.
+pnpm run lint:unarchived

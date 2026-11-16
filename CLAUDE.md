@@ -33,6 +33,7 @@ pnpm test:e2e         # Playwright e2e — parity reference, manual (CI runs it 
 pnpm lint:e2e-parity  # every Playwright test has a robot/PARITY.md row + same-named Robot test
 pnpm lint:crap        # CRAP score (complexity × unit-test coverage) per src/ function; fails above 30
 pnpm lint:openspec    # openspec validate --all --strict on specs + active changes; any warning fails
+pnpm lint:unarchived  # fails when an active change has every task checked but is not archived (runs on merge and branch delete, not pre-commit/CI)
 pnpm seed      # seed dev database with placeholder user
 pnpm db:migrate       # apply SQLite migrations (drizzle/sqlite/) to DATABASE_URL
 pnpm db:generate      # after editing src/db/schema.*.ts: new migration for both engines
@@ -94,7 +95,7 @@ and report — then wait for a commit instruction. The steps below describe
 
 - Check branch before any edit: `git branch --show-current`
 - **Never edit on `main` or `master`** — tell user to create feature branch first
-- When asked to commit: feature branch → `reviewer` agent on the diff (fix or report its findings) → commit → push → merge to main → push main → delete branch
+- When asked to commit: feature branch → `reviewer` agent on the diff (fix or report its findings) → archive the finished OpenSpec change (on the feature branch, not a later `chore-archive-*` branch) → commit → push → merge to main → push main → delete branch
 - Conventional commits: `type[scope]: description` (feat/fix/docs/refactor/chore/etc.)
 - Never use `--no-verify` unless user explicitly asks
 

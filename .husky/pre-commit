@@ -1,6 +1,14 @@
 #!/usr/bin/env sh
 pnpm exec lint-staged
 
+# Session cost tracking — the cost-tracker hook rewrites tokencost/cost.csv but
+# nothing stages it. Add it after lint-staged (which stashes unstaged changes
+# while it runs) so the CSV rides along on every commit. No-op when unchanged;
+# guarded so a missing file does not abort the commit.
+if [ -e tokencost/cost.csv ]; then
+  git add tokencost/cost.csv
+fi
+
 # Spec traceability runs against the whole spec tree (not just staged files),
 # so it catches drift anywhere in openspec/. Pure filesystem check — no network.
 pnpm run lint:specs
