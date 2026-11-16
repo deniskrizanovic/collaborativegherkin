@@ -1,0 +1,36 @@
+name: Dependabot auto-merge
+
+# Enables GitHub auto-merge on Dependabot minor/patch PRs. GitHub performs the
+# merge only after the required `ci` check passes (branch protection on main).
+# Major bumps are left for manual review.
+# See openspec/changes/add-dependabot-automerge.
+
+on:
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  automerge:
+    runs-on: ubuntu-latest
+    if: github.event.pull_request.user.login == 'dependabot[bot]'
+    steps:
+      - name: Fetch Dependabot metadata
+        id: metadata
+        uses: dependabot/fetch-metadata@v2
+
+      - name: Enable auto-merge for minor and patch updates
+        if: steps.metadata.outputs.update-type == 'version-update:semver-minor' || steps.metadata.outputs.update-type == 'version-update:semver-patch'
+        env:
+          PR_URL: ${{ github.event.pull_request.html_url }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          if [ "$(gh pr view "$PR_URL" --json autoMergeRequest --jq '.autoMergeRequest != null')" = "true" ]; then
+            echo "Auto-merge already enabled; nothing to do."
+            exit 0
+          fi
+          gh pr merge --auto --merge "$PR_URL"
+          gh pr comment "$PR_URL" --body "Auto-merge enabled: this PR will merge once \`ci\` passes."
