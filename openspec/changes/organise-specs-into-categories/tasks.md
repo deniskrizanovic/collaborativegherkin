@@ -53,5 +53,5 @@
 
 - [x] 6.1 `pnpm exec vitest run scripts/lint-spec-layout.test.ts scripts/biome-config.test.ts scripts/openspec-validate-config.test.ts` passes.
 - [x] 6.2 `pnpm lint:spec-layout`, `pnpm lint:specs`, `pnpm lint:given`, `pnpm lint:openspec`, `pnpm lint:robot-steps`, `pnpm lint:e2e-parity`, `pnpm lint` and `pnpm lint:format` all pass.
-- [ ] 6.3 Spot-check on GitHub after push: three `> **Tests:**` links resolve to the test file, one from each of `product/gherkin`, `quality` and `process`.
+- [x] 6.3 Spot-check on GitHub after push: three `> **Tests:**` links resolve to the test file, one from each of `product/gherkin`, `quality` and `process`.
 - [x] 6.4 Negative check: put a scratch `openspec/specs/scratch/spec.md` in place, confirm that `pnpm lint:spec-layout` fails and names it, then remove the file.
