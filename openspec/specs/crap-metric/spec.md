@@ -2,7 +2,13 @@
 
 ## Purpose
 
-TBD - created by archiving change add-crap-metric-gate. Update Purpose after archive.
+The `lint:crap` gate relates each function's complexity to how well the unit
+tests cover it, using the CRAP score (`comp² × (1 − cov)³ + comp`), and fails
+when any function under `src/` scores above 30. This capability covers how
+complexity and coverage are measured, which files are scored, the report's
+shape and options, and where the gate runs. Complex, untested code is where
+edits break things; a failing function passes once it gains tests or is
+simplified.
 
 ## Requirements
 

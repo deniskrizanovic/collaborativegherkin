@@ -32,6 +32,7 @@ pnpm test:robot       # Robot e2e suite — the e2e suite CI and test:all run
 pnpm test:e2e         # Playwright e2e — parity reference, manual (CI runs it weekly)
 pnpm lint:e2e-parity  # every Playwright test has a robot/PARITY.md row + same-named Robot test
 pnpm lint:crap        # CRAP score (complexity × unit-test coverage) per src/ function; fails above 30
+pnpm lint:openspec    # openspec validate --all --strict on specs + active changes; any warning fails
 pnpm seed      # seed dev database with placeholder user
 pnpm db:migrate       # apply SQLite migrations (drizzle/sqlite/) to DATABASE_URL
 pnpm db:generate      # after editing src/db/schema.*.ts: new migration for both engines

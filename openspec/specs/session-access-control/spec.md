@@ -11,7 +11,7 @@ Defines the authorization model for session operations (GET, PATCH, DELETE) on t
 `GET /api/sessions/[id]` SHALL return the session to **any authenticated caller** that
 supplies a valid session id. The session id is an unguessable `cuid` shared as an
 invite link ("capability URL"), so holding the id is the authorization to read the
-session — this is the collaboration feature, not an IDOR. The handler MUST authenticate
+session: the collaboration feature, not an IDOR. The handler MUST authenticate
 the caller but MUST NOT gate on ownership.
 
 The status-code ordering MUST be: unauthenticated → 401; session not found → 404;

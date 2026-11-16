@@ -2,7 +2,12 @@
 
 ## Purpose
 
-TBD - created by archiving change introduce-biome-formatter. Update Purpose after archive.
+Biome formats the repository's source and config code in the existing house
+style and sorts its imports, and never lints. This capability covers which
+files are in scope, the pre-commit hook that formats staged files, the
+`pnpm format` command that formats the whole tree, and the `lint:format` check
+that gates CI and `test:all`. It keeps whitespace and import-order noise out of
+review diffs.
 
 ## Requirements
 

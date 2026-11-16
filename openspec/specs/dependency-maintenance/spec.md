@@ -2,7 +2,12 @@
 
 ## Purpose
 
-TBD - created by archiving change address-dependabot-upgrades-2026-10. Update Purpose after archive.
+Keeps Dependabot able to update the project's dependencies, and keeps its
+exceptions honest. This capability covers a valid `.github/dependabot.yml`
+checked by the `lint:dependabot` gate, ignore rules limited to the exceptions
+documented in ADR 0004, Dependabot pull requests assigned to the repository
+owner, the auth packages that move in lockstep with `next-auth`, and CI runs
+on dependency and build-configuration changes.
 
 ## Requirements
 

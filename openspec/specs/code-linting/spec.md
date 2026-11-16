@@ -2,7 +2,11 @@
 
 ## Purpose
 
-TBD - created by archiving change replace-eslint-with-oxlint. Update Purpose after archive.
+oxlint is the project's only JavaScript and TypeScript linter. This capability
+covers its rule set, which matches the former Next.js ESLint preset; the rule
+that any warning fails the lint; how rules are suppressed; what the lint skips;
+the `no-console` rule for application code; and the gates in pre-commit, CI and
+`test:all`.
 
 ## Requirements
 

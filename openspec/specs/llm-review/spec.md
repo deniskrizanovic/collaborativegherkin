@@ -67,8 +67,7 @@ on clicking the ✕ button.
 ### Requirement: Selecting a model
 
 A model dropdown SHALL be shown alongside the "Get AI Coaching" button,
-pre-selected to the session's stored model or the default when none is set.
-Changing the selection MUST persist the new model to the session immediately so
+pre-selected to the session's stored model. Changing the selection MUST persist the new model to the session immediately so
 the next review uses it. When no model is stored the dropdown MUST default to
 `openrouter/free`. The dropdown MUST stay disabled until the session's settings
 have finished loading, whether the load succeeds or fails, so the initial load
@@ -107,11 +106,7 @@ An "Edit prompt" button SHALL open a modal with a textarea pre-filled with the
 current prompt (or the default when none is stored). Saving MUST persist the new
 prompt to the session and close the modal so the next review uses it; the Save
 button MUST be disabled when the textarea has fewer than 10 characters. Cancel,
-Escape, or an outside click MUST close the modal without saving. The "Edit
-prompt" button MUST stay disabled until the session's settings have finished
-loading, so the initial load can never overwrite a prompt the user is editing.
-If the settings fail to load, the button MUST become enabled with the default
-prompt pre-filled, and the settings error banner MUST be shown.
+Escape, or an outside click MUST close the modal without saving.
 
 #### Scenario: Edit prompt button opens modal with pre-filled textarea
 > **Tests:** [`e2e/llm-review.spec.ts`](../../../e2e/llm-review.spec.ts) · [`robot/suites/llm_review.robot`](../../../robot/suites/llm_review.robot) — button visible · modal opens with pre-filled textarea; [`robot/suites/llm_review_bdd.robot`](../../../robot/suites/llm_review_bdd.robot)
@@ -145,6 +140,13 @@ prompt pre-filled, and the settings error banner MUST be shown.
 - **WHEN** the prompt edit modal is opened
 - **THEN** the textarea is pre-filled with the default prompt
 
+### Requirement: The prompt editor waits for session settings
+
+The "Edit prompt" button MUST stay disabled until the session's settings have
+finished loading, so the initial load can never overwrite a prompt the user is
+editing. If the settings fail to load, the button MUST become enabled with the
+default prompt pre-filled, and the settings error banner MUST be shown.
+
 #### Scenario: A prompt edited after a slow settings load is the one saved
 > **Tests:** [`e2e/llm-review.spec.ts`](../../../e2e/llm-review.spec.ts) · [`robot/suites/llm_review.robot`](../../../robot/suites/llm_review.robot) · [`robot/suites/llm_review_bdd.robot`](../../../robot/suites/llm_review_bdd.robot)
 - **GIVEN** a user has opened a session page and its settings are slow to load
@@ -159,26 +161,14 @@ prompt pre-filled, and the settings error banner MUST be shown.
 - **THEN** the "Couldn't load this session's AI settings." banner is shown
 - **AND** the prompt modal opens with the default prompt pre-filled
 
-### Requirement: POST /api/llm-review
+### Requirement: POST /api/llm-review requires an authenticated caller
 
 `POST /api/llm-review` SHALL require an authenticated caller. The handler MUST
 call `auth()` as its first action, before parsing the body or looking up the
 session, and MUST return **401** with no session lookup and no OpenRouter call
-when the caller is unauthenticated. Following the capability-URL model in
-ADR-0005, the handler MUST NOT gate on session ownership: any signed-in caller
-holding the session id (owner or invited collaborator) may run a review. A
-rejected (401) request MUST emit an AI security log event via the Pino logger
-without logging request content or secrets.
-
-For an authenticated caller, the endpoint SHALL accept a body
-`{ content, sessionId }`, resolve the prompt and model from the session record
-(falling back to defaults), and send a chat completion to OpenRouter with the
-resolved prompt as the system message and the content as the user message,
-returning 200 with `{ result }`. Error handling: unauthenticated → 401 (checked
-first); unknown `sessionId` → 404; stale stored model → 400; empty `content` →
-400 with validation errors; missing `OPENROUTER_API_KEY` → 500 with
-`"LLM service not configured"`; non-2xx from OpenRouter → 502 with
-`"LLM request failed"`; unexpected error → 500.
+when the caller is unauthenticated. A rejected (401) request MUST emit an AI
+security log event via the Pino logger without logging request content or
+secrets.
 
 #### Scenario: Unauthenticated request is rejected before any session lookup
 > **Tests:** [`src/app/api/llm-review/route.test.ts`](../../../src/app/api/llm-review/route.test.ts) — POST returns 401 when unauthenticated, no session lookup or OpenRouter call
@@ -188,6 +178,16 @@ first); unknown `sessionId` → 404; stale stored model → 400; empty `content`
 - **AND** no session record is loaded and no request is sent to OpenRouter
 - **AND** an AI security log event is emitted without request content or secrets
 
+### Requirement: POST /api/llm-review
+
+Following the capability-URL model in ADR-0005, `POST /api/llm-review` MUST
+NOT gate on session ownership: any signed-in caller holding the session id (owner or
+invited collaborator) may run a review. For an authenticated caller, it SHALL
+accept a body `{ content, sessionId }`, resolve the prompt and
+model from the session record (falling back to defaults), and send OpenRouter
+a chat completion with the prompt as system message and the content as user
+message, returning 200 with `{ result }`.
+
 #### Scenario: Any authenticated holder of the id runs a review and returns 200
 > **Tests:** [`src/app/api/llm-review/route.test.ts`](../../../src/app/api/llm-review/route.test.ts) — POST returns 200 for an authenticated caller regardless of session ownership
 - **GIVEN** an authenticated caller and a valid body `{ content, sessionId }` for an existing session
@@ -195,6 +195,14 @@ first); unknown `sessionId` → 404; stale stored model → 400; empty `content`
 - **THEN** the prompt and model are resolved from the session record, falling back to defaults if not set
 - **AND** a chat completion request is sent to OpenRouter with the resolved prompt as the system message and the content as the user message
 - **AND** a 200 response is returned containing `{ result }` with the model's reply, regardless of whether the caller is the session's creator
+
+### Requirement: POST /api/llm-review error responses
+
+`POST /api/llm-review` SHALL map errors to statuses: unauthenticated → 401
+(checked first); unknown `sessionId` → 404; stale stored model → 400; empty
+`content` → 400 with validation errors; missing `OPENROUTER_API_KEY` → 500 with
+`"LLM service not configured"`; non-2xx from OpenRouter → 502 with
+`"LLM request failed"`; unexpected error → 500.
 
 #### Scenario: Session not found returns 404
 > **Tests:** [`src/app/api/llm-review/route.test.ts`](../../../src/app/api/llm-review/route.test.ts) — POST returns 404 for an authenticated caller when session is unknown

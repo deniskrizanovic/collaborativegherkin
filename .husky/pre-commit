@@ -9,6 +9,11 @@ pnpm run lint:specs
 # Also whole-tree and offline-safe; sibling of lint:specs.
 pnpm run lint:given
 
+# OpenSpec structural gate — `openspec validate --all --strict` over main specs
+# and active changes, using the pinned devDependency CLI. Whole-tree, pure
+# filesystem, no network, telemetry off; sibling of lint:specs.
+pnpm run lint:openspec
+
 # Cross-engine schema parity — the SQLite and Postgres Drizzle schema modules
 # must define the same tables, columns and nullability. No database or
 # network; sibling of lint:specs.
