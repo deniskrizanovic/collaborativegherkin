@@ -34,5 +34,5 @@
 
 ## 5. Follow-up after merge (owner)
 
-- [ ] 5.1 Comment `@dependabot rebase` on PR #67 and confirm its `ci` check passes on TypeScript 7
-- [ ] 5.2 On the rebased #67 branch, run `pnpm build` locally (CI does not build) before merging the major bump
+- [x] 5.1 Comment `@dependabot rebase` on PR #67 and confirm its `ci` check passes on TypeScript 7
+- [x] 5.2 On the rebased #67 branch, run `pnpm build` locally (CI does not build) before merging the major bump
