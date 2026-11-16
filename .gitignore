@@ -57,3 +57,6 @@ robot/results/
 playwright-log.txt
 .venv/
 __pycache__/
+
+# Coverage output (lint:crap writes coverage/crap/)
+coverage/

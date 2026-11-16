@@ -131,6 +131,12 @@ jobs:
       - name: Unit tests
         run: pnpm run test -- --run
 
+      # CRAP score per function under src/ (complexity vs unit-test coverage).
+      # Re-runs the unit suite under istanbul coverage, so it is not in the
+      # husky pre-commit hook.
+      - name: Lint CRAP score
+        run: pnpm run lint:crap
+
       # Python + Robot Framework toolchain for the Robot e2e suite (robot/).
       # uv installs the Python pinned in .python-version.
       - uses: astral-sh/setup-uv@v10.3.3

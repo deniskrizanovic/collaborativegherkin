@@ -1,12 +1,13 @@
-import { describe, it, expect } from "vitest";
+import { describe, expect, it } from "vitest";
+import type { GherkinBlockType } from "@/lib/gherkin";
 import {
   canFollow,
-  NEXT_BLOCK_ON_ENTER,
-  exportToText,
   exportToMarkdown,
+  exportToText,
   GHERKIN_BLOCK_TYPES,
+  NEXT_BLOCK_ON_ENTER,
+  parseGherkin,
 } from "@/lib/gherkin";
-import type { GherkinBlockType } from "@/lib/gherkin";
 
 // ─── canFollow ────────────────────────────────────────────────────────────────
 
@@ -19,118 +20,97 @@ describe("canFollow — empty document", () => {
     "rejects %s as the first block",
     (type) => {
       expect(canFollow(null, type)).toBe(false);
-    }
+    },
   );
 });
 
 describe("canFollow — after feature", () => {
-  it.each(["rule", "background", "scenario"] as GherkinBlockType[])(
-    "allows %s",
-    (type) => expect(canFollow("feature", type)).toBe(true)
+  it.each(["rule", "background", "scenario"] as GherkinBlockType[])("allows %s", (type) =>
+    expect(canFollow("feature", type)).toBe(true),
   );
 
-  it.each(
-    GHERKIN_BLOCK_TYPES.filter(
-      (t) => !["rule", "background", "scenario"].includes(t)
-    )
-  )("rejects %s", (type) => expect(canFollow("feature", type)).toBe(false));
+  it.each(GHERKIN_BLOCK_TYPES.filter((t) => !["rule", "background", "scenario"].includes(t)))(
+    "rejects %s",
+    (type) => expect(canFollow("feature", type)).toBe(false),
+  );
 });
 
 describe("canFollow — after rule", () => {
-  it.each(["background", "scenario"] as GherkinBlockType[])(
-    "allows %s",
-    (type) => expect(canFollow("rule", type)).toBe(true)
+  it.each(["background", "scenario"] as GherkinBlockType[])("allows %s", (type) =>
+    expect(canFollow("rule", type)).toBe(true),
   );
 
-  it.each(
-    GHERKIN_BLOCK_TYPES.filter((t) => !["background", "scenario"].includes(t))
-  )("rejects %s", (type) => expect(canFollow("rule", type)).toBe(false));
+  it.each(GHERKIN_BLOCK_TYPES.filter((t) => !["background", "scenario"].includes(t)))(
+    "rejects %s",
+    (type) => expect(canFollow("rule", type)).toBe(false),
+  );
 });
 
 describe("canFollow — after background", () => {
   it("allows given", () => expect(canFollow("background", "given")).toBe(true));
 
-  it.each(GHERKIN_BLOCK_TYPES.filter((t) => t !== "given"))(
-    "rejects %s",
-    (type) => expect(canFollow("background", type)).toBe(false)
+  it.each(GHERKIN_BLOCK_TYPES.filter((t) => t !== "given"))("rejects %s", (type) =>
+    expect(canFollow("background", type)).toBe(false),
   );
 });
 
 describe("canFollow — after scenario", () => {
   it("allows given", () => expect(canFollow("scenario", "given")).toBe(true));
 
-  it.each(GHERKIN_BLOCK_TYPES.filter((t) => t !== "given"))(
-    "rejects %s",
-    (type) => expect(canFollow("scenario", type)).toBe(false)
+  it.each(GHERKIN_BLOCK_TYPES.filter((t) => t !== "given"))("rejects %s", (type) =>
+    expect(canFollow("scenario", type)).toBe(false),
   );
 });
 
 describe("canFollow — after given", () => {
-  it.each(["when", "and", "but"] as GherkinBlockType[])(
-    "allows %s",
-    (type) => expect(canFollow("given", type)).toBe(true)
+  it.each(["when", "and", "but"] as GherkinBlockType[])("allows %s", (type) =>
+    expect(canFollow("given", type)).toBe(true),
   );
 
-  it.each(
-    GHERKIN_BLOCK_TYPES.filter(
-      (t) => !["when", "and", "but"].includes(t)
-    )
-  )("rejects %s", (type) => expect(canFollow("given", type)).toBe(false));
+  it.each(GHERKIN_BLOCK_TYPES.filter((t) => !["when", "and", "but"].includes(t)))(
+    "rejects %s",
+    (type) => expect(canFollow("given", type)).toBe(false),
+  );
 });
 
 describe("canFollow — after when", () => {
-  it.each(["then", "and", "but"] as GherkinBlockType[])(
-    "allows %s",
-    (type) => expect(canFollow("when", type)).toBe(true)
+  it.each(["then", "and", "but"] as GherkinBlockType[])("allows %s", (type) =>
+    expect(canFollow("when", type)).toBe(true),
   );
 
-  it.each(
-    GHERKIN_BLOCK_TYPES.filter(
-      (t) => !["then", "and", "but"].includes(t)
-    )
-  )("rejects %s", (type) => expect(canFollow("when", type)).toBe(false));
+  it.each(GHERKIN_BLOCK_TYPES.filter((t) => !["then", "and", "but"].includes(t)))(
+    "rejects %s",
+    (type) => expect(canFollow("when", type)).toBe(false),
+  );
 });
 
 describe("canFollow — after then", () => {
-  it.each(["and", "but", "given", "scenario", "rule"] as GherkinBlockType[])(
-    "allows %s",
-    (type) => expect(canFollow("then", type)).toBe(true)
+  it.each(["and", "but", "given", "scenario", "rule"] as GherkinBlockType[])("allows %s", (type) =>
+    expect(canFollow("then", type)).toBe(true),
   );
 
   it.each(
-    GHERKIN_BLOCK_TYPES.filter(
-      (t) => !["and", "but", "given", "scenario", "rule"].includes(t)
-    )
+    GHERKIN_BLOCK_TYPES.filter((t) => !["and", "but", "given", "scenario", "rule"].includes(t)),
   )("rejects %s", (type) => expect(canFollow("then", type)).toBe(false));
 });
 
 describe("canFollow — after and", () => {
-  const allowed: GherkinBlockType[] = [
-    "given", "when", "then", "and", "but", "scenario", "rule",
-  ];
+  const allowed: GherkinBlockType[] = ["given", "when", "then", "and", "but", "scenario", "rule"];
 
-  it.each(allowed)("allows %s", (type) =>
-    expect(canFollow("and", type)).toBe(true)
-  );
+  it.each(allowed)("allows %s", (type) => expect(canFollow("and", type)).toBe(true));
 
-  it.each(GHERKIN_BLOCK_TYPES.filter((t) => !allowed.includes(t)))(
-    "rejects %s",
-    (type) => expect(canFollow("and", type)).toBe(false)
+  it.each(GHERKIN_BLOCK_TYPES.filter((t) => !allowed.includes(t)))("rejects %s", (type) =>
+    expect(canFollow("and", type)).toBe(false),
   );
 });
 
 describe("canFollow — after but", () => {
-  const allowed: GherkinBlockType[] = [
-    "given", "when", "then", "and", "scenario", "rule",
-  ];
+  const allowed: GherkinBlockType[] = ["given", "when", "then", "and", "scenario", "rule"];
 
-  it.each(allowed)("allows %s", (type) =>
-    expect(canFollow("but", type)).toBe(true)
-  );
+  it.each(allowed)("allows %s", (type) => expect(canFollow("but", type)).toBe(true));
 
-  it.each(GHERKIN_BLOCK_TYPES.filter((t) => !allowed.includes(t)))(
-    "rejects %s",
-    (type) => expect(canFollow("but", type)).toBe(false)
+  it.each(GHERKIN_BLOCK_TYPES.filter((t) => !allowed.includes(t)))("rejects %s", (type) =>
+    expect(canFollow("but", type)).toBe(false),
   );
 });
 
@@ -138,15 +118,15 @@ describe("canFollow — after but", () => {
 
 describe("NEXT_BLOCK_ON_ENTER", () => {
   const table: [GherkinBlockType, GherkinBlockType][] = [
-    ["feature",    "scenario"],
-    ["rule",       "scenario"],
+    ["feature", "scenario"],
+    ["rule", "scenario"],
     ["background", "given"],
-    ["scenario",   "given"],
-    ["given",      "when"],
-    ["when",       "then"],
-    ["then",       "and"],
-    ["and",        "and"],
-    ["but",        "and"],
+    ["scenario", "given"],
+    ["given", "when"],
+    ["when", "then"],
+    ["then", "and"],
+    ["and", "and"],
+    ["but", "and"],
   ];
 
   it.each(table)("after %s → %s", (current, expected) => {
@@ -164,18 +144,16 @@ describe("NEXT_BLOCK_ON_ENTER", () => {
 
 describe("exportToText", () => {
   it("formats a single block as 'Keyword: text'", () => {
-    expect(exportToText([{ type: "feature", text: "User login" }])).toBe(
-      "Feature: User login"
-    );
+    expect(exportToText([{ type: "feature", text: "User login" }])).toBe("Feature: User login");
   });
 
   it("joins multiple blocks with newlines in document order", () => {
     const result = exportToText([
-      { type: "feature",  text: "User login" },
+      { type: "feature", text: "User login" },
       { type: "scenario", text: "Successful login" },
-      { type: "given",    text: "the user is on the login page" },
-      { type: "when",     text: "the user enters valid credentials" },
-      { type: "then",     text: "the user is redirected to the dashboard" },
+      { type: "given", text: "the user is on the login page" },
+      { type: "when", text: "the user enters valid credentials" },
+      { type: "then", text: "the user is redirected to the dashboard" },
     ]);
 
     expect(result).toBe(
@@ -185,7 +163,7 @@ describe("exportToText", () => {
         "Given: the user is on the login page",
         "When: the user enters valid credentials",
         "Then: the user is redirected to the dashboard",
-      ].join("\n")
+      ].join("\n"),
     );
   });
 
@@ -194,9 +172,7 @@ describe("exportToText", () => {
   });
 
   it("preserves block text exactly, including leading/trailing spaces", () => {
-    expect(exportToText([{ type: "given", text: "  spaced  " }])).toBe(
-      "Given:   spaced  "
-    );
+    expect(exportToText([{ type: "given", text: "  spaced  " }])).toBe("Given:   spaced  ");
   });
 });
 
@@ -205,14 +181,16 @@ describe("exportToText", () => {
 describe("exportToMarkdown", () => {
   it("formats a feature block as a level-1 header", () => {
     expect(exportToMarkdown([{ type: "feature", text: "User login" }])).toBe(
-      "# Feature: User login"
+      "# Feature: User login",
     );
   });
 
   it("formats rule, background, and scenario as level-2 headers", () => {
     expect(exportToMarkdown([{ type: "rule", text: "Auth" }])).toBe("## Rule: Auth");
     expect(exportToMarkdown([{ type: "background", text: "Setup" }])).toBe("## Background: Setup");
-    expect(exportToMarkdown([{ type: "scenario", text: "Happy path" }])).toBe("## Scenario: Happy path");
+    expect(exportToMarkdown([{ type: "scenario", text: "Happy path" }])).toBe(
+      "## Scenario: Happy path",
+    );
   });
 
   it("formats step keywords as markdown list items", () => {
@@ -224,17 +202,17 @@ describe("exportToMarkdown", () => {
   });
 
   it("formats an image block as inline markdown image syntax", () => {
-    expect(exportToMarkdown([{ type: "image", src: "data:image/png;base64,abc", alt: "screenshot" }])).toBe(
-      "![screenshot](data:image/png;base64,abc)"
-    );
+    expect(
+      exportToMarkdown([{ type: "image", src: "data:image/png;base64,abc", alt: "screenshot" }]),
+    ).toBe("![screenshot](data:image/png;base64,abc)");
   });
 
   it("produces a full document in order", () => {
     const result = exportToMarkdown([
-      { type: "feature",  text: "User login" },
+      { type: "feature", text: "User login" },
       { type: "scenario", text: "Successful login" },
-      { type: "given",    text: "the user is on the login page" },
-      { type: "image",    src: "data:image/png;base64,xyz", alt: "screenshot" },
+      { type: "given", text: "the user is on the login page" },
+      { type: "image", src: "data:image/png;base64,xyz", alt: "screenshot" },
     ]);
     expect(result).toBe(
       [
@@ -242,7 +220,7 @@ describe("exportToMarkdown", () => {
         "## Scenario: Successful login",
         "- Given: the user is on the login page",
         "![screenshot](data:image/png;base64,xyz)",
-      ].join("\n")
+      ].join("\n"),
     );
   });
 
@@ -255,14 +233,23 @@ describe("exportToMarkdown", () => {
 
 describe("exportToText — data table", () => {
   it("emits pipe-delimited rows for equal-width cells", () => {
-    const block = { type: "data_table" as const, rows: [["a", "b"], ["c", "d"]] };
+    const block = {
+      type: "data_table" as const,
+      rows: [
+        ["a", "b"],
+        ["c", "d"],
+      ],
+    };
     expect(exportToText([block])).toBe("| a | b |\n| c | d |");
   });
 
   it("pads cells to the widest value in each column", () => {
     const block = {
       type: "data_table" as const,
-      rows: [["name", "age"], ["Alice", "30"]],
+      rows: [
+        ["name", "age"],
+        ["Alice", "30"],
+      ],
     };
     expect(exportToText([block])).toBe("| name  | age |\n| Alice | 30  |");
   });
@@ -282,31 +269,37 @@ describe("exportToMarkdown — data table", () => {
   it("emits header row, separator, and data rows", () => {
     const block = {
       type: "data_table" as const,
-      rows: [["name", "age"], ["Alice", "30"]],
+      rows: [
+        ["name", "age"],
+        ["Alice", "30"],
+      ],
     };
-    expect(exportToMarkdown([block])).toBe(
-      "\n| name  | age |\n| ----- | --- |\n| Alice | 30  |\n"
-    );
+    expect(exportToMarkdown([block])).toBe("\n| name  | age |\n| ----- | --- |\n| Alice | 30  |\n");
   });
 
   it("uses minimum separator width of 3 dashes", () => {
     const block = {
       type: "data_table" as const,
-      rows: [["a", "b"], ["c", "d"]],
+      rows: [
+        ["a", "b"],
+        ["c", "d"],
+      ],
     };
-    expect(exportToMarkdown([block])).toBe(
-      "\n| a   | b   |\n| --- | --- |\n| c   | d   |\n"
-    );
+    expect(exportToMarkdown([block])).toBe("\n| a   | b   |\n| --- | --- |\n| c   | d   |\n");
   });
 
   it("includes data table in document order alongside other blocks", () => {
     const result = exportToMarkdown([
       { type: "given", text: "a state" },
-      { type: "data_table", rows: [["x", "y"], ["1", "2"]] },
+      {
+        type: "data_table",
+        rows: [
+          ["x", "y"],
+          ["1", "2"],
+        ],
+      },
     ]);
-    expect(result).toBe(
-      "- Given: a state\n\n| x   | y   |\n| --- | --- |\n| 1   | 2   |\n"
-    );
+    expect(result).toBe("- Given: a state\n\n| x   | y   |\n| --- | --- |\n| 1   | 2   |\n");
   });
 
   it("wraps table with blank lines so Markdown renderers treat it as a block element", () => {
@@ -318,8 +311,56 @@ describe("exportToMarkdown — data table", () => {
       { type: "data_table", rows: [["col"], ["val"]] },
       { type: "then", text: "it works" },
     ]);
-    expect(result).toBe(
-      "## Scenario: Example\n\n| col |\n| --- |\n| val |\n\n- Then: it works"
-    );
+    expect(result).toBe("## Scenario: Example\n\n| col |\n| --- |\n| val |\n\n- Then: it works");
+  });
+});
+
+// ─── parseGherkin ─────────────────────────────────────────────────────────────
+
+describe("parseGherkin", () => {
+  it("parses plain, heading and list-item keyword lines, skipping blanks and prose", () => {
+    const text = [
+      "# Feature: Checkout",
+      "",
+      "## Scenario: Pay by card",
+      "- Given: a basket",
+      "when I pay",
+      "Not a keyword line",
+      "Then I see a receipt",
+    ].join("\n");
+    expect(parseGherkin(text)).toEqual([
+      { type: "feature", text: "Checkout" },
+      { type: "scenario", text: "Pay by card" },
+      { type: "given", text: "a basket" },
+      { type: "when", text: "I pay" },
+      { type: "then", text: "I see a receipt" },
+    ]);
+  });
+
+  it("groups consecutive table rows into one data table and drops separator rows", () => {
+    const text = ["Given: users", "| name | age |", "| --- | :-: |", "| Ann  | 30  |"].join("\n");
+    expect(parseGherkin(text)).toEqual([
+      { type: "given", text: "users" },
+      {
+        type: "data_table",
+        rows: [
+          ["name", "age"],
+          ["Ann", "30"],
+        ],
+      },
+    ]);
+  });
+
+  it("starts a new data table after a keyword line", () => {
+    const text = ["| a |", "And: more", "| b |"].join("\n");
+    expect(parseGherkin(text)).toEqual([
+      { type: "data_table", rows: [["a"]] },
+      { type: "and", text: "more" },
+      { type: "data_table", rows: [["b"]] },
+    ]);
+  });
+
+  it("returns no blocks for text without keyword or table lines", () => {
+    expect(parseGherkin("just some notes\n\n")).toEqual([]);
   });
 });
