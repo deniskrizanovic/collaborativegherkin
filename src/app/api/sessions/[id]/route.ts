@@ -1,17 +1,14 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
+import { auth } from "@/auth";
 import { db } from "@/lib/db";
+import { AVAILABLE_MODELS } from "@/lib/llm-constants";
 import logger from "@/lib/logger";
 import { Session, SessionNotFoundError } from "@/lib/session";
-import { AVAILABLE_MODELS } from "@/lib/llm-constants";
-import { auth } from "@/auth";
 
 const session = new Session({ session: db.session });
 
-export async function GET(
-  _req: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
+export async function GET(_req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const authSession = await auth();
   if (!authSession) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -35,10 +32,7 @@ const PatchSchema = z.object({
   model: z.enum(AVAILABLE_MODELS).optional(),
 });
 
-export async function PATCH(
-  req: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
+export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const authSession = await auth();
   if (!authSession) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -62,10 +56,7 @@ export async function PATCH(
   }
 }
 
-export async function DELETE(
-  _req: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
+export async function DELETE(_req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const authSession = await auth();
   if (!authSession) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });

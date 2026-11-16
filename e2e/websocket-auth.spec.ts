@@ -1,4 +1,4 @@
-import { test, expect } from "@playwright/test";
+import { expect, test } from "@playwright/test";
 import { WebSocket } from "ws";
 import { createSession } from "./helpers";
 
@@ -58,7 +58,9 @@ function connectResult(url: string, headers?: Record<string, string>) {
 }
 
 test.describe("WebSocket sync auth (ENG-005)", () => {
-  test("unauthenticated upgrade is refused with 401 — no room joined, no data sent", async ({ page }) => {
+  test("unauthenticated upgrade is refused with 401 — no room joined, no data sent", async ({
+    page,
+  }) => {
     // Create a real session so the room name is well-formed; the point is that
     // even a valid room is refused without a session cookie.
     const sessionId = await createSession(page, "WS auth negative test");
@@ -90,7 +92,9 @@ test.describe("WebSocket sync auth (ENG-005)", () => {
 
     const result = await connectResult(`${WS_BASE}/default`, { Cookie: cookieHeader });
 
-    expect(result.opened, "a malformed room name must be refused even when authenticated").toBe(false);
+    expect(result.opened, "a malformed room name must be refused even when authenticated").toBe(
+      false,
+    );
     expect(result.statusCode).toBe(401);
   });
 });

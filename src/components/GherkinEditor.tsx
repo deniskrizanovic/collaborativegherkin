@@ -1,17 +1,35 @@
 "use client";
 
-import React, { forwardRef, useCallback, useEffect, useImperativeHandle, useRef, useState } from "react";
-import { useEditor, useEditorState, EditorContent } from "@tiptap/react";
-import StarterKit from "@tiptap/starter-kit";
 import Collaboration from "@tiptap/extension-collaboration";
-import { GherkinBlockType, GHERKIN_LABELS, exportToMarkdown, parseGherkin, DataTableBlock } from "@/lib/gherkin";
+import { EditorContent, useEditor, useEditorState } from "@tiptap/react";
+import StarterKit from "@tiptap/starter-kit";
+import React, {
+  forwardRef,
+  useCallback,
+  useEffect,
+  useImperativeHandle,
+  useRef,
+  useState,
+} from "react";
+import {
+  DataTableBlock,
+  exportToMarkdown,
+  GHERKIN_LABELS,
+  GherkinBlockType,
+  parseGherkin,
+} from "@/lib/gherkin";
+import { BlockPicker, getValidNextTypes } from "./BlockPicker";
 import { GherkinDataTable } from "./GherkinDataTable";
 import { GherkinImage } from "./GherkinImage";
 import { GherkinParagraph } from "./GherkinParagraph";
 import { NarrowNodeSelection } from "./NarrowNodeSelection";
-import { BlockPicker, getValidNextTypes } from "./BlockPicker";
 import { useCollabProvider } from "./useCollabProvider";
-import { useGherkinKeyboard, getAllBlocks, getCurrentBlockType, getPreviousBlockType } from "./useGherkinKeyboard";
+import {
+  getAllBlocks,
+  getCurrentBlockType,
+  getPreviousBlockType,
+  useGherkinKeyboard,
+} from "./useGherkinKeyboard";
 
 export interface GherkinEditorHandle {
   getContent: () => string;
@@ -34,8 +52,10 @@ function sameOriginWsUrl(): string {
   return `${proto}//${window.location.host}`;
 }
 
-const GherkinEditor = forwardRef<GherkinEditorHandle, GherkinEditorProps>(
-function GherkinEditor({ sessionId, wsUrl }, ref) {
+const GherkinEditor = forwardRef<GherkinEditorHandle, GherkinEditorProps>(function GherkinEditor(
+  { sessionId, wsUrl },
+  ref,
+) {
   const { ydoc, provider, connStatus } = useCollabProvider(sessionId, wsUrl ?? sameOriginWsUrl());
   const fileInputRef = useRef<HTMLInputElement | null>(null);
 
@@ -46,13 +66,28 @@ function GherkinEditor({ sessionId, wsUrl }, ref) {
   // editor via ref so it can be called before useEditor returns.
   const editorRef = useRef<import("@tiptap/react").Editor | null>(null);
 
-  const { handleKeyDown, pickerState, closePicker, handlePickerSelect, handleToolbarInsert, getContentText, insertImageFromFile, insertDroppedImage, cancelImageUpload } =
-    useGherkinKeyboard(editorRef, () => fileInputRef.current?.click());
+  const {
+    handleKeyDown,
+    pickerState,
+    closePicker,
+    handlePickerSelect,
+    handleToolbarInsert,
+    getContentText,
+    insertImageFromFile,
+    insertDroppedImage,
+    cancelImageUpload,
+  } = useGherkinKeyboard(editorRef, () => fileInputRef.current?.click());
 
   const editor = useEditor({
     immediatelyRender: false,
     extensions: [
-      StarterKit.configure({ undoRedo: false, paragraph: false, trailingNode: false, link: false, underline: false }),
+      StarterKit.configure({
+        undoRedo: false,
+        paragraph: false,
+        trailingNode: false,
+        link: false,
+        underline: false,
+      }),
       GherkinParagraph,
       GherkinImage,
       GherkinDataTable,
@@ -67,7 +102,9 @@ function GherkinEditor({ sessionId, wsUrl }, ref) {
   });
 
   // Keep editorRef in sync so the keyboard hook always reads the latest editor
-  useEffect(() => { editorRef.current = editor ?? null; }, [editor]);
+  useEffect(() => {
+    editorRef.current = editor ?? null;
+  }, [editor]);
 
   const seededRef = useRef(false);
 
@@ -105,12 +142,18 @@ function GherkinEditor({ sessionId, wsUrl }, ref) {
     } else {
       typedProvider.on("synced", handleSynced);
     }
-    return () => { typedProvider.off("synced", handleSynced); };
+    return () => {
+      typedProvider.off("synced", handleSynced);
+    };
   }, [editor, provider, ydoc]);
 
-  useImperativeHandle(ref, () => ({
-    getContent: () => getContentText(),
-  }), [getContentText]);
+  useImperativeHandle(
+    ref,
+    () => ({
+      getContent: () => getContentText(),
+    }),
+    [getContentText],
+  );
 
   const handleExport = useCallback(() => {
     if (!editor) return;
@@ -153,9 +196,14 @@ function GherkinEditor({ sessionId, wsUrl }, ref) {
     for (const b of blocks) {
       let node: import("@tiptap/pm/model").Node;
       if (b.type === "data_table") {
-        node = schema.nodes.gherkin_data_table.create({ rows: JSON.stringify((b as DataTableBlock).rows) });
+        node = schema.nodes.gherkin_data_table.create({
+          rows: JSON.stringify((b as DataTableBlock).rows),
+        });
       } else if (b.type === "image") {
-        node = schema.nodes.gherkin_image.create({ src: (b as { type: "image"; src: string; alt: string }).src, alt: (b as { type: "image"; src: string; alt: string }).alt });
+        node = schema.nodes.gherkin_image.create({
+          src: (b as { type: "image"; src: string; alt: string }).src,
+          alt: (b as { type: "image"; src: string; alt: string }).alt,
+        });
       } else {
         const textContent = b.text ? [schema.text(b.text)] : [];
         node = schema.nodes.paragraph.create({ "data-gherkin-type": b.type }, textContent);
@@ -193,122 +241,133 @@ function GherkinEditor({ sessionId, wsUrl }, ref) {
       if (file) insertImageFromFile(file);
       e.target.value = "";
     },
-    [insertImageFromFile]
+    [insertImageFromFile],
   );
 
   return (
     <div className="gherkin-collab-root">
-    {connStatus !== "connected" && (
-      <div className={`gherkin-conn-banner gherkin-conn-banner--${connStatus}`}>
-        {connStatus === "connecting"
-          ? "Connecting to sync server…"
-          : "Sync server disconnected — changes are local only. Reload the page to reconnect."}
-      </div>
-    )}
-    <div
-      className="gherkin-editor-wrapper"
-      onDrop={(e) => {
-        const file = e.dataTransfer?.files?.[0];
-        if (file?.type.startsWith("image/") && editor) {
-          e.preventDefault();
-          insertDroppedImage(file, e.clientY);
-        }
-      }}
-      onDragOver={(e) => e.preventDefault()}
-    >
-      <div className="gherkin-toolbar">
-        {validNext
-          .filter((type) => type !== "image" && type !== "data_table")
-          .map((type) => (
+      {connStatus !== "connected" && (
+        <div className={`gherkin-conn-banner gherkin-conn-banner--${connStatus}`}>
+          {connStatus === "connecting"
+            ? "Connecting to sync server…"
+            : "Sync server disconnected — changes are local only. Reload the page to reconnect."}
+        </div>
+      )}
+      <div
+        className="gherkin-editor-wrapper"
+        onDrop={(e) => {
+          const file = e.dataTransfer?.files?.[0];
+          if (file?.type.startsWith("image/") && editor) {
+            e.preventDefault();
+            insertDroppedImage(file, e.clientY);
+          }
+        }}
+        onDragOver={(e) => e.preventDefault()}
+      >
+        <div className="gherkin-toolbar">
+          {validNext
+            .filter((type) => type !== "image" && type !== "data_table")
+            .map((type) => (
+              <button
+                key={type}
+                className="gherkin-toolbar-btn"
+                onMouseDown={(e) => {
+                  e.preventDefault();
+                  handleToolbarInsert(type);
+                }}
+              >
+                {GHERKIN_LABELS[type as GherkinBlockType]}
+              </button>
+            ))}
+          {validNext.includes("data_table") && (
             <button
-              key={type}
               className="gherkin-toolbar-btn"
               onMouseDown={(e) => {
                 e.preventDefault();
-                handleToolbarInsert(type);
+                handleToolbarInsert("data_table");
               }}
             >
-              {GHERKIN_LABELS[type as GherkinBlockType]}
+              Table
             </button>
-          ))}
-        {validNext.includes("data_table") && (
+          )}
+          {validNext.includes("image") && (
+            <button
+              className="gherkin-toolbar-btn"
+              onMouseDown={(e) => {
+                e.preventDefault();
+                fileInputRef.current?.click();
+              }}
+            >
+              Image
+            </button>
+          )}
+          <button className="gherkin-export-btn" onClick={handleExport}>
+            Export TXT
+          </button>
+          <button className="gherkin-export-md-btn" onClick={handleExportMarkdown}>
+            Export MD
+          </button>
           <button
-            className="gherkin-toolbar-btn"
+            className="gherkin-import-btn"
             onMouseDown={(e) => {
               e.preventDefault();
-              handleToolbarInsert("data_table");
+              setImportOpen(true);
             }}
           >
-            Table
+            Import
           </button>
-        )}
-        {validNext.includes("image") && (
-          <button
-            className="gherkin-toolbar-btn"
-            onMouseDown={(e) => {
-              e.preventDefault();
-              fileInputRef.current?.click();
-            }}
-          >
-            Image
-          </button>
-        )}
-        <button className="gherkin-export-btn" onClick={handleExport}>
-          Export TXT
-        </button>
-        <button className="gherkin-export-md-btn" onClick={handleExportMarkdown}>
-          Export MD
-        </button>
-        <button
-          className="gherkin-import-btn"
-          onMouseDown={(e) => { e.preventDefault(); setImportOpen(true); }}
-        >
-          Import
-        </button>
-      </div>
+        </div>
 
-      <input
-        ref={fileInputRef}
-        type="file"
-        accept="image/*"
-        style={{ display: "none" }}
-        onChange={handleFileInputChange}
-      />
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept="image/*"
+          style={{ display: "none" }}
+          onChange={handleFileInputChange}
+        />
 
-      <EditorContent editor={editor} />
+        <EditorContent editor={editor} />
 
-      {importOpen && (
-        <div className="gherkin-import-modal">
-          <div className="gherkin-import-modal-inner">
-            <textarea
-              className="gherkin-import-textarea"
-              value={importText}
-              onChange={(e) => setImportText(e.target.value)}
-              placeholder={"Feature: My feature\nScenario: My scenario\nGiven some context\nWhen I do something\nThen I see the result"}
-              rows={12}
-            />
-            <div className="gherkin-import-actions">
-              <button className="gherkin-import-confirm" onClick={handleImportConfirm}>
-                Insert
-              </button>
-              <button className="gherkin-import-cancel" onClick={() => { setImportOpen(false); setImportText(""); }}>
-                Cancel
-              </button>
+        {importOpen && (
+          <div className="gherkin-import-modal">
+            <div className="gherkin-import-modal-inner">
+              <textarea
+                className="gherkin-import-textarea"
+                value={importText}
+                onChange={(e) => setImportText(e.target.value)}
+                placeholder={
+                  "Feature: My feature\nScenario: My scenario\nGiven some context\nWhen I do something\nThen I see the result"
+                }
+                rows={12}
+              />
+              <div className="gherkin-import-actions">
+                <button className="gherkin-import-confirm" onClick={handleImportConfirm}>
+                  Insert
+                </button>
+                <button
+                  className="gherkin-import-cancel"
+                  onClick={() => {
+                    setImportOpen(false);
+                    setImportText("");
+                  }}
+                >
+                  Cancel
+                </button>
+              </div>
             </div>
           </div>
-        </div>
-      )}
+        )}
 
-      {pickerState.show && pickerState.anchor && (
-        <BlockPicker
-          anchor={pickerState.anchor}
-          options={pickerState.options}
-          selectedIndex={pickerState.selectedIndex}
-          onSelect={handlePickerSelect}
-          onClose={closePicker}
-        />
-      )}
-    </div>
+        {pickerState.show && pickerState.anchor && (
+          <BlockPicker
+            anchor={pickerState.anchor}
+            options={pickerState.options}
+            selectedIndex={pickerState.selectedIndex}
+            onSelect={handlePickerSelect}
+            onClose={closePicker}
+          />
+        )}
+      </div>
     </div>
   );
 });

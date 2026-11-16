@@ -1,5 +1,5 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
 import { NextRequest } from "next/server";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const VALID_USER_ID = "cm0000000000000000000000";
 
@@ -33,7 +33,7 @@ async function importRoute() {
 async function mockAuth(userId: string | null) {
   const { auth } = await import("@/auth");
   vi.mocked(auth).mockResolvedValue(
-    userId ? ({ user: { id: userId, email: "test@example.com" } } as any) : null
+    userId ? ({ user: { id: userId, email: "test@example.com" } } as any) : null,
   );
 }
 
@@ -62,7 +62,7 @@ describe("GET /api/sessions", () => {
     expect(body).toHaveLength(1);
     expect(body[0]).toMatchObject({ id: "abc", title: "My session", userId: VALID_USER_ID });
     expect(fakeSessionTable.findMany).toHaveBeenCalledWith(
-      expect.objectContaining({ where: { userId: VALID_USER_ID } })
+      expect.objectContaining({ where: { userId: VALID_USER_ID } }),
     );
   });
 
@@ -96,7 +96,12 @@ describe("POST /api/sessions", () => {
 
   it("returns 201 with created session on valid body", async () => {
     await mockAuth(VALID_USER_ID);
-    const created = { id: "xyz", title: "New session", createdAt: new Date("2024-01-01"), userId: VALID_USER_ID };
+    const created = {
+      id: "xyz",
+      title: "New session",
+      createdAt: new Date("2024-01-01"),
+      userId: VALID_USER_ID,
+    };
     fakeSessionTable.create.mockResolvedValue(created);
 
     const { POST } = await importRoute();

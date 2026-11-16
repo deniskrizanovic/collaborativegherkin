@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 // Capture the config object passed to NextAuth() so we can inspect the
 // resolved providers list per environment scenario.
@@ -54,9 +54,7 @@ async function loadProviders(): Promise<ProviderLike[]> {
 function findTestBypass(providers: ProviderLike[]): ProviderLike | undefined {
   // NextAuth v5 keeps the top-level provider `id` as "credentials" and stores
   // the custom `id` we pass on `options.id`.
-  return providers.find(
-    (p) => p?.id === "test-bypass" || p?.options?.id === "test-bypass"
-  );
+  return providers.find((p) => p?.id === "test-bypass" || p?.options?.id === "test-bypass");
 }
 
 describe("auth providers — test-bypass guard", () => {

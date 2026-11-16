@@ -260,7 +260,11 @@ export function lintSpecSteps(specs, suites) {
       if (!covered.has(scenario)) covered.set(scenario, new Set());
 
       for (const other of test.other) {
-        violations.push({ file, line: other.line, message: `not a Given/When/Then step: ${other.text}` });
+        violations.push({
+          file,
+          line: other.line,
+          message: `not a Given/When/Then step: ${other.text}`,
+        });
       }
       if (test.steps.length === 0) {
         violations.push({ file, line: test.line, message: "test has no Given/When/Then steps" });
@@ -316,7 +320,9 @@ function main() {
   const violations = lintSpecSteps(specs, suites);
 
   if (violations.length === 0) {
-    console.log(`✓ robot spec steps: ${bddCount} business-language suite(s) match their spec scenarios`);
+    console.log(
+      `✓ robot spec steps: ${bddCount} business-language suite(s) match their spec scenarios`,
+    );
     return;
   }
 
@@ -326,7 +332,7 @@ function main() {
   }
   console.error(
     `\nTests in a suite tagged \`bdd\` must repeat their spec scenario's GIVEN/WHEN/THEN ` +
-      `lines. Change the step, or the spec, so they agree.`
+      `lines. Change the step, or the spec, so they agree.`,
   );
   process.exitCode = 1;
 }

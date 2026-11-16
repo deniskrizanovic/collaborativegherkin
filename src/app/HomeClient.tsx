@@ -1,8 +1,8 @@
 "use client";
 
-import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { signOut } from "next-auth/react";
+import { useState } from "react";
 
 interface SessionSummary {
   id: string;
@@ -60,9 +60,14 @@ export default function HomeClient({ sessions: initialSessions, currentUser }: P
           </button>
         </div>
         <p className="home-eyebrow">Collaborative Gherkin</p>
-        <h1>Acceptance criteria,<br />written together.</h1>
+        <h1>
+          Acceptance criteria,
+          <br />
+          written together.
+        </h1>
         <p className="home-tagline">
-          Real-time collaborative editing for Gherkin specs. Share a link, start writing, export anywhere.
+          Real-time collaborative editing for Gherkin specs. Share a link, start writing, export
+          anywhere.
         </p>
       </header>
 
@@ -77,7 +82,11 @@ export default function HomeClient({ sessions: initialSessions, currentUser }: P
             maxLength={200}
           />
         </div>
-        <button className="nsw-button nsw-button--dark" type="submit" disabled={creating || !title.trim()}>
+        <button
+          className="nsw-button nsw-button--dark"
+          type="submit"
+          disabled={creating || !title.trim()}
+        >
           {creating ? "Creating…" : "New session"}
         </button>
       </form>

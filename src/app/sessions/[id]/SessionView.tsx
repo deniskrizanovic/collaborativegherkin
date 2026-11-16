@@ -1,9 +1,9 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import GherkinEditor, { GherkinEditorHandle } from "@/components/GherkinEditor";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
+import GherkinEditor, { GherkinEditorHandle } from "@/components/GherkinEditor";
 import { AVAILABLE_MODELS, DEFAULT_MODEL, DEFAULT_PROMPT } from "@/lib/llm-constants";
 
 interface Props {
@@ -58,13 +58,17 @@ export default function SessionView({ sessionId, title }: Props) {
         setSettingsError("Couldn't load this session's AI settings.");
         setLoadedSessionId(sessionId);
       });
-    return () => { cancelled = true; };
+    return () => {
+      cancelled = true;
+    };
   }, [sessionId]);
 
   // Close review modal on Escape
   useEffect(() => {
     if (!reviewOpen) return;
-    const handler = (e: KeyboardEvent) => { if (e.key === "Escape") setReviewOpen(false); };
+    const handler = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setReviewOpen(false);
+    };
     document.addEventListener("keydown", handler);
     return () => document.removeEventListener("keydown", handler);
   }, [reviewOpen]);
@@ -72,7 +76,9 @@ export default function SessionView({ sessionId, title }: Props) {
   // Close prompt modal on Escape
   useEffect(() => {
     if (!promptOpen) return;
-    const handler = (e: KeyboardEvent) => { if (e.key === "Escape") setPromptOpen(false); };
+    const handler = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setPromptOpen(false);
+    };
     document.addEventListener("keydown", handler);
     return () => document.removeEventListener("keydown", handler);
   }, [promptOpen]);
@@ -108,7 +114,7 @@ export default function SessionView({ sessionId, title }: Props) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ content, sessionId }),
       });
-      const data = await res.json() as { result?: string; error?: string };
+      const data = (await res.json()) as { result?: string; error?: string };
       setLastReviewResult(data.result ?? data.error ?? "No response received.");
       setReviewOpen(true);
     } catch {
@@ -152,8 +158,8 @@ export default function SessionView({ sessionId, title }: Props) {
         </div>
       </div>
       <p className="session-hint">
-        Share the link above so others can edit this session with you.
-        Press <kbd>/</kbd> to pick a block type, or use the toolbar below.
+        Share the link above so others can edit this session with you. Press <kbd>/</kbd> to pick a
+        block type, or use the toolbar below.
       </p>
       {settingsError && <p className="form-error">{settingsError}</p>}
       <div className="session-actions">
@@ -171,7 +177,9 @@ export default function SessionView({ sessionId, title }: Props) {
           disabled={reviewing || !settingsLoaded}
         >
           {AVAILABLE_MODELS.map((m) => (
-            <option key={m} value={m}>{m}</option>
+            <option key={m} value={m}>
+              {m}
+            </option>
           ))}
         </select>
         <button
@@ -182,10 +190,7 @@ export default function SessionView({ sessionId, title }: Props) {
           {reviewing ? "Reviewing…" : "Get AI Coaching"}
         </button>
         {lastReviewResult !== null && (
-          <button
-            className="session-view-last-review-btn"
-            onClick={() => setReviewOpen(true)}
-          >
+          <button className="session-view-last-review-btn" onClick={() => setReviewOpen(true)}>
             View last review
           </button>
         )}

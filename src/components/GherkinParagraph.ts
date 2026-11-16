@@ -1,4 +1,4 @@
-import { Node, mergeAttributes } from "@tiptap/core";
+import { mergeAttributes, Node } from "@tiptap/core";
 
 export const GherkinParagraph = Node.create({
   name: "paragraph",
@@ -12,9 +12,7 @@ export const GherkinParagraph = Node.create({
         default: null,
         parseHTML: (el) => el.getAttribute("data-gherkin-type"),
         renderHTML: (attrs) =>
-          attrs["data-gherkin-type"]
-            ? { "data-gherkin-type": attrs["data-gherkin-type"] }
-            : {},
+          attrs["data-gherkin-type"] ? { "data-gherkin-type": attrs["data-gherkin-type"] } : {},
       },
     };
   },

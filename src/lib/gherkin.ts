@@ -34,33 +34,29 @@ const ALLOWED_AFTER: Record<GherkinBlockType, GherkinBlockType[]> = {
   background: ["given"],
   scenario: ["given"],
   given: ["when", "and", "but"],
-  when: [ "then", "and", "but"],
+  when: ["then", "and", "but"],
   then: ["and", "but", "given", "scenario", "rule"],
   and: ["given", "when", "then", "and", "but", "scenario", "rule"],
   but: ["given", "when", "then", "and", "scenario", "rule"],
 };
 
-export function canFollow(
-  previous: GherkinBlockType | null,
-  next: GherkinBlockType
-): boolean {
+export function canFollow(previous: GherkinBlockType | null, next: GherkinBlockType): boolean {
   if (previous === null) return next === "feature";
   return ALLOWED_AFTER[previous]?.includes(next) ?? false;
 }
 
 // What block type the Enter key should produce after a given block
-export const NEXT_BLOCK_ON_ENTER: Record<GherkinBlockType, GherkinBlockType> =
-  {
-    feature: "scenario",
-    rule: "scenario",
-    background: "given",
-    scenario: "given",
-    given: "when",
-    when: "then",
-    then: "and",
-    and: "and",
-    but: "and",
-  };
+export const NEXT_BLOCK_ON_ENTER: Record<GherkinBlockType, GherkinBlockType> = {
+  feature: "scenario",
+  rule: "scenario",
+  background: "given",
+  scenario: "given",
+  given: "when",
+  when: "then",
+  then: "and",
+  and: "and",
+  but: "and",
+};
 
 export const GherkinBlockSchema = z.object({
   type: z.enum(GHERKIN_BLOCK_TYPES),
@@ -74,9 +70,7 @@ export type DataTableBlock = { type: "data_table"; rows: string[][] };
 export type DocumentBlock = GherkinBlock | ImageBlock | DataTableBlock;
 
 function tableColWidths(rows: string[][], minWidth = 0): number[] {
-  return rows[0].map((_, ci) =>
-    Math.max(minWidth, ...rows.map((r) => r[ci]?.length ?? 0))
-  );
+  return rows[0].map((_, ci) => Math.max(minWidth, ...rows.map((r) => r[ci]?.length ?? 0)));
 }
 
 function formatTableRow(row: string[], widths: number[]): string {
@@ -99,7 +93,8 @@ export function exportToText(blocks: DocumentBlock[]): string {
 export function parseGherkin(text: string): DocumentBlock[] {
   const blocks: DocumentBlock[] = [];
   // Handles plain text, markdown headings (# / ##), and markdown list items (- )
-  const kwRe = /^(?:#{1,3}\s+|-\s+)?(Feature|Rule|Background|Scenario|Given|When|Then|And|But):?\s+(.*)/i;
+  const kwRe =
+    /^(?:#{1,3}\s+|-\s+)?(Feature|Rule|Background|Scenario|Given|When|Then|And|But):?\s+(.*)/i;
   const tableRe = /^\|(.+)\|$/;
   const tableSepRe = /^\|[\s|:-]+\|$/;
 

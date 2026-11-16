@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef } from "react";
-import { GherkinBlockType, GHERKIN_LABELS, GHERKIN_BLOCK_TYPES, canFollow } from "@/lib/gherkin";
+import { canFollow, GHERKIN_BLOCK_TYPES, GHERKIN_LABELS, GherkinBlockType } from "@/lib/gherkin";
 import { STEP_TYPES } from "./GherkinDataTable";
 
 export type InsertableType = GherkinBlockType | "image" | "data_table";
@@ -27,7 +27,13 @@ export interface BlockPickerProps {
   onClose: () => void;
 }
 
-export function BlockPicker({ anchor, options, selectedIndex, onSelect, onClose }: BlockPickerProps) {
+export function BlockPicker({
+  anchor,
+  options,
+  selectedIndex,
+  onSelect,
+  onClose,
+}: BlockPickerProps) {
   const ref = useRef<HTMLDivElement>(null);
 
   useEffect(() => {

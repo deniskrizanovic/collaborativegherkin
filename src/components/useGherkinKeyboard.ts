@@ -1,19 +1,19 @@
-import { useCallback, useEffect, useLayoutEffect, useRef, useState, MutableRefObject } from "react";
-import { Editor } from "@tiptap/react";
-import { EditorState, NodeSelection, TextSelection, Transaction } from "@tiptap/pm/state";
 import { GapCursor } from "@tiptap/pm/gapcursor";
 import { Node as PMNode } from "@tiptap/pm/model";
+import { EditorState, NodeSelection, TextSelection, Transaction } from "@tiptap/pm/state";
+import { Editor } from "@tiptap/react";
+import { MutableRefObject, useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 import {
+  canFollow,
+  DataTableBlock,
+  DocumentBlock,
+  exportToText,
   GherkinBlockType,
   NEXT_BLOCK_ON_ENTER,
-  canFollow,
-  exportToText,
-  DocumentBlock,
-  DataTableBlock,
 } from "@/lib/gherkin";
-import { InsertableType, getValidNextTypes } from "./BlockPicker";
-import { isImageSelected } from "./GherkinImage";
+import { getValidNextTypes, InsertableType } from "./BlockPicker";
 import { focusFirstTableCell } from "./GherkinDataTable";
+import { isImageSelected } from "./GherkinImage";
 
 export interface PickerState {
   show: boolean;
@@ -31,7 +31,9 @@ const CLOSED_PICKER: PickerState = {
   replace: false,
 };
 
-export function getPreviousBlockType(state: import("@tiptap/pm/state").EditorState): GherkinBlockType | null {
+export function getPreviousBlockType(
+  state: import("@tiptap/pm/state").EditorState,
+): GherkinBlockType | null {
   const { selection, doc } = state;
   let prev: GherkinBlockType | null = null;
   doc.forEach((node, offset) => {
@@ -43,7 +45,9 @@ export function getPreviousBlockType(state: import("@tiptap/pm/state").EditorSta
   return prev;
 }
 
-export function getCurrentBlockType(state: import("@tiptap/pm/state").EditorState): GherkinBlockType | null {
+export function getCurrentBlockType(
+  state: import("@tiptap/pm/state").EditorState,
+): GherkinBlockType | null {
   const { selection, doc } = state;
   let current: GherkinBlockType | null = null;
   doc.forEach((node, offset) => {
@@ -61,7 +65,10 @@ export function getAllBlocks(state: import("@tiptap/pm/state").EditorState): Doc
     if (node.type.name === "gherkin_image") {
       blocks.push({ type: "image", src: node.attrs.src, alt: node.attrs.alt ?? "" });
     } else if (node.type.name === "gherkin_data_table") {
-      blocks.push({ type: "data_table", rows: JSON.parse(node.attrs.rows as string) } as DataTableBlock);
+      blocks.push({
+        type: "data_table",
+        rows: JSON.parse(node.attrs.rows as string),
+      } as DataTableBlock);
     } else {
       const type = node.attrs?.["data-gherkin-type"] as GherkinBlockType | undefined;
       if (type) blocks.push({ type, text: node.textContent });
@@ -80,7 +87,8 @@ export function positionAfterSelection(state: EditorState): number | null {
   const { selection } = state;
   if (selection instanceof NodeSelection) return selection.to;
   if (selection instanceof GapCursor) return selection.from;
-  if (selection instanceof TextSelection && selection.$from.depth > 0) return selection.$from.after();
+  if (selection instanceof TextSelection && selection.$from.depth > 0)
+    return selection.$from.after();
   return null;
 }
 
@@ -117,7 +125,7 @@ export interface BlockRect {
 export function positionAfterBlockAtY(
   doc: PMNode,
   rectOf: (offset: number) => BlockRect | null,
-  clientY: number
+  clientY: number,
 ): number {
   const tops: number[] = [];
   const ends: number[] = [];
@@ -139,11 +147,19 @@ function renderedRect(editor: Editor, offset: number): BlockRect | null {
  * The transaction that inserts `node` at the top-level position at or after
  * `pos`, with the cursor placed after it, and the position it went in at.
  */
-export function atomInsertTransaction(state: EditorState, node: PMNode, pos: number): { tr: Transaction; insertPos: number } {
+export function atomInsertTransaction(
+  state: EditorState,
+  node: PMNode,
+  pos: number,
+): { tr: Transaction; insertPos: number } {
   return insertAtomInto(state.tr, node, pos);
 }
 
-function insertAtomInto(tr: Transaction, node: PMNode, pos: number): { tr: Transaction; insertPos: number } {
+function insertAtomInto(
+  tr: Transaction,
+  node: PMNode,
+  pos: number,
+): { tr: Transaction; insertPos: number } {
   const $pos = tr.doc.resolve(Math.min(pos, tr.doc.content.size));
   // A remote change may leave a tracked position inside a block.
   const insertPos = $pos.depth === 0 ? $pos.pos : $pos.after(1);
@@ -163,13 +179,14 @@ function insertAtomInto(tr: Transaction, node: PMNode, pos: number): { tr: Trans
 export function slashAtomInsertTransaction(
   state: EditorState,
   node: PMNode,
-  deleteSlash: boolean
+  deleteSlash: boolean,
 ): { tr: Transaction; insertPos: number } | null {
   const pos = positionAfterSelection(state);
   if (pos === null) return null;
   const tr = state.tr;
   const { from } = state.selection;
-  if (deleteSlash && from > 0 && state.doc.textBetween(from - 1, from) === "/") tr.delete(from - 1, from);
+  if (deleteSlash && from > 0 && state.doc.textBetween(from - 1, from) === "/")
+    tr.delete(from - 1, from);
   return insertAtomInto(tr, node, tr.mapping.map(pos));
 }
 
@@ -206,7 +223,11 @@ function insertImageFromFile(file: File, editor: Editor, target: TrackedPosition
     target?.stop();
     if (!target || editor.isDestroyed) return;
     const src = e.target?.result as string;
-    insertAtomNodeAt(editor, editor.state.schema.nodes.gherkin_image.create({ src, alt: file.name }), target.current());
+    insertAtomNodeAt(
+      editor,
+      editor.state.schema.nodes.gherkin_image.create({ src, alt: file.name }),
+      target.current(),
+    );
   };
   // A failed or aborted read inserts nothing, but must still stop tracking.
   reader.onerror = reader.onabort = () => target?.stop();
@@ -217,7 +238,7 @@ function insertImageFromFile(file: File, editor: Editor, target: TrackedPosition
 // but callbacks read editorRef.current at call time when the editor is ready.
 export function useGherkinKeyboard(
   editorRef: MutableRefObject<Editor | null>,
-  triggerFileUpload: () => void
+  triggerFileUpload: () => void,
 ): {
   handleKeyDown: (view: import("@tiptap/pm/view").EditorView, event: KeyboardEvent) => boolean;
   pickerState: PickerState;
@@ -231,11 +252,15 @@ export function useGherkinKeyboard(
 } {
   const [pickerState, setPickerState] = useState<PickerState>(CLOSED_PICKER);
   const pickerStateRef = useRef(pickerState);
-  useLayoutEffect(() => { pickerStateRef.current = pickerState; });
+  useLayoutEffect(() => {
+    pickerStateRef.current = pickerState;
+  });
 
   // Keep triggerFileUpload stable in a ref so insertBlock doesn't re-create on every render
   const triggerFileUploadRef = useRef(triggerFileUpload);
-  useEffect(() => { triggerFileUploadRef.current = triggerFileUpload; }, [triggerFileUpload]);
+  useEffect(() => {
+    triggerFileUploadRef.current = triggerFileUpload;
+  }, [triggerFileUpload]);
 
   // Where the image from the open file dialog goes, captured when the upload starts
   const uploadTargetRef = useRef<TrackedPosition | null>(null);
@@ -255,21 +280,29 @@ export function useGherkinKeyboard(
         const inserted = slashAtomInsertTransaction(
           editor.state,
           editor.state.schema.nodes.gherkin_data_table.create({
-            rows: JSON.stringify([["", ""], ["", ""]]),
+            rows: JSON.stringify([
+              ["", ""],
+              ["", ""],
+            ]),
           }),
-          deleteSlash
+          deleteSlash,
         );
         if (inserted) editor.view.dispatch(inserted.tr);
         // Only the inserting client runs this, so collaborators keep their focus.
         // With no cell to focus, put the caret back in the editor instead.
-        if (!inserted || !focusFirstTableCell(editor.view.nodeDOM(inserted.insertPos))) editor.view.focus();
+        if (!inserted || !focusFirstTableCell(editor.view.nodeDOM(inserted.insertPos)))
+          editor.view.focus();
         return;
       }
 
       if (type === "image") {
         if (deleteSlash) {
           const { from } = editor.state.selection;
-          editor.chain().focus().deleteRange({ from: from - 1, to: from }).run();
+          editor
+            .chain()
+            .focus()
+            .deleteRange({ from: from - 1, to: from })
+            .run();
         }
         uploadTargetRef.current?.stop();
         uploadTargetRef.current = trackPositionAfterSelection(editor);
@@ -279,14 +312,20 @@ export function useGherkinKeyboard(
 
       if (deleteSlash) {
         const { from } = editor.state.selection;
-        editor.chain().focus().deleteRange({ from: from - 1, to: from }).run();
+        editor
+          .chain()
+          .focus()
+          .deleteRange({ from: from - 1, to: from })
+          .run();
       }
 
       const { $from } = editor.state.selection;
       // A selected image sits at depth 0 with no block to retype; insert after it instead
       if (replace && $from.depth > 0) {
         const nodeStart = $from.before();
-        editor.chain().focus()
+        editor
+          .chain()
+          .focus()
           .command(({ tr }) => {
             tr.setNodeMarkup(nodeStart, undefined, { "data-gherkin-type": type });
             return true;
@@ -297,7 +336,9 @@ export function useGherkinKeyboard(
 
       const insertPos = positionAfterSelection(editor.state);
       if (insertPos === null) return;
-      editor.chain().focus()
+      editor
+        .chain()
+        .focus()
         .insertContentAt(insertPos, {
           type: "paragraph",
           attrs: { "data-gherkin-type": type },
@@ -305,7 +346,7 @@ export function useGherkinKeyboard(
         .setTextSelection(insertPos + 1)
         .run();
     },
-    [editorRef]
+    [editorRef],
   );
 
   const handleKeyDown = useCallback(
@@ -348,7 +389,13 @@ export function useGherkinKeyboard(
           const coords = editor.view.coordsAtPos(from);
           const rect = new DOMRect(coords.left, coords.top, 0, coords.bottom - coords.top);
           setTimeout(() => {
-            setPickerState({ show: true, anchor: rect, options, selectedIndex: 0, replace: replacing });
+            setPickerState({
+              show: true,
+              anchor: rect,
+              options,
+              selectedIndex: 0,
+              replace: replacing,
+            });
           }, 0);
         }
         return false;
@@ -356,7 +403,7 @@ export function useGherkinKeyboard(
 
       return false;
     },
-    [editorRef]
+    [editorRef],
   );
 
   useEffect(() => {
@@ -369,7 +416,10 @@ export function useGherkinKeyboard(
       } else if (e.key === "ArrowUp") {
         e.preventDefault();
         e.stopPropagation();
-        setPickerState((s) => ({ ...s, selectedIndex: (s.selectedIndex - 1 + s.options.length) % s.options.length }));
+        setPickerState((s) => ({
+          ...s,
+          selectedIndex: (s.selectedIndex - 1 + s.options.length) % s.options.length,
+        }));
       } else if (e.key === "Enter") {
         e.preventDefault();
         e.stopPropagation();
@@ -392,7 +442,7 @@ export function useGherkinKeyboard(
       insertBlock(type, true, pickerStateRef.current.replace);
       closePicker();
     },
-    [insertBlock, closePicker]
+    [insertBlock, closePicker],
   );
 
   const getContentText = useCallback((): string => {
@@ -409,7 +459,7 @@ export function useGherkinKeyboard(
       uploadTargetRef.current = null;
       insertImageFromFile(file, editor, target);
     },
-    [editorRef]
+    [editorRef],
   );
 
   // A drop goes after the block under the pointer. It ignores the cursor and
@@ -418,10 +468,14 @@ export function useGherkinKeyboard(
     (file: File, clientY: number) => {
       const editor = editorRef.current;
       if (!editor) return;
-      const pos = positionAfterBlockAtY(editor.state.doc, (offset) => renderedRect(editor, offset), clientY);
+      const pos = positionAfterBlockAtY(
+        editor.state.doc,
+        (offset) => renderedRect(editor, offset),
+        clientY,
+      );
       insertImageFromFile(file, editor, trackPosition(editor, pos));
     },
-    [editorRef]
+    [editorRef],
   );
 
   // The file dialog closed without a file: drop its target so it stops
@@ -435,8 +489,18 @@ export function useGherkinKeyboard(
     (type: InsertableType) => {
       insertBlock(type, false, false);
     },
-    [insertBlock]
+    [insertBlock],
   );
 
-  return { handleKeyDown, pickerState, closePicker, handlePickerSelect, handleToolbarInsert, getContentText, insertImageFromFile: insertImage, insertDroppedImage, cancelImageUpload };
+  return {
+    handleKeyDown,
+    pickerState,
+    closePicker,
+    handlePickerSelect,
+    handleToolbarInsert,
+    getContentText,
+    insertImageFromFile: insertImage,
+    insertDroppedImage,
+    cancelImageUpload,
+  };
 }

@@ -1,11 +1,11 @@
-import { test, expect } from "@playwright/test";
+import { expect, test } from "@playwright/test";
 import { createSession, openSession } from "./helpers";
 
 test.describe("home page", () => {
   test("SC-1.1.2: No sessions shows empty state", async ({ page }) => {
     // Delete all sessions via the API so the home page is genuinely empty
     const listRes = await page.request.get("/api/sessions");
-    const sessions = await listRes.json() as { id: string }[];
+    const sessions = (await listRes.json()) as { id: string }[];
     for (const s of sessions) {
       await page.request.delete(`/api/sessions/${s.id}`);
     }
@@ -39,16 +39,16 @@ test.describe("home page", () => {
     await page.goto("/");
     const longTitle = "a".repeat(201);
     // Bypass maxLength and trigger React's synthetic onChange via nativeInputValueSetter
-    await page.locator(".nsw-form__input").evaluate(
-      (el, value) => {
-        const input = el as HTMLInputElement;
-        const nativeInputValueSetter = Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, "value")!.set!;
-        nativeInputValueSetter.call(input, value);
-        input.dispatchEvent(new Event("input", { bubbles: true }));
-        input.dispatchEvent(new Event("change", { bubbles: true }));
-      },
-      longTitle
-    );
+    await page.locator(".nsw-form__input").evaluate((el, value) => {
+      const input = el as HTMLInputElement;
+      const nativeInputValueSetter = Object.getOwnPropertyDescriptor(
+        window.HTMLInputElement.prototype,
+        "value",
+      )!.set!;
+      nativeInputValueSetter.call(input, value);
+      input.dispatchEvent(new Event("input", { bubbles: true }));
+      input.dispatchEvent(new Event("change", { bubbles: true }));
+    }, longTitle);
     await page.locator('button[type="submit"]').click();
     await expect(page.locator(".form-error")).toBeVisible();
     await expect(page).toHaveURL("/");

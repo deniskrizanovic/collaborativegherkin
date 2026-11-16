@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
-import Script from "next/script";
 import { IBM_Plex_Mono } from "next/font/google";
+import Script from "next/script";
 import "@fontsource/public-sans";
 import "nsw-design-system/dist/css/main.css";
 import "./globals.css";
@@ -16,11 +16,7 @@ export const metadata: Metadata = {
   description: "Write Gherkin acceptance criteria together, in real time.",
 };
 
-export default function RootLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en" className={ibmPlexMono.variable}>
       <head />

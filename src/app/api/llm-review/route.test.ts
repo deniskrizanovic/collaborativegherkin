@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import { AVAILABLE_MODELS, DEFAULT_MODEL, DEFAULT_PROMPT } from "@/lib/llm-constants";
 
 const fakeSessionRecord = {
@@ -39,13 +39,13 @@ vi.mock("@/auth", () => ({
 }));
 
 import { auth } from "@/auth";
-import { Session, SessionNotFoundError } from "@/lib/session";
 import {
   Coaching,
   CoachingConfigError,
   CoachingRequestError,
   RateLimitError,
 } from "@/lib/coaching";
+import { Session, SessionNotFoundError } from "@/lib/session";
 import { POST } from "./route";
 
 const MockedSession = vi.mocked(Session);
@@ -54,7 +54,7 @@ const mockedAuth = vi.mocked(auth);
 
 async function mockAuth(userId: string | null) {
   mockedAuth.mockResolvedValue(
-    userId ? ({ user: { id: userId, email: "test@example.com" } } as any) : null
+    userId ? ({ user: { id: userId, email: "test@example.com" } } as any) : null,
   );
 }
 
@@ -78,7 +78,9 @@ describe("POST /api/llm-review", () => {
   it("returns 401 when unauthenticated, with no session lookup or OpenRouter call", async () => {
     await mockAuth(null);
     const reviewGherkin = vi.fn().mockResolvedValue("should not run");
-    MockedCoaching.mockImplementation(function () { return { reviewGherkin } as any; });
+    MockedCoaching.mockImplementation(function () {
+      return { reviewGherkin } as any;
+    });
 
     const response = await POST(makeRequest({ content: "Given a step", sessionId: "session-1" }));
     const body = await response.json();
@@ -91,7 +93,9 @@ describe("POST /api/llm-review", () => {
 
   it("returns 200 with result for valid body", async () => {
     const reviewGherkin = vi.fn().mockResolvedValue("some feedback");
-    MockedCoaching.mockImplementation(function () { return { reviewGherkin } as any; });
+    MockedCoaching.mockImplementation(function () {
+      return { reviewGherkin } as any;
+    });
 
     const response = await POST(makeRequest({ content: "Given a step", sessionId: "session-1" }));
     const body = await response.json();
@@ -102,7 +106,9 @@ describe("POST /api/llm-review", () => {
 
   it("calls reviewGherkin with DEFAULT_PROMPT when session has no prompt", async () => {
     const reviewGherkin = vi.fn().mockResolvedValue("ok");
-    MockedCoaching.mockImplementation(function () { return { reviewGherkin } as any; });
+    MockedCoaching.mockImplementation(function () {
+      return { reviewGherkin } as any;
+    });
 
     await POST(makeRequest({ content: "Given a step", sessionId: "session-1" }));
 
@@ -120,11 +126,17 @@ describe("POST /api/llm-review", () => {
       } as any;
     });
     const reviewGherkin = vi.fn().mockResolvedValue("ok");
-    MockedCoaching.mockImplementation(function () { return { reviewGherkin } as any; });
+    MockedCoaching.mockImplementation(function () {
+      return { reviewGherkin } as any;
+    });
 
     await POST(makeRequest({ content: "Given a step", sessionId: "session-1" }));
 
-    expect(reviewGherkin).toHaveBeenCalledWith("Given a step", "custom prompt text here ok", AVAILABLE_MODELS[1]);
+    expect(reviewGherkin).toHaveBeenCalledWith(
+      "Given a step",
+      "custom prompt text here ok",
+      AVAILABLE_MODELS[1],
+    );
   });
 
   it("returns 400 when content is missing", async () => {
@@ -159,7 +171,9 @@ describe("POST /api/llm-review", () => {
 
   it("returns 500 with configured message when service throws CoachingConfigError", async () => {
     const reviewGherkin = vi.fn().mockRejectedValue(new CoachingConfigError("not configured"));
-    MockedCoaching.mockImplementation(function () { return { reviewGherkin } as any; });
+    MockedCoaching.mockImplementation(function () {
+      return { reviewGherkin } as any;
+    });
 
     const response = await POST(makeRequest({ content: "Given a step", sessionId: "session-1" }));
     const body = await response.json();
@@ -170,7 +184,9 @@ describe("POST /api/llm-review", () => {
 
   it("returns 429 with retry seconds message when RateLimitError has retryAfterSeconds", async () => {
     const reviewGherkin = vi.fn().mockRejectedValue(new RateLimitError(30));
-    MockedCoaching.mockImplementation(function () { return { reviewGherkin } as any; });
+    MockedCoaching.mockImplementation(function () {
+      return { reviewGherkin } as any;
+    });
 
     const response = await POST(makeRequest({ content: "Given a step", sessionId: "session-1" }));
     const body = await response.json();
@@ -181,7 +197,9 @@ describe("POST /api/llm-review", () => {
 
   it("returns 429 with shortly message when RateLimitError has null retryAfterSeconds", async () => {
     const reviewGherkin = vi.fn().mockRejectedValue(new RateLimitError(null));
-    MockedCoaching.mockImplementation(function () { return { reviewGherkin } as any; });
+    MockedCoaching.mockImplementation(function () {
+      return { reviewGherkin } as any;
+    });
 
     const response = await POST(makeRequest({ content: "Given a step", sessionId: "session-1" }));
     const body = await response.json();
@@ -192,7 +210,9 @@ describe("POST /api/llm-review", () => {
 
   it("returns 502 when service throws CoachingRequestError", async () => {
     const reviewGherkin = vi.fn().mockRejectedValue(new CoachingRequestError("upstream error"));
-    MockedCoaching.mockImplementation(function () { return { reviewGherkin } as any; });
+    MockedCoaching.mockImplementation(function () {
+      return { reviewGherkin } as any;
+    });
 
     const response = await POST(makeRequest({ content: "Given a step", sessionId: "session-1" }));
     const body = await response.json();

@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+
 // Issue-link lint gate.
 //
 // Every active OpenSpec change (`openspec/changes/<name>/`, excluding
@@ -9,13 +10,12 @@
 //
 // See openspec/changes/gate-changes-on-github-issue.
 
+import { execSync } from "node:child_process";
 import { readdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
-import { execSync } from "node:child_process";
 
-const ISSUE_URL_RE =
-  /https:\/\/github\.com\/deniskrizanovic\/collaborativegherkin\/issues\/(\d+)/;
+const ISSUE_URL_RE = /https:\/\/github\.com\/deniskrizanovic\/collaborativegherkin\/issues\/(\d+)/;
 
 /**
  * Returns the change names (directory names) directly under `changesDir`,
@@ -30,9 +30,7 @@ export function collectActiveChanges(changesDir) {
   } catch {
     return [];
   }
-  return entries
-    .filter((e) => e.isDirectory() && e.name !== "archive")
-    .map((e) => e.name);
+  return entries.filter((e) => e.isDirectory() && e.name !== "archive").map((e) => e.name);
 }
 
 /**
@@ -79,8 +77,7 @@ export async function findViolations(changes, lookupState) {
     if (!issueNumber) {
       violations.push({
         change: name,
-        reason:
-          "proposal.md has no '## GitHub Issue' section with a recognisable issue URL",
+        reason: "proposal.md has no '## GitHub Issue' section with a recognisable issue URL",
       });
       continue;
     }
@@ -123,7 +120,7 @@ async function main() {
   const lookupState = async (issueNumber) => {
     const output = execSync(
       `gh api repos/deniskrizanovic/collaborativegherkin/issues/${issueNumber} --hostname github.com --jq .state`,
-      { encoding: "utf8" }
+      { encoding: "utf8" },
     );
     return output.trim();
   };
@@ -132,13 +129,13 @@ async function main() {
 
   if (violations.length === 0) {
     console.log(
-      `✓ issue-link: ${changeNames.length} active change(s) each link a valid open GitHub issue`
+      `✓ issue-link: ${changeNames.length} active change(s) each link a valid open GitHub issue`,
     );
     return;
   }
 
   console.error(
-    `✗ issue-link: ${violations.length} active change(s) with invalid or missing issue links:\n`
+    `✗ issue-link: ${violations.length} active change(s) with invalid or missing issue links:\n`,
   );
   for (const v of violations) {
     console.error(`  ${v.change}: ${v.reason}`);
@@ -147,7 +144,7 @@ async function main() {
     `\nEach active change's proposal.md must have a '## GitHub Issue' section ` +
       `with a full URL (https://github.com/deniskrizanovic/collaborativegherkin/issues/N) ` +
       `for a real, open issue.\n` +
-      `To create one: GH_HOST=github.com gh issue create --title "..." --body "..."`
+      `To create one: GH_HOST=github.com gh issue create --title "..." --body "..."`,
   );
   process.exitCode = 1;
 }

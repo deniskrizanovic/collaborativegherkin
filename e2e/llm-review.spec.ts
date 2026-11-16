@@ -1,14 +1,21 @@
-import { test, expect } from "@playwright/test";
-import { openSession } from "./helpers";
+import { expect, test } from "@playwright/test";
 import { DEFAULT_PROMPT } from "../src/lib/llm-constants";
+import { openSession } from "./helpers";
 
 // spec §8
 
 const MOCK_REVIEW = "## Feedback\n\n- Step 1 is ambiguous.\n- Consider adding an edge case.";
 
-async function interceptReview(page: Parameters<typeof openSession>[0], responseBody = MOCK_REVIEW) {
+async function interceptReview(
+  page: Parameters<typeof openSession>[0],
+  responseBody = MOCK_REVIEW,
+) {
   await page.route("/api/llm-review", (route) =>
-    route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ result: responseBody }) })
+    route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify({ result: responseBody }),
+    }),
   );
 }
 
@@ -24,7 +31,9 @@ const EMPTY_SETTINGS = JSON.stringify({ model: null, prompt: null });
  */
 async function holdSettingsLoad(page: Parameters<typeof openSession>[0]): Promise<() => void> {
   let release!: () => void;
-  const held = new Promise<void>((res) => { release = res; });
+  const held = new Promise<void>((res) => {
+    release = res;
+  });
   await page.route(SETTINGS_URL, async (route) => {
     if (route.request().method() !== "GET") return route.fallback();
     await held;
@@ -34,13 +43,17 @@ async function holdSettingsLoad(page: Parameters<typeof openSession>[0]): Promis
 }
 
 test.describe("LLM review — session page controls", () => {
-  test("SC-8.3.1: Model dropdown shown pre-selected to persisted model — button and dropdown visible", async ({ page }) => {
+  test("SC-8.3.1: Model dropdown shown pre-selected to persisted model — button and dropdown visible", async ({
+    page,
+  }) => {
     await openSession(page);
     await expect(page.locator(".session-review-btn")).toBeVisible();
     await expect(page.locator(".session-model-select")).toBeVisible();
   });
 
-  test("SC-8.3.1: Model dropdown shown pre-selected to persisted model — expected models listed", async ({ page }) => {
+  test("SC-8.3.1: Model dropdown shown pre-selected to persisted model — expected models listed", async ({
+    page,
+  }) => {
     await openSession(page);
     const options = page.locator(".session-model-select option");
     await options.first().waitFor({ state: "attached" });
@@ -51,12 +64,16 @@ test.describe("LLM review — session page controls", () => {
     expect(texts).toContain("google/gemma-4-26b-a4b-it:free");
   });
 
-  test("SC-8.4.1: Edit prompt button opens modal with pre-filled textarea — button visible", async ({ page }) => {
+  test("SC-8.4.1: Edit prompt button opens modal with pre-filled textarea — button visible", async ({
+    page,
+  }) => {
     await openSession(page);
     await expect(page.locator(".session-edit-prompt-btn")).toBeVisible();
   });
 
-  test("SC-8.3.4: Model dropdown is disabled until session settings have loaded — controls disabled while settings load is pending", async ({ page }) => {
+  test("SC-8.3.4: Model dropdown is disabled until session settings have loaded — controls disabled while settings load is pending", async ({
+    page,
+  }) => {
     const release = await holdSettingsLoad(page);
     await openSession(page);
     await expect(page.locator(".session-edit-prompt-btn")).toBeDisabled();
@@ -69,7 +86,9 @@ test.describe("LLM review — session page controls", () => {
 });
 
 test.describe("LLM review — triggering a review", () => {
-  test("SC-8.1.1: Clicking Get AI Coaching sends content and disables controls — modal opens", async ({ page }) => {
+  test("SC-8.1.1: Clicking Get AI Coaching sends content and disables controls — modal opens", async ({
+    page,
+  }) => {
     await openSession(page);
     await interceptReview(page);
 
@@ -78,7 +97,9 @@ test.describe("LLM review — triggering a review", () => {
     await expect(page.locator(".session-review-modal-body")).toContainText("Feedback");
   });
 
-  test("SC-8.1.2: Successful LLM response displayed as Markdown in modal — header shows model name", async ({ page }) => {
+  test("SC-8.1.2: Successful LLM response displayed as Markdown in modal — header shows model name", async ({
+    page,
+  }) => {
     await openSession(page);
     await interceptReview(page);
 
@@ -89,7 +110,9 @@ test.describe("LLM review — triggering a review", () => {
     await expect(page.locator(".session-review-modal-header")).toContainText(selectedModel);
   });
 
-  test("SC-8.1.2: Successful LLM response displayed as Markdown in modal — Markdown rendered", async ({ page }) => {
+  test("SC-8.1.2: Successful LLM response displayed as Markdown in modal — Markdown rendered", async ({
+    page,
+  }) => {
     await openSession(page);
     await interceptReview(page);
 
@@ -98,15 +121,23 @@ test.describe("LLM review — triggering a review", () => {
     await expect(page.locator(".session-review-modal-body li")).toHaveCount(2);
   });
 
-  test("SC-8.1.1: Clicking Get AI Coaching sends content and disables controls — button disabled in flight", async ({ page }) => {
+  test("SC-8.1.1: Clicking Get AI Coaching sends content and disables controls — button disabled in flight", async ({
+    page,
+  }) => {
     await openSession(page);
 
     // Hold the request open until we've checked the disabled state
     let resolveRoute!: () => void;
-    const held = new Promise<void>((res) => { resolveRoute = res; });
+    const held = new Promise<void>((res) => {
+      resolveRoute = res;
+    });
     await page.route("/api/llm-review", async (route) => {
       await held;
-      await route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ result: MOCK_REVIEW }) });
+      await route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify({ result: MOCK_REVIEW }),
+      });
     });
 
     await page.locator(".session-review-btn").click();
@@ -195,10 +226,16 @@ test.describe("LLM review — cached result", () => {
 
     // Hold the second request open
     let resolveRoute!: () => void;
-    const held = new Promise<void>((res) => { resolveRoute = res; });
+    const held = new Promise<void>((res) => {
+      resolveRoute = res;
+    });
     await page.route("/api/llm-review", async (route) => {
       await held;
-      await route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ result: "New result" }) });
+      await route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify({ result: "New result" }),
+      });
     });
 
     await page.locator(".session-review-btn").click();
@@ -227,7 +264,11 @@ test.describe("LLM review — error handling", () => {
   test("SC-8.1.3: LLM failure shows error in modal and resets button", async ({ page }) => {
     await openSession(page);
     await page.route("/api/llm-review", (route) =>
-      route.fulfill({ status: 500, contentType: "application/json", body: JSON.stringify({ error: "LLM request failed" }) })
+      route.fulfill({
+        status: 500,
+        contentType: "application/json",
+        body: JSON.stringify({ error: "LLM request failed" }),
+      }),
     );
 
     await page.locator(".session-review-btn").click();
@@ -245,7 +286,9 @@ test.describe("LLM review — prompt editing", () => {
     expect(value.length).toBeGreaterThan(10);
   });
 
-  test("SC-8.4.3: Cancel, Escape, or outside click closes prompt modal without saving — Cancel", async ({ page }) => {
+  test("SC-8.4.3: Cancel, Escape, or outside click closes prompt modal without saving — Cancel", async ({
+    page,
+  }) => {
     await openSession(page);
     await page.locator(".session-edit-prompt-btn").click();
     await page.locator(".session-prompt-textarea").fill("Changed prompt text that is long enough");
@@ -253,7 +296,9 @@ test.describe("LLM review — prompt editing", () => {
     await expect(page.locator(".session-prompt-modal")).not.toBeVisible();
   });
 
-  test("SC-8.4.3: Cancel, Escape, or outside click closes prompt modal without saving — Escape", async ({ page }) => {
+  test("SC-8.4.3: Cancel, Escape, or outside click closes prompt modal without saving — Escape", async ({
+    page,
+  }) => {
     await openSession(page);
     await page.locator(".session-edit-prompt-btn").click();
     await expect(page.locator(".session-prompt-modal")).toBeVisible();
@@ -261,7 +306,9 @@ test.describe("LLM review — prompt editing", () => {
     await expect(page.locator(".session-prompt-modal")).not.toBeVisible();
   });
 
-  test("SC-8.4.3: Cancel, Escape, or outside click closes prompt modal without saving — click outside", async ({ page }) => {
+  test("SC-8.4.3: Cancel, Escape, or outside click closes prompt modal without saving — click outside", async ({
+    page,
+  }) => {
     await openSession(page);
     await page.locator(".session-edit-prompt-btn").click();
     await expect(page.locator(".session-prompt-modal")).toBeVisible();
@@ -293,7 +340,9 @@ test.describe("LLM review — prompt editing", () => {
     await page.locator(".session-prompt-cancel").click();
   });
 
-  test("SC-8.4.6: A prompt edited after a slow settings load is the one saved", async ({ page }) => {
+  test("SC-8.4.6: A prompt edited after a slow settings load is the one saved", async ({
+    page,
+  }) => {
     const release = await holdSettingsLoad(page);
     await openSession(page);
     await expect(page.locator(".session-edit-prompt-btn")).toBeDisabled();
@@ -315,11 +364,17 @@ test.describe("LLM review — prompt editing", () => {
   test("SC-8.4.7: Failed settings load leaves the default prompt editable", async ({ page }) => {
     await page.route(SETTINGS_URL, (route) =>
       route.request().method() === "GET"
-        ? route.fulfill({ status: 500, contentType: "application/json", body: JSON.stringify({ error: "Failed to fetch session" }) })
-        : route.fallback()
+        ? route.fulfill({
+            status: 500,
+            contentType: "application/json",
+            body: JSON.stringify({ error: "Failed to fetch session" }),
+          })
+        : route.fallback(),
     );
     await openSession(page);
-    await expect(page.locator(".form-error")).toHaveText("Couldn't load this session's AI settings.");
+    await expect(page.locator(".form-error")).toHaveText(
+      "Couldn't load this session's AI settings.",
+    );
 
     await page.locator(".session-edit-prompt-btn").click();
     await expect(page.locator(".session-prompt-modal")).toBeVisible();

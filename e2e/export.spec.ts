@@ -1,13 +1,15 @@
-import { test, expect } from "@playwright/test";
-import { chooseImageFile, openSession } from "./helpers";
-import * as path from "path";
+import { expect, test } from "@playwright/test";
 import * as fs from "fs";
 import * as os from "os";
+import * as path from "path";
+import { chooseImageFile, openSession } from "./helpers";
 
 // spec §3.6
 
 test.describe("export", () => {
-  test("SC-3.6.1: Export downloads plain-text file in document order — correct content", async ({ page }) => {
+  test("SC-3.6.1: Export downloads plain-text file in document order — correct content", async ({
+    page,
+  }) => {
     await openSession(page);
 
     // Type into each scaffold block directly
@@ -47,7 +49,9 @@ test.describe("export", () => {
     expect(lines[4]).toBe("Then: the user is redirected to the dashboard");
   });
 
-  test("SC-3.6.1: Export downloads plain-text file in document order — block order", async ({ page }) => {
+  test("SC-3.6.1: Export downloads plain-text file in document order — block order", async ({
+    page,
+  }) => {
     await openSession(page);
 
     await page.locator('[data-gherkin-type="feature"]').first().click();
@@ -73,9 +77,10 @@ test.describe("export", () => {
     expect(lines[2]).toMatch(/^Given:/);
   });
 
-  test("SC-3.6.1: Export downloads plain-text file in document order — image data-URI included", async ({ page }) => {
+  test("SC-3.6.1: Export downloads plain-text file in document order — image data-URI included", async ({
+    page,
+  }) => {
     await openSession(page);
-
 
     await page.locator('[data-gherkin-type="then"]').last().click();
     await page.locator(".gherkin-toolbar-btn", { hasText: "Image" }).click();

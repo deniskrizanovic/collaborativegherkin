@@ -1,8 +1,8 @@
-import { test, expect } from "@playwright/test";
-import { openSession, pressEnterAndWait } from "./helpers";
-import * as path from "path";
+import { expect, test } from "@playwright/test";
 import * as fs from "fs";
 import * as os from "os";
+import * as path from "path";
+import { openSession, pressEnterAndWait } from "./helpers";
 
 // spec §3.7
 // Visual separation is implemented via CSS: a given block that follows then/and/but
@@ -29,7 +29,7 @@ test.describe("visual separation", () => {
     // The second given block follows then, so it should have a top border
     const secondGiven = givenBlocks.last();
     const borderTop = await secondGiven.evaluate(
-      (el) => window.getComputedStyle(el).borderTopWidth
+      (el) => window.getComputedStyle(el).borderTopWidth,
     );
     expect(borderTop).toBe("1px");
   });
@@ -49,9 +49,7 @@ test.describe("visual separation", () => {
 
     const givenBlocks = page.locator('[data-gherkin-type="given"]');
     const lastGiven = givenBlocks.last();
-    const borderTop = await lastGiven.evaluate(
-      (el) => window.getComputedStyle(el).borderTopWidth
-    );
+    const borderTop = await lastGiven.evaluate((el) => window.getComputedStyle(el).borderTopWidth);
     expect(borderTop).toBe("1px");
   });
 
@@ -68,9 +66,7 @@ test.describe("visual separation", () => {
 
     const givenBlocks = page.locator('[data-gherkin-type="given"]');
     const lastGiven = givenBlocks.last();
-    const borderTop = await lastGiven.evaluate(
-      (el) => window.getComputedStyle(el).borderTopWidth
-    );
+    const borderTop = await lastGiven.evaluate((el) => window.getComputedStyle(el).borderTopWidth);
     expect(borderTop).toBe("1px");
   });
 
@@ -84,13 +80,13 @@ test.describe("visual separation", () => {
     // Enter after "then" now produces "and"; use the toolbar to insert the next scenario
     await page.locator(".gherkin-toolbar-btn", { hasText: "Scenario" }).click();
     await page.waitForFunction(
-      () => document.querySelectorAll('[data-gherkin-type="scenario"]').length >= 2
+      () => document.querySelectorAll('[data-gherkin-type="scenario"]').length >= 2,
     );
 
     const scenarioBlocks = page.locator('[data-gherkin-type="scenario"]');
     const secondScenario = scenarioBlocks.last();
     const borderTop = await secondScenario.evaluate(
-      (el) => window.getComputedStyle(el).borderTopWidth
+      (el) => window.getComputedStyle(el).borderTopWidth,
     );
     expect(borderTop).toBe("1px");
   });
@@ -109,7 +105,7 @@ test.describe("visual separation", () => {
     const scenarioBlocks = page.locator('[data-gherkin-type="scenario"]');
     const lastScenario = scenarioBlocks.last();
     const borderTop = await lastScenario.evaluate(
-      (el) => window.getComputedStyle(el).borderTopWidth
+      (el) => window.getComputedStyle(el).borderTopWidth,
     );
     expect(borderTop).toBe("1px");
   });
@@ -128,26 +124,28 @@ test.describe("visual separation", () => {
     const scenarioBlocks = page.locator('[data-gherkin-type="scenario"]');
     const lastScenario = scenarioBlocks.last();
     const borderTop = await lastScenario.evaluate(
-      (el) => window.getComputedStyle(el).borderTopWidth
+      (el) => window.getComputedStyle(el).borderTopWidth,
     );
     expect(borderTop).toBe("1px");
   });
 
-  test("SC-3.7.1: Given after then/and/but gets top border — first given after scenario has no border", async ({ page }) => {
+  test("SC-3.7.1: Given after then/and/but gets top border — first given after scenario has no border", async ({
+    page,
+  }) => {
     await openSession(page);
 
     await pressEnterAndWait(page, "scenario");
     await pressEnterAndWait(page, "given");
 
     const givenBlock = page.locator('[data-gherkin-type="given"]').first();
-    const borderTop = await givenBlock.evaluate(
-      (el) => window.getComputedStyle(el).borderTopWidth
-    );
+    const borderTop = await givenBlock.evaluate((el) => window.getComputedStyle(el).borderTopWidth);
     // No CSS sibling rule should apply here
     expect(borderTop).toBe("0px");
   });
 
-  test("SC-3.7.1: Given after then/and/but gets top border — separator not in export", async ({ page }) => {
+  test("SC-3.7.1: Given after then/and/but gets top border — separator not in export", async ({
+    page,
+  }) => {
     await openSession(page);
 
     await page.locator('[data-gherkin-type="feature"]').first().click();

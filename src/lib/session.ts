@@ -43,11 +43,7 @@ export class Session {
     try {
       await this.deps.session.update({ where: { id }, data: patch });
     } catch (err: unknown) {
-      if (
-        err instanceof Object &&
-        "code" in err &&
-        (err as { code: string }).code === "P2025"
-      ) {
+      if (err instanceof Object && "code" in err && (err as { code: string }).code === "P2025") {
         throw new SessionNotFoundError(id);
       }
       throw err;
@@ -58,11 +54,7 @@ export class Session {
     try {
       await this.deps.session.delete({ where: { id } });
     } catch (err: unknown) {
-      if (
-        err instanceof Object &&
-        "code" in err &&
-        (err as { code: string }).code === "P2025"
-      ) {
+      if (err instanceof Object && "code" in err && (err as { code: string }).code === "P2025") {
         throw new SessionNotFoundError(id);
       }
       throw err;

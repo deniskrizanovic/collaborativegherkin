@@ -28,7 +28,14 @@ import { collectFiles, parseRobotSuite } from "./lint-robot-spec-steps.mjs";
 
 const PARITY_FILE = "robot/PARITY.md";
 const SUITES_DIR = "robot/suites";
-const EXPECTED_HEADER = ["Playwright file", "Title", "Key assertions", "Robot suite", "Chunk", "Status"];
+const EXPECTED_HEADER = [
+  "Playwright file",
+  "Title",
+  "Key assertions",
+  "Robot suite",
+  "Chunk",
+  "Status",
+];
 const STATUSES = new Set(["ported", "skip"]);
 const TABLE_SEPARATOR_RE = /^\|(\s*:?-+:?\s*\|)+\s*$/;
 const UNESCAPED_PIPE_RE = /(?<!\\)\|/;
@@ -79,7 +86,11 @@ export function parsePlaywrightList(json) {
 
 /** Split a markdown table row on unescaped pipes; `\|` becomes `|` inside a cell. */
 function splitRow(line) {
-  const cells = line.trim().replace(/^\|/, "").replace(/(?<!\\)\|$/, "").split(UNESCAPED_PIPE_RE);
+  const cells = line
+    .trim()
+    .replace(/^\|/, "")
+    .replace(/(?<!\\)\|$/, "")
+    .split(UNESCAPED_PIPE_RE);
   return cells.map((cell) => cell.trim().replace(/\\\|/g, "|"));
 }
 
@@ -110,7 +121,7 @@ export function parseParityTable(content) {
     if (!cells[0].endsWith(".spec.ts")) continue;
     if (!header || header.join("|") !== EXPECTED_HEADER.join("|")) {
       throw new Error(
-        `${PARITY_FILE}:${i + 1}: table header must be | ${EXPECTED_HEADER.join(" | ")} |, got | ${(header ?? []).join(" | ")} |`
+        `${PARITY_FILE}:${i + 1}: table header must be | ${EXPECTED_HEADER.join(" | ")} |, got | ${(header ?? []).join(" | ")} |`,
       );
     }
     if (cells.length !== EXPECTED_HEADER.length) {
@@ -163,7 +174,11 @@ export function lintParity({ tests, rows, suites }) {
     const row = group[0];
     const { file, title } = row;
     if (group.length > 1) {
-      fail(file, title, `${PARITY_FILE} has ${group.length} rows for this test (lines ${group.map((r) => r.line).join(", ")})`);
+      fail(
+        file,
+        title,
+        `${PARITY_FILE} has ${group.length} rows for this test (lines ${group.map((r) => r.line).join(", ")})`,
+      );
     }
     const test = testsByKey.get(key)?.[0];
     if (!test) fail(file, title, `${PARITY_FILE} row (line ${row.line}) names no Playwright test`);
@@ -184,7 +199,7 @@ export function lintParity({ tests, rows, suites }) {
         title,
         matches.length === 0
           ? `Robot suite ${suitePath} has no test named exactly this title`
-          : `Robot suite ${suitePath} has ${matches.length} tests named exactly this title`
+          : `Robot suite ${suitePath} has ${matches.length} tests named exactly this title`,
       );
       continue;
     }
@@ -197,7 +212,7 @@ export function lintParity({ tests, rows, suites }) {
         file,
         title,
         `skip status disagrees: Playwright ${test.skipped ? "skipped" : "runs"}, ` +
-          `PARITY.md "${row.status}", Robot ${robotSkip ? "tagged skip" : "not tagged skip"}`
+          `PARITY.md "${row.status}", Robot ${robotSkip ? "tagged skip" : "not tagged skip"}`,
       );
     }
   }
@@ -210,15 +225,21 @@ function listPlaywrightTests(root) {
   // The JSON reporter writes to a file instead of stdout when this is set.
   const env = { ...process.env };
   delete env.PLAYWRIGHT_JSON_OUTPUT_NAME;
-  const result = spawnSync(join(root, "node_modules", ".bin", "playwright"), ["test", "--list", "--reporter=json"], {
-    cwd: root,
-    env,
-    encoding: "utf8",
-    maxBuffer: 64 * 1024 * 1024,
-  });
+  const result = spawnSync(
+    join(root, "node_modules", ".bin", "playwright"),
+    ["test", "--list", "--reporter=json"],
+    {
+      cwd: root,
+      env,
+      encoding: "utf8",
+      maxBuffer: 64 * 1024 * 1024,
+    },
+  );
   if (result.error) throw result.error;
   if (result.status !== 0) {
-    throw new Error(`playwright test --list exited ${result.status}:\n${result.stderr}${result.stdout}`);
+    throw new Error(
+      `playwright test --list exited ${result.status}:\n${result.stderr}${result.stdout}`,
+    );
   }
   return parsePlaywrightList(result.stdout);
 }
@@ -244,7 +265,7 @@ function main() {
   if (errors.length === 0) {
     const skipped = tests.filter((t) => t.skipped).length;
     console.log(
-      `✓ e2e parity: ${tests.length} Playwright test(s) (${skipped} skipped) match ${PARITY_FILE} and ${SUITES_DIR}/`
+      `✓ e2e parity: ${tests.length} Playwright test(s) (${skipped} skipped) match ${PARITY_FILE} and ${SUITES_DIR}/`,
     );
     return;
   }
@@ -255,7 +276,7 @@ function main() {
   }
   console.error(
     `\nEvery Playwright test needs a ${PARITY_FILE} row and a Robot test with exactly its title. ` +
-      `A change to a Playwright test must update its row and its Robot test in the same change.`
+      `A change to a Playwright test must update its row and its Robot test in the same change.`,
   );
   process.exitCode = 1;
 }

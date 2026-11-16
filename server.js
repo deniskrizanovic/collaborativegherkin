@@ -14,16 +14,16 @@
  * connection-acceptance gate (the auth check) are new.
  */
 
-import { createServer } from "http";
-import { parse } from "url";
-import next from "next";
 import { default as nextEnv } from "@next/env";
-import { WebSocketServer } from "ws";
-import * as Y from "yjs";
-import * as syncProtocol from "y-protocols/sync";
-import * as awarenessProtocol from "y-protocols/awareness";
-import * as encoding from "lib0/encoding";
+import { createServer } from "http";
 import * as decoding from "lib0/decoding";
+import * as encoding from "lib0/encoding";
+import next from "next";
+import { parse } from "url";
+import { WebSocketServer } from "ws";
+import * as awarenessProtocol from "y-protocols/awareness";
+import * as syncProtocol from "y-protocols/sync";
+import * as Y from "yjs";
 import logger from "./src/lib/logger.ts";
 import { authorizeUpgrade } from "./src/lib/wsAuth.ts";
 
@@ -133,7 +133,7 @@ function getRoom(name) {
     encoding.writeVarUint(encoder, messageAwareness);
     encoding.writeVarUint8Array(
       encoder,
-      awarenessProtocol.encodeAwarenessUpdate(awareness, changedClients)
+      awarenessProtocol.encodeAwarenessUpdate(awareness, changedClients),
     );
     const msg = encoding.toUint8Array(encoder);
     for (const client of room.clients) {
@@ -177,10 +177,7 @@ function handleConnection(ws, roomName) {
     encoding.writeVarUint(encoder, messageAwareness);
     encoding.writeVarUint8Array(
       encoder,
-      awarenessProtocol.encodeAwarenessUpdate(
-        room.awareness,
-        [...room.awareness.states.keys()]
-      )
+      awarenessProtocol.encodeAwarenessUpdate(room.awareness, [...room.awareness.states.keys()]),
     );
     ws.send(encoding.toUint8Array(encoder));
   }
@@ -194,12 +191,7 @@ function handleConnection(ws, roomName) {
       if (msgType === messageSync) {
         const encoder = encoding.createEncoder();
         encoding.writeVarUint(encoder, messageSync);
-        const syncMessageType = syncProtocol.readSyncMessage(
-          decoder,
-          encoder,
-          room.ydoc,
-          ws
-        );
+        const syncMessageType = syncProtocol.readSyncMessage(decoder, encoder, room.ydoc, ws);
         if (encoding.length(encoder) > 1) {
           ws.send(encoding.toUint8Array(encoder));
         }
@@ -211,7 +203,7 @@ function handleConnection(ws, roomName) {
         awarenessProtocol.applyAwarenessUpdate(
           room.awareness,
           decoding.readVarUint8Array(decoder),
-          ws
+          ws,
         );
       }
     } catch (err) {
@@ -223,11 +215,7 @@ function handleConnection(ws, roomName) {
     room.clients.delete(ws);
     // Remove the awareness states this specific connection announced, so its
     // presence/cursors are broadcast as removed instead of lingering forever.
-    awarenessProtocol.removeAwarenessStates(
-      room.awareness,
-      [...ws.controlledIds],
-      null
-    );
+    awarenessProtocol.removeAwarenessStates(room.awareness, [...ws.controlledIds], null);
     closeRoom(roomName);
   });
 }
@@ -257,7 +245,10 @@ app.prepare().then(() => {
       .then((decision) => {
         if (!decision.ok) {
           // Content-free security log — never log the token or its contents.
-          logger.warn({ event: "ws_upgrade_rejected", reason: decision.reason }, "WebSocket upgrade rejected");
+          logger.warn(
+            { event: "ws_upgrade_rejected", reason: decision.reason },
+            "WebSocket upgrade rejected",
+          );
           socket.write("HTTP/1.1 401 Unauthorized\r\n\r\n");
           socket.destroy();
           return;
@@ -267,7 +258,7 @@ app.prepare().then(() => {
         // WS access can be correlated with session-access logs.
         logger.info(
           { event: "ws_upgrade_accepted", room: decision.room, userId: decision.userId },
-          "WebSocket upgrade accepted"
+          "WebSocket upgrade accepted",
         );
         wss.handleUpgrade(req, socket, head, (ws) => {
           handleConnection(ws, decision.room);

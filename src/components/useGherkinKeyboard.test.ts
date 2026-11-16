@@ -1,16 +1,16 @@
-import { describe, it, expect } from "vitest";
 import { getSchema } from "@tiptap/core";
-import StarterKit from "@tiptap/starter-kit";
-import { AllSelection, EditorState, NodeSelection, TextSelection } from "@tiptap/pm/state";
 import { GapCursor } from "@tiptap/pm/gapcursor";
 import { Node as PMNode } from "@tiptap/pm/model";
+import { AllSelection, EditorState, NodeSelection, TextSelection } from "@tiptap/pm/state";
+import StarterKit from "@tiptap/starter-kit";
+import { describe, expect, it } from "vitest";
+import { GherkinDataTable } from "./GherkinDataTable";
 import { GherkinImage, isImageSelected, protectSelectedImage } from "./GherkinImage";
 import { GherkinParagraph } from "./GherkinParagraph";
-import { GherkinDataTable } from "./GherkinDataTable";
 import { narrowNodeSelection, narrowNodeSelectionPlugin } from "./NarrowNodeSelection";
 import {
-  BlockRect,
   atomInsertTransaction,
+  BlockRect,
   blockIndexAtY,
   positionAfterBlockAtY,
   positionAfterSelection,
@@ -18,14 +18,23 @@ import {
 } from "./useGherkinKeyboard";
 
 const schema = getSchema([
-  StarterKit.configure({ undoRedo: false, paragraph: false, trailingNode: false, link: false, underline: false }),
+  StarterKit.configure({
+    undoRedo: false,
+    paragraph: false,
+    trailingNode: false,
+    link: false,
+    underline: false,
+  }),
   GherkinParagraph,
   GherkinImage,
   GherkinDataTable,
 ]);
 
 function block(type: string, text = ""): PMNode {
-  return schema.nodes.paragraph.create({ "data-gherkin-type": type }, text ? [schema.text(text)] : []);
+  return schema.nodes.paragraph.create(
+    { "data-gherkin-type": type },
+    text ? [schema.text(text)] : [],
+  );
 }
 
 function image(): PMNode {
@@ -33,11 +42,18 @@ function image(): PMNode {
 }
 
 // Then "Before" (0–8), image (8–9), And "After" (9–16)
-const middleDoc = schema.nodes.doc.create(null, [block("then", "Before"), image(), block("and", "After")]);
+const middleDoc = schema.nodes.doc.create(null, [
+  block("then", "Before"),
+  image(),
+  block("and", "After"),
+]);
 // Then "Before" (0–8), image (8–9)
 const lastDoc = schema.nodes.doc.create(null, [block("then", "Before"), image()]);
 
-function stateWith(doc: PMNode, select: (doc: PMNode) => import("@tiptap/pm/state").Selection): EditorState {
+function stateWith(
+  doc: PMNode,
+  select: (doc: PMNode) => import("@tiptap/pm/state").Selection,
+): EditorState {
   const state = EditorState.create({ schema, doc });
   return state.apply(state.tr.setSelection(select(state.doc)));
 }
@@ -70,7 +86,12 @@ describe("positionAfterSelection", () => {
 });
 
 function table(): PMNode {
-  return schema.nodes.gherkin_data_table.create({ rows: JSON.stringify([["", ""], ["", ""]]) });
+  return schema.nodes.gherkin_data_table.create({
+    rows: JSON.stringify([
+      ["", ""],
+      ["", ""],
+    ]),
+  });
 }
 
 describe("atomInsertTransaction", () => {
@@ -244,8 +265,10 @@ describe("positionAfterBlockAtY", () => {
     8: { top: 140, width: 600, height: 200 },
     9: { top: 350, width: 600, height: 30 },
   };
-  const rectOf = (overrides: Record<number, BlockRect | null> = {}) =>
-    (offset: number) => (offset in overrides ? overrides[offset] : rects[offset]);
+  const rectOf =
+    (overrides: Record<number, BlockRect | null> = {}) =>
+    (offset: number) =>
+      offset in overrides ? overrides[offset] : rects[offset];
 
   it("returns the position after the block under the point", () => {
     expect(positionAfterBlockAtY(middleDoc, rectOf(), 200)).toBe(9);
@@ -264,7 +287,9 @@ describe("positionAfterBlockAtY", () => {
   });
 
   it("skips a zero-size block, whose top of 0 would otherwise sit above Then", () => {
-    expect(positionAfterBlockAtY(middleDoc, rectOf({ 8: { top: 0, width: 0, height: 0 } }), 120)).toBe(8);
+    expect(
+      positionAfterBlockAtY(middleDoc, rectOf({ 8: { top: 0, width: 0, height: 0 } }), 120),
+    ).toBe(8);
   });
 
   it("returns the end of the document when no block is rendered", () => {

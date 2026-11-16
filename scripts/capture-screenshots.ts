@@ -4,8 +4,8 @@
  */
 
 import { chromium } from "@playwright/test";
-import path from "path";
 import fs from "fs";
+import path from "path";
 
 const BASE = "http://localhost:3000";
 const OUT = path.resolve("docs/screenshots");
@@ -38,7 +38,9 @@ async function createSession(baseURL: string, title: string): Promise<string> {
   // Fill the form but don't submit — show it filled
   await page.goto(BASE);
   await page.waitForLoadState("networkidle");
-  const titleInput = page.locator('input[name="title"], input[placeholder*="session"], input[type="text"]').first();
+  const titleInput = page
+    .locator('input[name="title"], input[placeholder*="session"], input[type="text"]')
+    .first();
   await titleInput.fill("User Authentication Flow");
   await page.screenshot({ path: path.join(OUT, "create-session.png"), fullPage: false });
   console.log("✓ create-session");
@@ -185,9 +187,11 @@ async function createSession(baseURL: string, title: string): Promise<string> {
 
   await page.locator(".gherkin-import-btn").click();
   await page.waitForSelector(".gherkin-import-modal");
-  await page.locator(".gherkin-import-textarea").fill(
-    "Feature: Payment processing\nScenario: Successful charge\nGiven a valid card on file\nWhen the checkout button is clicked\nThen a receipt is emailed to the user"
-  );
+  await page
+    .locator(".gherkin-import-textarea")
+    .fill(
+      "Feature: Payment processing\nScenario: Successful charge\nGiven a valid card on file\nWhen the checkout button is clicked\nThen a receipt is emailed to the user",
+    );
   await page.screenshot({ path: path.join(OUT, "import-modal.png"), fullPage: false });
   console.log("✓ import-modal");
   await page.locator(".gherkin-import-cancel").click();
@@ -196,9 +200,11 @@ async function createSession(baseURL: string, title: string): Promise<string> {
   // Re-use session E with some content
   await page.locator(".gherkin-import-btn").click();
   await page.waitForSelector(".gherkin-import-modal");
-  await page.locator(".gherkin-import-textarea").fill(
-    "Feature: Payment processing\nScenario: Successful charge\nGiven a valid card on file\nWhen the checkout button is clicked\nThen a receipt is emailed"
-  );
+  await page
+    .locator(".gherkin-import-textarea")
+    .fill(
+      "Feature: Payment processing\nScenario: Successful charge\nGiven a valid card on file\nWhen the checkout button is clicked\nThen a receipt is emailed",
+    );
   await page.locator(".gherkin-import-confirm").click();
   await page.waitForSelector('[data-gherkin-type="feature"]');
   // Screenshot with export buttons visible
@@ -215,7 +221,7 @@ async function createSession(baseURL: string, title: string): Promise<string> {
         result:
           "## Feedback\n\n**Overall:** Good structure!\n\n### Suggestions\n\n- The Given step could be more specific about the card type.\n- Consider adding a scenario for a declined card.\n- The Then step should specify the receipt contents.",
       }),
-    })
+    }),
   );
   await page.locator(".session-review-btn").click();
   await page.waitForSelector(".session-review-modal");

@@ -20,24 +20,21 @@ export class Coaching {
       throw new CoachingConfigError("OPENROUTER_API_KEY is not set");
     }
 
-    const response = await this.deps.fetch(
-      "https://openrouter.ai/api/v1/chat/completions",
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${this.deps.apiKey}`,
-        },
-        body: JSON.stringify({
-          model,
-          provider: { allow_fallbacks: true },
-          messages: [
-            { role: "system", content: prompt },
-            { role: "user", content },
-          ],
-        }),
-      }
-    );
+    const response = await this.deps.fetch("https://openrouter.ai/api/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${this.deps.apiKey}`,
+      },
+      body: JSON.stringify({
+        model,
+        provider: { allow_fallbacks: true },
+        messages: [
+          { role: "system", content: prompt },
+          { role: "user", content },
+        ],
+      }),
+    });
 
     if (!response.ok) {
       const text = await response.text();
@@ -55,9 +52,7 @@ export class Coaching {
         throw new RateLimitError(retryAfter);
       }
 
-      throw new CoachingRequestError(
-        `OpenRouter request failed: ${response.status} ${text}`
-      );
+      throw new CoachingRequestError(`OpenRouter request failed: ${response.status} ${text}`);
     }
 
     const data = (await response.json()) as {

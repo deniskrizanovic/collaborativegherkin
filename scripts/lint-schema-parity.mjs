@@ -107,15 +107,15 @@ export function diffSchemas(a, b, labelA = "A", labelB = "B") {
       const typeB = fieldsB.get(field);
       if (typeA === undefined) {
         violations.push(
-          `model "${model}": field "${field}" exists in ${labelB} but not in ${labelA}`
+          `model "${model}": field "${field}" exists in ${labelB} but not in ${labelA}`,
         );
       } else if (typeB === undefined) {
         violations.push(
-          `model "${model}": field "${field}" exists in ${labelA} but not in ${labelB}`
+          `model "${model}": field "${field}" exists in ${labelA} but not in ${labelB}`,
         );
       } else if (typeA !== typeB) {
         violations.push(
-          `model "${model}": field "${field}" has type "${typeA}" in ${labelA} but "${typeB}" in ${labelB}`
+          `model "${model}": field "${field}" has type "${typeA}" in ${labelA} but "${typeB}" in ${labelB}`,
         );
       }
     }
@@ -137,18 +137,18 @@ function main() {
     sqlite,
     postgres,
     "prisma/schema.prisma (sqlite)",
-    "prisma/postgres/schema.prisma (postgres)"
+    "prisma/postgres/schema.prisma (postgres)",
   );
 
   if (violations.length === 0) {
     console.log(
-      `✓ schema parity: SQLite and PostgreSQL schemas define the same ${sqlite.size} model(s) and fields`
+      `✓ schema parity: SQLite and PostgreSQL schemas define the same ${sqlite.size} model(s) and fields`,
     );
     return;
   }
 
   console.error(
-    `✗ schema parity: ${violations.length} divergence(s) between the SQLite and PostgreSQL Prisma schemas:\n`
+    `✗ schema parity: ${violations.length} divergence(s) between the SQLite and PostgreSQL Prisma schemas:\n`,
   );
   for (const v of violations) {
     console.error(`  ${v}`);
@@ -156,7 +156,7 @@ function main() {
   console.error(
     `\nThe two schemas MUST define the same models and fields. The only sanctioned ` +
       `differences are the datasource 'provider', the generator 'output' path, and ` +
-      `engine-native '@db.*' attributes. Add the field/model to BOTH schemas.`
+      `engine-native '@db.*' attributes. Add the field/model to BOTH schemas.`,
   );
   process.exitCode = 1;
 }

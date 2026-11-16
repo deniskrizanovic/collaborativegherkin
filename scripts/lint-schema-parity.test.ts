@@ -1,7 +1,7 @@
-import { describe, it, expect } from "vitest";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
-import { parseModels, diffSchemas } from "./lint-schema-parity.mjs";
+import { describe, expect, it } from "vitest";
+import { diffSchemas, parseModels } from "./lint-schema-parity.mjs";
 
 const sqliteHeader = `generator client {
   provider = "prisma-client"
@@ -114,11 +114,9 @@ describe("diffSchemas", () => {
 describe("committed schemas", () => {
   it("the real SQLite and Postgres schemas are at parity", () => {
     const repoRoot = join(__dirname, "..");
-    const sqlite = parseModels(
-      readFileSync(join(repoRoot, "prisma", "schema.prisma"), "utf8")
-    );
+    const sqlite = parseModels(readFileSync(join(repoRoot, "prisma", "schema.prisma"), "utf8"));
     const postgres = parseModels(
-      readFileSync(join(repoRoot, "prisma", "postgres", "schema.prisma"), "utf8")
+      readFileSync(join(repoRoot, "prisma", "postgres", "schema.prisma"), "utf8"),
     );
     expect(diffSchemas(sqlite, postgres, "sqlite", "postgres")).toEqual([]);
   });

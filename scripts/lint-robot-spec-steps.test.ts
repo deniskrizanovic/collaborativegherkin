@@ -1,4 +1,4 @@
-import { describe, it, expect } from "vitest";
+import { describe, expect, it } from "vitest";
 import {
   lintSpecSteps,
   matchSpecStep,
@@ -57,7 +57,11 @@ SC-3.3.6: Escape closes picker without inserting
     Then the menu closes without inserting a block`);
 
 function lint(content: string) {
-  return lintSpecSteps(specs, [{ file: "s.robot", content }]).map((v) => [v.file, v.line, v.message]);
+  return lintSpecSteps(specs, [{ file: "s.robot", content }]).map((v) => [
+    v.file,
+    v.line,
+    v.message,
+  ]);
 }
 
 describe("parsers", () => {
@@ -77,10 +81,12 @@ describe("parsers", () => {
   });
 
   it("detects bdd on a continuation line, in Force Tags, and per test in [Tags]", () => {
-    expect(parseRobotSuite(suite("x\n    Click    .y", "pilot\n...                 bdd")).bdd).toBe(true);
+    expect(parseRobotSuite(suite("x\n    Click    .y", "pilot\n...                 bdd")).bdd).toBe(
+      true,
+    );
     expect(parseRobotSuite("*** Settings ***\nForce Tags    BDD\n").bdd).toBe(true);
     const perTest = parseRobotSuite(
-      suite("A\n    [Tags]    smoke\n    ...    bdd\n    Given x\n\nB\n    Given y", "chunk2")
+      suite("A\n    [Tags]    smoke\n    ...    bdd\n    Given x\n\nB\n    Given y", "chunk2"),
     );
     expect(perTest.bdd).toBe(false);
     expect(perTest.tests.map((t) => t.bdd)).toEqual([true, false]);
@@ -88,7 +94,10 @@ describe("parsers", () => {
 
   it("collects [Tags] cells, including a continuation line", () => {
     const parsed = parseRobotSuite(
-      suite("A\n    [Tags]    smoke    skip\n    Given x\n\nB\n    [Tags]    one\n    ...    two\n    Given y", "")
+      suite(
+        "A\n    [Tags]    smoke    skip\n    Given x\n\nB\n    [Tags]    one\n    ...    two\n    Given y",
+        "",
+      ),
     );
     expect(parsed.tests.map((t) => t.tags)).toEqual([
       ["smoke", "skip"],
@@ -100,7 +109,14 @@ describe("parsers", () => {
     const content =
       "*** Settings ***\nTest Tags    chunk5    collab\nForce Tags    forced\nDefault Tags    dflt\n...    more\n\n" +
       "*** Test Cases ***\nA\n    [Tags]    skip\n    Click    .x\n";
-    expect(parseRobotSuite(content).tests[0].tags).toEqual(["chunk5", "collab", "forced", "dflt", "more", "skip"]);
+    expect(parseRobotSuite(content).tests[0].tags).toEqual([
+      "chunk5",
+      "collab",
+      "forced",
+      "dflt",
+      "more",
+      "skip",
+    ]);
   });
 
   it("gives an empty tag list to a test with no tags", () => {
@@ -108,12 +124,16 @@ describe("parsers", () => {
   });
 
   it("drops a trailing comment from a step", () => {
-    const [test] = parseRobotSuite(suite("A\n    Given the block picker menu is open    # opens on Feature")).tests;
+    const [test] = parseRobotSuite(
+      suite("A\n    Given the block picker menu is open    # opens on Feature"),
+    ).tests;
     expect(test.steps[0].text).toBe("the block picker menu is open");
   });
 
   it("strips the SC id and variant suffix from test names", () => {
-    expect(scenarioTitleOf("SC-3.3.1: Typing / opens picker — Image always last")).toBe("Typing / opens picker");
+    expect(scenarioTitleOf("SC-3.3.1: Typing / opens picker — Image always last")).toBe(
+      "Typing / opens picker",
+    );
   });
 
   it("normalizes case, backticks, whitespace and a trailing period", () => {
@@ -122,7 +142,10 @@ describe("parsers", () => {
 });
 
 describe("matchSpecStep", () => {
-  const lines = [{ text: "the menu closes" }, { text: "the menu closes without inserting a block" }];
+  const lines = [
+    { text: "the menu closes" },
+    { text: "the menu closes without inserting a block" },
+  ];
 
   it("prefers an exact line, then the longest line the step refines", () => {
     expect(matchSpecStep("the menu closes", lines)).toBe(0);
@@ -138,7 +161,10 @@ describe("lintSpecSteps", () => {
   });
 
   it("checks a single test tagged bdd in a suite without the tag", () => {
-    const content = suite("SC-9.9.9: Unknown scenario\n    [Tags]    bdd\n    Given anything\n\nOther\n    Click    .x", "chunk2");
+    const content = suite(
+      "SC-9.9.9: Unknown scenario\n    [Tags]    bdd\n    Given anything\n\nOther\n    Click    .x",
+      "chunk2",
+    );
     expect(lint(content)).toEqual([["s.robot", 6, 'no spec scenario titled "Unknown scenario"']]);
   });
 
@@ -153,25 +179,42 @@ describe("lintSpecSteps", () => {
   });
 
   it("fails on technical keywords in a test body", () => {
-    const content = passing.replace("    When the user presses Escape", "    Keyboard Key    press    Escape");
+    const content = passing.replace(
+      "    When the user presses Escape",
+      "    Keyboard Key    press    Escape",
+    );
     const messages = lint(content).map((v) => v[2]);
     expect(messages).toContain("not a Given/When/Then step: Keyboard Key    press    Escape");
   });
 
   it("fails on a step that drifted from the spec, and reports the uncovered spec line", () => {
-    const content = passing.replace("the menu closes without inserting a block", "the picker is closed");
+    const content = passing.replace(
+      "the menu closes without inserting a block",
+      "the picker is closed",
+    );
     expect(lint(content)).toEqual([
       [
         "s.robot",
         17,
-        expect.stringMatching(/^step not in spec scenario "Escape closes picker without inserting" .*: Then the picker is closed$/),
+        expect.stringMatching(
+          /^step not in spec scenario "Escape closes picker without inserting" .*: Then the picker is closed$/,
+        ),
       ],
-      ["spec.md", 14, expect.stringMatching(/^spec step not exercised .*: THEN the menu closes without inserting a block$/)],
+      [
+        "spec.md",
+        14,
+        expect.stringMatching(
+          /^spec step not exercised .*: THEN the menu closes without inserting a block$/,
+        ),
+      ],
     ]);
   });
 
   it("fails on a step of the wrong kind", () => {
-    const content = passing.replace("    When the user presses Escape", "    Then the user presses Escape");
+    const content = passing.replace(
+      "    When the user presses Escape",
+      "    Then the user presses Escape",
+    );
     expect(lint(content).map((v) => v[2])).toEqual([
       "step is a THEN here but a WHEN in the spec: Then the user presses Escape",
     ]);
@@ -179,7 +222,9 @@ describe("lintSpecSteps", () => {
 
   it("fails when two scenarios share a title", () => {
     const twice = [...specs, { file: "other.md", content: spec }];
-    const messages = lintSpecSteps(twice, [{ file: "s.robot", content: passing }]).map((v) => v.message);
+    const messages = lintSpecSteps(twice, [{ file: "s.robot", content: passing }]).map(
+      (v) => v.message,
+    );
     expect(messages).toContain('2 spec scenarios titled "Typing / opens picker"');
   });
 });
