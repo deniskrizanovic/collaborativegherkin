@@ -7,7 +7,7 @@ import {
   CoachingRequestError,
   RateLimitError,
 } from "@/lib/coaching";
-import { db } from "@/lib/db";
+import { db, tables } from "@/lib/db";
 import { AVAILABLE_MODELS, DEFAULT_MODEL, DEFAULT_PROMPT } from "@/lib/llm-constants";
 import logger from "@/lib/logger";
 import { Session, SessionNotFoundError } from "@/lib/session";
@@ -32,7 +32,7 @@ export async function POST(request: Request) {
     }
     const { content, sessionId } = parsed.data;
 
-    const sessionService = new Session({ session: db.session });
+    const sessionService = new Session({ db, tables });
     let sessionRecord;
     try {
       sessionRecord = await sessionService.get(sessionId);

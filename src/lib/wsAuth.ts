@@ -21,7 +21,7 @@ export const SESSION_TOKEN_COOKIE = "authjs.session-token";
 /**
  * A room is authorized only if it names a session capability: the literal
  * prefix `session-` followed by a cuid (lowercase alphanumeric, as emitted by
- * Prisma's `@default(cuid())`). Rejects `default`, empty, path-bearing, or
+ * `@paralleldrive/cuid2`'s `createId()`). Rejects `default`, empty, path-bearing, or
  * otherwise unstructured room names even for an authenticated caller.
  */
 const ROOM_NAME_RE = /^session-[a-z0-9]+$/;

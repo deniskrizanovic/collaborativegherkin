@@ -1,12 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { auth } from "@/auth";
-import { db } from "@/lib/db";
+import { db, tables } from "@/lib/db";
 import { AVAILABLE_MODELS } from "@/lib/llm-constants";
 import logger from "@/lib/logger";
 import { Session, SessionNotFoundError } from "@/lib/session";
 
-const session = new Session({ session: db.session });
+const session = new Session({ db, tables });
 
 export async function GET(_req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const authSession = await auth();

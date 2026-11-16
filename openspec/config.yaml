@@ -11,7 +11,7 @@ context: |
   Tech stack:
   - Framework: Next.js 15 (App Router), TypeScript front end and back end
   - Editor: Tiptap with Y.js for real-time collaboration
-  - Database: SQLite (dev) / PostgreSQL (production) via Prisma
+  - Database: SQLite (dev) / PostgreSQL (production) via Drizzle ORM
   - Auth: NextAuth.js v5 (Resend magic link, JWT strategy)
   - Validation: Zod (validate on the server, not client-only)
   - Logging: Pino (use the logger, never console.log in server code)

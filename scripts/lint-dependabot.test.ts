@@ -8,7 +8,7 @@ const adr = `# ADR 0004 — Latest Stable Dependency Principle
 
 ### Exception: \`next-auth\`
 
-\`next-auth\` is pinned. \`@auth/core\` and \`@auth/prisma-adapter\` move in lockstep.
+\`next-auth\` is pinned. \`@auth/core\` and \`@auth/drizzle-adapter\` move in lockstep.
 `;
 
 const validConfig = `version: 2
@@ -31,7 +31,7 @@ updates:
       - dependency-name: "next-auth"
         update-types: ["version-update:semver-major"]
       - dependency-name: "@auth/core"
-      - dependency-name: "@auth/prisma-adapter"
+      - dependency-name: "@auth/drizzle-adapter"
 `;
 
 /** Build a single-entry npm config with the given extra keys, cooldown, and ignore entries. */

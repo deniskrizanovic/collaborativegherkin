@@ -9,7 +9,7 @@
   "files": {
     "includes": [
       "**/*.{ts,tsx,js,mjs,cjs,json,jsonc,css}",
-      "!!**/src/generated",
+      "!!**/drizzle/**/meta",
       "!**/next-env.d.ts"
     ]
   },

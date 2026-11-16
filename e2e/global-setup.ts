@@ -8,7 +8,7 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.resolve(__dirname, "..");
 
 // Load .env.local before importing db so DATABASE_URL is set when the
-// Prisma adapter is chosen (global-setup runs outside Next.js).
+// database engine is chosen (global-setup runs outside Next.js).
 dotenv.config({ path: path.join(ROOT, ".env.local") });
 dotenv.config({ path: path.join(ROOT, ".env") });
 
@@ -19,17 +19,19 @@ const TEST_EMAIL = process.env.TEST_AUTH_EMAIL ?? "e2e-test@example.com";
 const TEST_EMAIL_2 = process.env.TEST_AUTH_EMAIL_2 ?? "e2e-test-2@example.com";
 const AUTH_SECRET = process.env.AUTH_SECRET ?? "dev-secret";
 
-type Db = Awaited<typeof import("../src/lib/db")>["db"];
+type DbModule = typeof import("../src/lib/db");
+type EnsureUser = typeof import("../src/lib/user")["ensureUserByEmail"];
 
-// Upsert a user and write a Playwright storage-state file with a NextAuth JWT
+// Ensure a user exists and write a Playwright storage-state file with a NextAuth JWT
 // cookie for that user, so a context loaded with it starts authenticated as them.
-async function writeAuthState(db: Db, authDir: string, email: string, fileName: string) {
-  const user = await db.user.upsert({
-    where: { email },
-    update: {},
-    create: { email },
-    select: { id: true, email: true },
-  });
+async function writeAuthState(
+  { db, tables }: DbModule,
+  ensureUserByEmail: EnsureUser,
+  authDir: string,
+  email: string,
+  fileName: string,
+) {
+  const user = await ensureUserByEmail(db, tables, email);
 
   // Encode a NextAuth JWT directly — no browser, no CSRF.
   const token = await encode({
@@ -62,12 +64,13 @@ export default async function globalSetup() {
   fs.mkdirSync(authDir, { recursive: true });
 
   // Dynamic import so db picks up DATABASE_URL after dotenv runs above.
-  const { db } = await import("../src/lib/db");
+  const dbModule = await import("../src/lib/db");
+  const { ensureUserByEmail } = await import("../src/lib/user");
 
   // Default identity for the whole suite (user.json), plus a second distinct
   // identity (user2.json) for access-control tests.
-  await writeAuthState(db, authDir, TEST_EMAIL, "user.json");
-  await writeAuthState(db, authDir, TEST_EMAIL_2, "user2.json");
+  await writeAuthState(dbModule, ensureUserByEmail, authDir, TEST_EMAIL, "user.json");
+  await writeAuthState(dbModule, ensureUserByEmail, authDir, TEST_EMAIL_2, "user2.json");
 
-  await db.$disconnect();
+  await dbModule.closeDb();
 }

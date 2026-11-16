@@ -8,8 +8,8 @@ that tool instead (`oxlint`, Biome, `lint:*` scripts, `lint:crap`).
 
 - **Failures are logged before they propagate.** A database, network or
   filesystem call in server code sits in a `try/catch` that logs through
-  `src/lib/logger.ts` (Pino) and then re-throws. Look for a new `await` on Prisma, `fetch` or `fs` with no
-  surrounding handler.
+  `src/lib/logger.ts` (Pino) and then re-throws. Look for a new `await` on a
+  Drizzle query, `fetch` or `fs` with no surrounding handler.
 - **The server validates what the client validates.** Every API route parses
   its request body and params with a Zod schema, even when the UI already
   checks the same fields.

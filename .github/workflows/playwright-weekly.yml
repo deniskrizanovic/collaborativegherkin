@@ -42,11 +42,9 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: Generate Prisma client
-        run: ./node_modules/.bin/prisma generate
-
+      # DATABASE_URL is relative to the working directory: repo-root ci.db.
       - name: Run database migrations
-        run: ./node_modules/.bin/prisma migrate deploy
+        run: pnpm db:migrate
 
       - name: Seed database
         run: pnpm run seed

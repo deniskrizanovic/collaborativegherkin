@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { auth } from "@/auth";
-import { db } from "@/lib/db";
+import { db, tables } from "@/lib/db";
 import logger from "@/lib/logger";
 import { Session } from "@/lib/session";
 
@@ -9,7 +9,7 @@ const CreateSessionSchema = z.object({
   title: z.string().min(1).max(200),
 });
 
-const session = new Session({ session: db.session });
+const session = new Session({ db, tables });
 
 export async function GET() {
   const authSession = await auth();

@@ -1,123 +1,118 @@
-import { readFileSync } from "node:fs";
 import { join } from "node:path";
+import { integer as pgInteger, pgTable, text as pgText } from "drizzle-orm/pg-core";
+import { integer as sqliteInteger, sqliteTable, text as sqliteText } from "drizzle-orm/sqlite-core";
 import { describe, expect, it } from "vitest";
-import { diffSchemas, parseModels } from "./lint-schema-parity.mjs";
+import { describeSchema, diffSchemas, loadCommittedSchemas } from "./lint-schema-parity.mjs";
 
-const sqliteHeader = `generator client {
-  provider = "prisma-client"
-  output   = "../src/generated/prisma"
-}
+const sqliteSessionWithCoaching = sqliteTable("Session", {
+  id: sqliteText("id").primaryKey(),
+  title: sqliteText("title").notNull(),
+  prompt: sqliteText("prompt"),
+  model: sqliteText("model"),
+  userId: sqliteText("userId").notNull(),
+});
 
-datasource db {
-  provider = "sqlite"
-}
-`;
+const pgSessionWithCoaching = pgTable("Session", {
+  id: pgText("id").primaryKey(),
+  title: pgText("title").notNull(),
+  prompt: pgText("prompt"),
+  model: pgText("model"),
+  userId: pgText("userId").notNull(),
+});
 
-const postgresHeader = `generator client {
-  provider = "prisma-client"
-  output   = "../../src/generated/prisma"
-}
+const pgSessionWithoutCoaching = pgTable("Session", {
+  id: pgText("id").primaryKey(),
+  title: pgText("title").notNull(),
+  userId: pgText("userId").notNull(),
+});
 
-datasource db {
-  provider = "postgresql"
-}
-`;
+const pgAppSetting = pgTable("AppSetting", {
+  key: pgText("key").primaryKey(),
+  value: pgText("value").notNull(),
+});
 
-const sessionWithCoaching = `model Session {
-  id        String   @id @default(cuid())
-  title     String
-  prompt    String?
-  model     String?
-  userId    String
-}
-`;
-
-const sessionWithoutCoaching = `model Session {
-  id        String   @id @default(cuid())
-  title     String
-  userId    String
-}
-`;
-
-const appSetting = `model AppSetting {
-  key       String   @id
-  value     String
-}
-`;
-
-describe("parseModels", () => {
-  it("extracts model and field names, ignoring datasource/generator blocks", () => {
-    const models = parseModels(sqliteHeader + sessionWithCoaching);
-    expect([...models.keys()]).toEqual(["Session"]);
-    expect([...(models.get("Session") ?? new Map()).keys()]).toEqual([
-      "id",
-      "title",
-      "prompt",
-      "model",
-      "userId",
-    ]);
-  });
-
-  it("skips block-level attributes like @@unique", () => {
-    const withBlockAttr = `model Account {
-  id       String @id
-  provider String
-  @@unique([provider, id])
-}
-`;
-    const models = parseModels(withBlockAttr);
-    expect([...(models.get("Account") ?? new Map()).keys()]).toEqual(["id", "provider"]);
+describe("describeSchema", () => {
+  it("maps each table export to its SQL column names and nullability, ignoring non-tables", () => {
+    const schema = describeSchema(
+      { sessions: sqliteSessionWithCoaching, helper: () => "not a table" },
+      "sqlite",
+    );
+    expect([...schema.keys()]).toEqual(["Session"]);
+    expect(Object.fromEntries(schema.get("Session") ?? new Map())).toEqual({
+      id: { notNull: true },
+      title: { notNull: true },
+      prompt: { notNull: false },
+      model: { notNull: false },
+      userId: { notNull: true },
+    });
   });
 });
 
 describe("diffSchemas", () => {
-  it("passes when both schemas define the same models and fields", () => {
-    const a = parseModels(sqliteHeader + sessionWithCoaching);
-    const b = parseModels(postgresHeader + sessionWithCoaching);
+  it("passes when both schemas define the same tables and columns", () => {
+    // Dialect column types differ (SQLite integer vs Postgres integer builders,
+    // text everywhere) — only names and nullability are compared.
+    const a = describeSchema(
+      {
+        sessions: sqliteSessionWithCoaching,
+        counters: sqliteTable("Counter", { n: sqliteInteger("n").notNull() }),
+      },
+      "sqlite",
+    );
+    const b = describeSchema(
+      {
+        sessions: pgSessionWithCoaching,
+        counters: pgTable("Counter", { n: pgInteger("n").notNull() }),
+      },
+      "pg",
+    );
     expect(diffSchemas(a, b, "sqlite", "postgres")).toEqual([]);
   });
 
-  it("fails and names the field when a field exists on one model only", () => {
-    const a = parseModels(sqliteHeader + sessionWithCoaching);
-    const b = parseModels(postgresHeader + sessionWithoutCoaching);
+  it("fails and names the column when a column exists on one table only", () => {
+    const a = describeSchema({ sessions: sqliteSessionWithCoaching }, "sqlite");
+    const b = describeSchema({ sessions: pgSessionWithoutCoaching }, "pg");
     const violations = diffSchemas(a, b, "sqlite", "postgres");
-    expect(violations.some((v) => v.includes("prompt"))).toBe(true);
-    expect(violations.some((v) => v.includes("model"))).toBe(true);
-    expect(violations.every((v) => v.includes("Session"))).toBe(true);
+    expect(violations).toHaveLength(2);
+    expect(violations.some((v) => v.includes('"prompt"'))).toBe(true);
+    expect(violations.some((v) => v.includes('"model"'))).toBe(true);
+    expect(violations.every((v) => v.includes('"Session"'))).toBe(true);
   });
 
-  it("fails and names the model when a model exists in one schema only", () => {
-    const a = parseModels(sqliteHeader + sessionWithCoaching);
-    const b = parseModels(postgresHeader + sessionWithCoaching + appSetting);
+  it("fails and names the table when a table exists in one schema only", () => {
+    const a = describeSchema({ sessions: sqliteSessionWithCoaching }, "sqlite");
+    const b = describeSchema({ sessions: pgSessionWithCoaching, appSetting: pgAppSetting }, "pg");
     const violations = diffSchemas(a, b, "sqlite", "postgres");
     expect(violations).toHaveLength(1);
-    expect(violations[0]).toContain("AppSetting");
+    expect(violations[0]).toContain('"AppSetting"');
   });
 
-  it("fails when a shared field has a different type across schemas", () => {
-    const a = parseModels(`model Session {
-  id    String @id
-  count Int
-}
-`);
-    const b = parseModels(`model Session {
-  id    String @id
-  count String
-}
-`);
+  it("fails when a shared column is nullable in one schema only", () => {
+    const a = describeSchema({ sessions: sqliteSessionWithCoaching }, "sqlite");
+    const b = describeSchema(
+      {
+        sessions: pgTable("Session", {
+          id: pgText("id").primaryKey(),
+          title: pgText("title").notNull(),
+          prompt: pgText("prompt").notNull(),
+          model: pgText("model"),
+          userId: pgText("userId").notNull(),
+        }),
+      },
+      "pg",
+    );
     const violations = diffSchemas(a, b, "sqlite", "postgres");
     expect(violations).toHaveLength(1);
-    expect(violations[0]).toContain("count");
+    expect(violations[0]).toContain('"Session"');
+    expect(violations[0]).toContain('"prompt"');
+    expect(violations[0]).toContain("nullable in sqlite but required in postgres");
   });
 });
 
 describe("committed schemas", () => {
-  it("the real SQLite and Postgres schemas are at parity", () => {
-    const repoRoot = join(__dirname, "..");
-    const sqlite = parseModels(readFileSync(join(repoRoot, "prisma", "schema.prisma"), "utf8"));
-    const postgres = parseModels(
-      readFileSync(join(repoRoot, "prisma", "postgres", "schema.prisma"), "utf8"),
-    );
-    expect(diffSchemas(sqlite, postgres, "sqlite", "postgres")).toEqual([]);
+  it("the real SQLite and Postgres schemas are at parity", async () => {
+    const { sqlite, pg } = await loadCommittedSchemas(join(__dirname, ".."));
+    expect(sqlite.size).toBe(4);
+    expect(diffSchemas(sqlite, pg, "sqlite", "postgres")).toEqual([]);
   });
 });

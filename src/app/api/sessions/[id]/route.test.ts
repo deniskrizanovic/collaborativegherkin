@@ -1,21 +1,17 @@
+import { eq } from "drizzle-orm";
 import { NextRequest } from "next/server";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { db, tables } from "@/lib/db";
 import { AVAILABLE_MODELS } from "@/lib/llm-constants";
+import { Session } from "@/lib/session";
 
 const VALID_USER_ID = "cm0000000000000000000000";
 const OTHER_USER_ID = "cm0000000000000000000001";
 
-const fakeSessionTable = {
-  findMany: vi.fn(),
-  create: vi.fn(),
-  findUnique: vi.fn(),
-  update: vi.fn(),
-  delete: vi.fn(),
-};
-
-vi.mock("@/lib/db", () => ({
-  db: { session: fakeSessionTable },
-}));
+vi.mock("@/lib/db", async () => {
+  const { createTestDb } = await import("@/db/testing");
+  return createTestDb("sqlite");
+});
 
 vi.mock("@/lib/logger", () => ({
   default: { info: vi.fn(), error: vi.fn() },
@@ -25,9 +21,25 @@ vi.mock("@/auth", () => ({
   auth: vi.fn(),
 }));
 
-beforeEach(() => {
+beforeEach(async () => {
   vi.clearAllMocks();
+  await db.delete(tables.sessions);
+  await db.delete(tables.users);
+  await db.insert(tables.users).values([
+    { id: VALID_USER_ID, email: "test@example.com" },
+    { id: OTHER_USER_ID, email: "other@example.com" },
+  ]);
+  await db.insert(tables.sessions).values(baseRow);
 });
+
+afterEach(() => {
+  vi.restoreAllMocks();
+});
+
+async function storedSession(id: string) {
+  const [row] = await db.select().from(tables.sessions).where(eq(tables.sessions.id, id));
+  return row;
+}
 
 async function importRoute() {
   return import("./route");
@@ -66,7 +78,6 @@ describe("GET /api/sessions/[id]", () => {
 
   it("returns 200 with session including prompt and model", async () => {
     await mockAuth(VALID_USER_ID);
-    fakeSessionTable.findUnique.mockResolvedValue(baseRow);
 
     const { GET } = await importRoute();
     const req = new NextRequest("http://localhost/api/sessions/abc");
@@ -85,7 +96,6 @@ describe("GET /api/sessions/[id]", () => {
 
   it("returns 404 when session is not found", async () => {
     await mockAuth(VALID_USER_ID);
-    fakeSessionTable.findUnique.mockResolvedValue(null);
 
     const { GET } = await importRoute();
     const req = new NextRequest("http://localhost/api/sessions/unknown");
@@ -114,7 +124,6 @@ describe("PATCH /api/sessions/[id]", () => {
 
   it("returns 200 when model is updated", async () => {
     await mockAuth(VALID_USER_ID);
-    fakeSessionTable.update.mockResolvedValue({});
 
     const { PATCH } = await importRoute();
     const req = new NextRequest("http://localhost/api/sessions/abc", {
@@ -127,11 +136,11 @@ describe("PATCH /api/sessions/[id]", () => {
 
     expect(res.status).toBe(200);
     expect(body).toEqual({ ok: true });
+    expect(await storedSession("abc")).toMatchObject({ model: AVAILABLE_MODELS[0] });
   });
 
   it("returns 200 when prompt is updated", async () => {
     await mockAuth(VALID_USER_ID);
-    fakeSessionTable.update.mockResolvedValue({});
 
     const { PATCH } = await importRoute();
     const req = new NextRequest("http://localhost/api/sessions/abc", {
@@ -144,6 +153,9 @@ describe("PATCH /api/sessions/[id]", () => {
 
     expect(res.status).toBe(200);
     expect(body).toEqual({ ok: true });
+    expect(await storedSession("abc")).toMatchObject({
+      prompt: "A sufficiently long custom prompt for testing",
+    });
   });
 
   it("returns 400 when prompt is too short", async () => {
@@ -176,7 +188,6 @@ describe("PATCH /api/sessions/[id]", () => {
 
   it("returns 404 when session is not found", async () => {
     await mockAuth(VALID_USER_ID);
-    fakeSessionTable.update.mockRejectedValue({ code: "P2025" });
 
     const { PATCH } = await importRoute();
     const req = new NextRequest("http://localhost/api/sessions/unknown", {
@@ -203,19 +214,17 @@ describe("DELETE /api/sessions/[id]", () => {
 
   it("returns 403 when authenticated user does not own the session", async () => {
     await mockAuth(OTHER_USER_ID);
-    fakeSessionTable.findUnique.mockResolvedValue(baseRow);
 
     const { DELETE } = await importRoute();
     const req = new NextRequest("http://localhost/api/sessions/abc", { method: "DELETE" });
     const res = await DELETE(req, makeParams("abc"));
 
     expect(res.status).toBe(403);
+    expect(await storedSession("abc")).toBeDefined();
   });
 
   it("returns 204 with no body when session is deleted by owner", async () => {
     await mockAuth(VALID_USER_ID);
-    fakeSessionTable.findUnique.mockResolvedValue(baseRow);
-    fakeSessionTable.delete.mockResolvedValue({});
 
     const { DELETE } = await importRoute();
     const req = new NextRequest("http://localhost/api/sessions/abc", { method: "DELETE" });
@@ -223,11 +232,11 @@ describe("DELETE /api/sessions/[id]", () => {
 
     expect(res.status).toBe(204);
     expect(res.body).toBeNull();
+    expect(await storedSession("abc")).toBeUndefined();
   });
 
   it("returns 404 when session is not found on get before delete", async () => {
     await mockAuth(VALID_USER_ID);
-    fakeSessionTable.findUnique.mockResolvedValue(null);
 
     const { DELETE } = await importRoute();
     const req = new NextRequest("http://localhost/api/sessions/unknown", { method: "DELETE" });
@@ -240,8 +249,7 @@ describe("DELETE /api/sessions/[id]", () => {
 
   it("returns 500 on unexpected service error during delete", async () => {
     await mockAuth(VALID_USER_ID);
-    fakeSessionTable.findUnique.mockResolvedValue(baseRow);
-    fakeSessionTable.delete.mockRejectedValue(new Error("db down"));
+    vi.spyOn(Session.prototype, "delete").mockRejectedValue(new Error("db down"));
 
     const { DELETE } = await importRoute();
     const req = new NextRequest("http://localhost/api/sessions/abc", { method: "DELETE" });

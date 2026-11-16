@@ -1,4 +1,5 @@
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { eq } from "drizzle-orm";
+import { afterEach, describe, expect, it, vi } from "vitest";
 
 // Capture the config object passed to NextAuth() so we can inspect the
 // resolved providers list per environment scenario.
@@ -19,14 +20,18 @@ vi.mock("next-auth", () => ({
   },
 }));
 
-vi.mock("@auth/prisma-adapter", () => ({
-  PrismaAdapter: () => ({}),
-}));
+// A real in-memory database. Vitest keeps the factory result across
+// `vi.resetModules()`, so every `@/auth` import shares it.
+vi.mock("@/lib/db", async () => {
+  const { createTestDb } = await import("@/db/testing");
+  return createTestDb("sqlite");
+});
 
-const upsert = vi.fn();
-vi.mock("@/lib/db", () => ({
-  db: { user: { upsert } },
-}));
+/** The users stored for `email` in the database the current `@/auth` import uses. */
+async function usersWithEmail(email: string) {
+  const { db, tables } = await import("@/lib/db");
+  return db.select().from(tables.users).where(eq(tables.users.email, email));
+}
 
 type ProviderLike = {
   id?: string;
@@ -58,12 +63,10 @@ function findTestBypass(providers: ProviderLike[]): ProviderLike | undefined {
 }
 
 describe("auth providers — test-bypass guard", () => {
-  beforeEach(() => {
-    upsert.mockReset();
-  });
-
-  afterEach(() => {
+  afterEach(async () => {
     vi.unstubAllEnvs();
+    const { db, tables } = await import("@/lib/db");
+    await db.delete(tables.users);
   });
 
   it("omits the test-bypass provider under NODE_ENV=production even when the secret is set", async () => {
@@ -97,17 +100,15 @@ describe("auth providers — test-bypass guard", () => {
     it("returns the user for the matching secret", async () => {
       vi.stubEnv("NODE_ENV", "development");
       vi.stubEnv("TEST_AUTH_SECRET", "super-secret");
-      const user = { id: "u1", email: "dev@example.com", name: null };
-      upsert.mockResolvedValue(user);
-
       const provider = findTestBypass(await loadProviders());
       const result = await authorizeOf(provider)?.({
         email: "dev@example.com",
         secret: "super-secret",
       });
 
-      expect(result).toEqual(user);
-      expect(upsert).toHaveBeenCalledTimes(1);
+      const stored = await usersWithEmail("dev@example.com");
+      expect(stored).toHaveLength(1);
+      expect(result).toEqual({ id: stored[0].id, email: "dev@example.com", name: null });
     });
 
     it("signs the dev user in when no secret is submitted (the client flow)", async () => {
@@ -115,19 +116,17 @@ describe("auth providers — test-bypass guard", () => {
       // callbackUrl. An absent secret must default to the server-side value.
       vi.stubEnv("NODE_ENV", "development");
       vi.stubEnv("TEST_AUTH_SECRET", "super-secret");
-      const user = { id: "u1", email: "dev@example.com", name: null };
-      upsert.mockResolvedValue(user);
-
       const provider = findTestBypass(await loadProviders());
       const result = await authorizeOf(provider)?.({
         email: "dev@example.com",
       });
 
-      expect(result).toEqual(user);
-      expect(upsert).toHaveBeenCalledTimes(1);
+      const stored = await usersWithEmail("dev@example.com");
+      expect(stored).toHaveLength(1);
+      expect(result).toEqual({ id: stored[0].id, email: "dev@example.com", name: null });
     });
 
-    it("returns null and does not upsert a user for a non-matching secret", async () => {
+    it("returns null and does not create a user for a non-matching secret", async () => {
       vi.stubEnv("NODE_ENV", "development");
       vi.stubEnv("TEST_AUTH_SECRET", "super-secret");
 
@@ -138,7 +137,7 @@ describe("auth providers — test-bypass guard", () => {
       });
 
       expect(result).toBeNull();
-      expect(upsert).not.toHaveBeenCalled();
+      expect(await usersWithEmail("dev@example.com")).toHaveLength(0);
     });
   });
 });

@@ -22,11 +22,15 @@ npm-debug.log*
 yarn-debug.log*
 pnpm-debug.log*
 
-# Database — SQLite dev file and any generated db files
+# Database — SQLite dev/CI files (repo-root dev.db, ci.db) and any other db
+# files, including a stale prisma/dev.db from before the Drizzle switch
 *.db
+*.db-journal
+*.db-wal
+*.db-shm
 *.sqlite
-prisma/dev.db
-prisma/dev.db-journal
+dev.db
+ci.db
 
 # OS
 .DS_Store
@@ -41,8 +45,6 @@ Thumbs.db
 *.tsbuildinfo
 next-env.d.ts
 
-# Prisma
-prisma/migrations/dev.db
 # Playwright test artifacts
 test-results/
 playwright-report/

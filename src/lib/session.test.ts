@@ -1,189 +1,174 @@
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it } from "vitest";
+import { createTestDb, type TestDb, type TestEngine } from "@/db/testing";
 import { Session, SessionNotFoundError } from "@/lib/session";
 
-const fakeSessionTable = {
-  findMany: vi.fn(),
-  create: vi.fn(),
-  findUnique: vi.fn(),
-  update: vi.fn(),
-  delete: vi.fn(),
-};
+const USER_ID = "cm0000000000000000000000";
+const OTHER_USER_ID = "cm0000000000000000000001";
 
-const VALID_USER_ID = "cm0000000000000000000000";
+describe.each<TestEngine>(["sqlite", "pg"])("Session (%s)", (engine) => {
+  let testDb: TestDb;
 
-function makeSession() {
-  return new Session({ session: fakeSessionTable as any });
-}
+  function makeSession() {
+    return new Session({ db: testDb.db, tables: testDb.tables });
+  }
 
-beforeEach(() => {
-  vi.clearAllMocks();
-});
+  beforeEach(async () => {
+    testDb = await createTestDb(engine);
+    await testDb.db.insert(testDb.tables.users).values([
+      { id: USER_ID, email: "owner@example.com" },
+      { id: OTHER_USER_ID, email: "other@example.com" },
+    ]);
+  });
 
-// ─── list ─────────────────────────────────────────────────────────────────────
+  afterEach(async () => {
+    await testDb.close().catch(() => {});
+  });
 
-describe("Session.list", () => {
-  it("returns sessions for the given user ordered by createdAt desc", async () => {
-    const rows = [
-      {
-        id: "abc",
-        title: "My session",
+  // ─── list ───────────────────────────────────────────────────────────────────
+
+  describe("Session.list", () => {
+    it("returns the user's sessions ordered by createdAt desc", async () => {
+      const { sessions } = testDb.tables;
+      await testDb.db.insert(sessions).values([
+        { id: "older", title: "Older", userId: USER_ID, createdAt: new Date("2026-01-01") },
+        { id: "newer", title: "Newer", userId: USER_ID, createdAt: new Date("2026-02-01") },
+        { id: "theirs", title: "Theirs", userId: OTHER_USER_ID },
+      ]);
+
+      const result = await makeSession().list(USER_ID);
+
+      expect(result).toEqual([
+        {
+          id: "newer",
+          title: "Newer",
+          prompt: null,
+          model: null,
+          createdAt: new Date("2026-02-01"),
+          userId: USER_ID,
+        },
+        {
+          id: "older",
+          title: "Older",
+          prompt: null,
+          model: null,
+          createdAt: new Date("2026-01-01"),
+          userId: USER_ID,
+        },
+      ]);
+    });
+
+    it("returns empty array when no sessions exist for user", async () => {
+      const result = await makeSession().list(USER_ID);
+
+      expect(result).toEqual([]);
+    });
+
+    it("propagates db errors", async () => {
+      await testDb.close();
+
+      await expect(makeSession().list(USER_ID)).rejects.toThrow();
+    });
+  });
+
+  // ─── create ─────────────────────────────────────────────────────────────────
+
+  describe("Session.create", () => {
+    it("returns the created session with a generated id", async () => {
+      const result = await makeSession().create({ title: "New session", userId: USER_ID });
+
+      expect(result).toMatchObject({
+        title: "New session",
         prompt: null,
         model: null,
-        createdAt: new Date(),
-        userId: VALID_USER_ID,
-      },
-    ];
-    fakeSessionTable.findMany.mockResolvedValue(rows);
+        userId: USER_ID,
+      });
+      expect(result.id).toMatch(/^[a-z][a-z0-9]+$/);
+      expect(result.createdAt).toBeInstanceOf(Date);
+      expect(await makeSession().get(result.id)).toEqual(result);
+    });
 
-    const result = await makeSession().list(VALID_USER_ID);
+    it("propagates db errors", async () => {
+      await testDb.close();
 
-    expect(result).toEqual(rows);
-    expect(fakeSessionTable.findMany).toHaveBeenCalledWith({
-      where: { userId: VALID_USER_ID },
-      orderBy: { createdAt: "desc" },
-      select: { id: true, title: true, prompt: true, model: true, createdAt: true, userId: true },
+      await expect(
+        makeSession().create({ title: "New session", userId: USER_ID }),
+      ).rejects.toThrow();
     });
   });
 
-  it("returns empty array when no sessions exist for user", async () => {
-    fakeSessionTable.findMany.mockResolvedValue([]);
+  // ─── get ────────────────────────────────────────────────────────────────────
 
-    const result = await makeSession().list(VALID_USER_ID);
+  describe("Session.get", () => {
+    it("returns the session when it exists", async () => {
+      const created = await makeSession().create({ title: "My session", userId: USER_ID });
 
-    expect(result).toEqual([]);
-  });
+      const result = await makeSession().get(created.id);
 
-  it("propagates db errors", async () => {
-    fakeSessionTable.findMany.mockRejectedValue(new Error("db down"));
+      expect(result).toEqual(created);
+    });
 
-    await expect(makeSession().list(VALID_USER_ID)).rejects.toThrow("db down");
-  });
-});
+    it("throws SessionNotFoundError when no session has the id", async () => {
+      await expect(makeSession().get("missing")).rejects.toBeInstanceOf(SessionNotFoundError);
+    });
 
-// ─── create ───────────────────────────────────────────────────────────────────
+    it("propagates db errors", async () => {
+      await testDb.close();
 
-describe("Session.create", () => {
-  it("returns the created session", async () => {
-    const created = {
-      id: "xyz",
-      title: "New session",
-      prompt: null,
-      model: null,
-      createdAt: new Date(),
-      userId: VALID_USER_ID,
-    };
-    fakeSessionTable.create.mockResolvedValue(created);
-
-    const result = await makeSession().create({ title: "New session", userId: VALID_USER_ID });
-
-    expect(result).toEqual(created);
-    expect(fakeSessionTable.create).toHaveBeenCalledWith({
-      data: { title: "New session", userId: VALID_USER_ID },
+      await expect(makeSession().get("abc")).rejects.toThrow();
     });
   });
 
-  it("propagates db errors", async () => {
-    fakeSessionTable.create.mockRejectedValue(new Error("db down"));
+  // ─── update ─────────────────────────────────────────────────────────────────
 
-    await expect(
-      makeSession().create({ title: "New session", userId: VALID_USER_ID }),
-    ).rejects.toThrow("db down");
-  });
-});
+  describe("Session.update", () => {
+    it("persists the new prompt", async () => {
+      const { id } = await makeSession().create({ title: "S", userId: USER_ID });
 
-// ─── get ──────────────────────────────────────────────────────────────────────
+      await expect(makeSession().update(id, { prompt: "new prompt" })).resolves.toBeUndefined();
 
-describe("Session.get", () => {
-  it("returns the session when it exists", async () => {
-    const row = {
-      id: "abc",
-      title: "My session",
-      prompt: null,
-      model: null,
-      createdAt: new Date(),
-      userId: VALID_USER_ID,
-    };
-    fakeSessionTable.findUnique.mockResolvedValue(row);
+      expect(await makeSession().get(id)).toMatchObject({ prompt: "new prompt", model: null });
+    });
 
-    const result = await makeSession().get("abc");
+    it("persists the new model", async () => {
+      const { id } = await makeSession().create({ title: "S", userId: USER_ID });
 
-    expect(result).toEqual(row);
-    expect(fakeSessionTable.findUnique).toHaveBeenCalledWith({
-      where: { id: "abc" },
-      select: { id: true, title: true, prompt: true, model: true, createdAt: true, userId: true },
+      await expect(makeSession().update(id, { model: "some-model" })).resolves.toBeUndefined();
+
+      expect(await makeSession().get(id)).toMatchObject({ prompt: null, model: "some-model" });
+    });
+
+    it("throws SessionNotFoundError when no session has the id", async () => {
+      await expect(makeSession().update("missing", { prompt: "x" })).rejects.toBeInstanceOf(
+        SessionNotFoundError,
+      );
+    });
+
+    it("propagates db errors", async () => {
+      await testDb.close();
+
+      await expect(makeSession().update("abc", { prompt: "x" })).rejects.toThrow();
     });
   });
 
-  it("throws SessionNotFoundError when findUnique returns null", async () => {
-    fakeSessionTable.findUnique.mockResolvedValue(null);
+  // ─── delete ─────────────────────────────────────────────────────────────────
 
-    await expect(makeSession().get("missing")).rejects.toBeInstanceOf(SessionNotFoundError);
-  });
+  describe("Session.delete", () => {
+    it("removes the session", async () => {
+      const { id } = await makeSession().create({ title: "S", userId: USER_ID });
 
-  it("propagates db errors", async () => {
-    fakeSessionTable.findUnique.mockRejectedValue(new Error("db down"));
+      await expect(makeSession().delete(id)).resolves.toBeUndefined();
 
-    await expect(makeSession().get("abc")).rejects.toThrow("db down");
-  });
-});
-
-// ─── update ───────────────────────────────────────────────────────────────────
-
-describe("Session.update", () => {
-  it("resolves when prompt is updated", async () => {
-    fakeSessionTable.update.mockResolvedValue({});
-
-    await expect(makeSession().update("abc", { prompt: "new prompt" })).resolves.toBeUndefined();
-    expect(fakeSessionTable.update).toHaveBeenCalledWith({
-      where: { id: "abc" },
-      data: { prompt: "new prompt" },
+      await expect(makeSession().get(id)).rejects.toBeInstanceOf(SessionNotFoundError);
     });
-  });
 
-  it("resolves when model is updated", async () => {
-    fakeSessionTable.update.mockResolvedValue({});
-
-    await expect(makeSession().update("abc", { model: "some-model" })).resolves.toBeUndefined();
-    expect(fakeSessionTable.update).toHaveBeenCalledWith({
-      where: { id: "abc" },
-      data: { model: "some-model" },
+    it("throws SessionNotFoundError when no session has the id", async () => {
+      await expect(makeSession().delete("missing")).rejects.toBeInstanceOf(SessionNotFoundError);
     });
-  });
 
-  it("throws SessionNotFoundError when Prisma throws P2025", async () => {
-    fakeSessionTable.update.mockRejectedValue({ code: "P2025" });
+    it("propagates db errors", async () => {
+      await testDb.close();
 
-    await expect(makeSession().update("missing", { prompt: "x" })).rejects.toBeInstanceOf(
-      SessionNotFoundError,
-    );
-  });
-
-  it("propagates non-P2025 db errors", async () => {
-    fakeSessionTable.update.mockRejectedValue(new Error("db down"));
-
-    await expect(makeSession().update("abc", { prompt: "x" })).rejects.toThrow("db down");
-  });
-});
-
-// ─── delete ───────────────────────────────────────────────────────────────────
-
-describe("Session.delete", () => {
-  it("resolves when session is deleted", async () => {
-    fakeSessionTable.delete.mockResolvedValue({});
-
-    await expect(makeSession().delete("abc")).resolves.toBeUndefined();
-    expect(fakeSessionTable.delete).toHaveBeenCalledWith({ where: { id: "abc" } });
-  });
-
-  it("throws SessionNotFoundError when Prisma throws P2025", async () => {
-    fakeSessionTable.delete.mockRejectedValue({ code: "P2025" });
-
-    await expect(makeSession().delete("missing")).rejects.toBeInstanceOf(SessionNotFoundError);
-  });
-
-  it("propagates non-P2025 db errors", async () => {
-    fakeSessionTable.delete.mockRejectedValue(new Error("db down"));
-
-    await expect(makeSession().delete("abc")).rejects.toThrow("db down");
+      await expect(makeSession().delete("abc")).rejects.toThrow();
+    });
   });
 });
