@@ -1,5 +1,5 @@
 <!-- SUPERSEDED: Migrated to OpenSpec. The structured, traceability-enforced
-     source of truth now lives at `openspec/specs/gherkin-document-model/spec.md`.
+     source of truth now lives at `openspec/specs/product/gherkin/gherkin-document-model/spec.md`.
      This file is kept as human-readable narrative only; edit the OpenSpec spec
      for normative changes. -->
 

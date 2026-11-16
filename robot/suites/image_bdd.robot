@@ -1,7 +1,7 @@
 *** Settings ***
 Documentation       Business-language twin of image.robot: spec §3.8 image
 ...                 insertion and §3.12 image block selection
-...                 (openspec/specs/gherkin-editor/spec.md).
+...                 (openspec/specs/product/gherkin/gherkin-editor/spec.md).
 ...
 ...                 Each test is the GIVEN/WHEN/THEN lines of its scenario; the
 ...                 steps live in ../resources/steps/gherkin_editor.resource and

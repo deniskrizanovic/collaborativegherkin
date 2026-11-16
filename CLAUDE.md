@@ -119,6 +119,8 @@ Spec traceability is a separate gate: `lint:specs` (`pnpm lint:specs`) is a
 pure filesystem check, so it runs in the husky pre-commit hook (whole spec tree,
 every commit) **and** in CI.
 
+Specs live under category folders — `openspec/specs/{product/gherkin,product/sessions,quality,process}/<capability>/`, so spec ids are paths like `product/gherkin/gherkin-editor` — and `> **Tests:**` links use repo-root targets (`/scripts/x.test.ts`); `lint:spec-layout` enforces both.
+
 **Host-pinning convention** — the `gh` CLI must always target `github.com`, not
 the Salesforce enterprise account:
 - For `gh api` calls: `--hostname github.com`

@@ -109,7 +109,7 @@ describe("Biome formatter config", () => {
     const result = biome([
       "check",
       "--no-errors-on-unmatched",
-      "openspec/specs/gherkin-editor/spec.md",
+      "openspec/specs/product/gherkin/gherkin-editor/spec.md",
       ".github/dependabot.yml",
     ]);
     expect(result.stderr).toMatch(/Checked 0 files/);

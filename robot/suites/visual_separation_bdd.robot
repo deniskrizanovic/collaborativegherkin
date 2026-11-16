@@ -1,6 +1,6 @@
 *** Settings ***
 Documentation       Business-language twin of visual_separation.robot: spec §3.7
-...                 visual separation (openspec/specs/gherkin-editor/spec.md).
+...                 visual separation (openspec/specs/product/gherkin/gherkin-editor/spec.md).
 ...
 ...                 Each test is the GIVEN/THEN lines of its scenario; the steps
 ...                 live in ../resources/steps/gherkin_editor.resource. The

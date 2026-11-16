@@ -1,6 +1,6 @@
 *** Settings ***
 Documentation       Business-language steps for
-...                 openspec/specs/realtime-collaboration/spec.md.
+...                 openspec/specs/product/gherkin/realtime-collaboration/spec.md.
 ...
 ...                 Each keyword is named after a GIVEN/WHEN/THEN line of that
 ...                 spec, so a `bdd` test repeats its scenario word for word.

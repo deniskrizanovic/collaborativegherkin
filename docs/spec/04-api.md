@@ -1,7 +1,7 @@
 <!-- SUPERSEDED: Migrated to OpenSpec. Collection endpoints (4.1 GET / 4.2 POST
-     /api/sessions) now live at `openspec/specs/sessions-api/spec.md`. The
+     /api/sessions) now live at `openspec/specs/product/sessions/sessions-api/spec.md`. The
      per-session endpoints (4.3 GET / 4.4 DELETE /api/sessions/[id]) are owned by
-     `openspec/specs/session-access-control/` via the `add-session-ownership-authz`
+     `openspec/specs/product/sessions/session-access-control/` via the `add-session-ownership-authz`
      change. This file is kept as human-readable narrative only; edit the OpenSpec
      specs for normative changes. -->
 

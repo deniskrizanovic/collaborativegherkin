@@ -2,7 +2,7 @@
 Documentation       Business-language pilot of block_picker.robot (docs/robot-framework-evaluation.md §6.7).
 ...
 ...                 The same 9 tests, each written as the GIVEN/WHEN/THEN lines of
-...                 its scenario in openspec/specs/gherkin-editor/spec.md. The
+...                 its scenario in openspec/specs/product/gherkin/gherkin-editor/spec.md. The
 ...                 gherkin-editor steps live in
 ...                 ../resources/steps/gherkin_editor.resource, steps shared with
 ...                 other capabilities (`the user presses Escape`) in

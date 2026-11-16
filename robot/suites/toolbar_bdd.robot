@@ -1,7 +1,7 @@
 *** Settings ***
 Documentation       Business-language twin of toolbar.robot: spec §3.4 toolbar
 ...                 and SC-3.12.5, toolbar insert with an image selected
-...                 (openspec/specs/gherkin-editor/spec.md).
+...                 (openspec/specs/product/gherkin/gherkin-editor/spec.md).
 ...
 ...                 Each test is the GIVEN/WHEN/THEN lines of its scenario; the
 ...                 steps live in ../resources/steps/gherkin_editor.resource.

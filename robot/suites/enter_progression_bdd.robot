@@ -1,6 +1,6 @@
 *** Settings ***
 Documentation       Business-language twin of enter_progression.robot: spec §3.2
-...                 Enter auto-progression (openspec/specs/gherkin-editor/spec.md).
+...                 Enter auto-progression (openspec/specs/product/gherkin/gherkin-editor/spec.md).
 ...
 ...                 Each test is the GIVEN/WHEN/THEN lines of its scenario; the
 ...                 steps live in ../resources/steps/gherkin_editor.resource.

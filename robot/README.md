@@ -93,11 +93,11 @@ robot/
     files.resource   temp files and downloads
     steps/           business-language steps, one file per spec capability
       shared.resource            steps whose text is in more than one capability
-      gherkin_editor.resource    openspec/specs/gherkin-editor
-      gherkin_export.resource    openspec/specs/gherkin-export
-      gherkin_import.resource    openspec/specs/gherkin-import
-      realtime_collaboration.resource  openspec/specs/realtime-collaboration
-      llm_review.resource        openspec/specs/llm-review
+      gherkin_editor.resource    openspec/specs/product/gherkin/gherkin-editor
+      gherkin_export.resource    openspec/specs/product/gherkin/gherkin-export
+      gherkin_import.resource    openspec/specs/product/gherkin/gherkin-import
+      realtime_collaboration.resource  openspec/specs/product/gherkin/realtime-collaboration
+      llm_review.resource        openspec/specs/product/gherkin/llm-review
   libraries/         Python / JS keyword libraries (routes.cjs, WebSocketProbe.py)
   suites/            one technical *.robot file per e2e/*.spec.ts, plus one
                      business-language <area>_bdd.robot twin per editor area
@@ -198,7 +198,7 @@ button absent on Feature") stay technical-only.
 
 ### Worked example
 
-Spec `SC-8.8.2` in `openspec/specs/llm-review/spec.md`:
+Spec `SC-8.8.2` in `openspec/specs/product/gherkin/llm-review/spec.md`:
 
 ```
 #### Scenario: View last review reopens modal without new API call
