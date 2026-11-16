@@ -24,6 +24,7 @@ tools like Jira. The app is a workspace, not a permanent archive.
 pnpm dev       # start the server (Next.js HTTP + Y.js sync WebSocket) at http://localhost:3000
 pnpm build     # production build
 pnpm test      # run tests with Vitest
+pnpm exec vitest run <path>   # one test file (`pnpm test -- <path>` ignores the path and runs everything)
 pnpm lint      # lint with oxlint
 pnpm lint:format  # Biome format/import-order check on files changed vs main (pre-commit formats staged files)
 pnpm test:robot       # Robot e2e suite — the e2e suite CI and test:all run
@@ -74,23 +75,18 @@ logs/             # Written at runtime — never commit
   The sync layer should not be modified without careful testing.
 - Use the logger from `src/lib/logger.ts` instead of `console.log` everywhere
   in server-side code.
-- Wrap all database calls, network calls, and file system operations in
-  try/catch and log errors before re-throwing.
-
-## Git commits
-Do not create git commits unless the user explicitly asks. Implement, verify,
-and report — then wait for a commit instruction.
+- Review rules (error handling, server-side Zod, test style) live in
+  `CODING_STANDARDS.md`; the `reviewer` agent applies them to the diff.
 
 ## Git Workflow
 
-The "## Git commits" gate above still applies: never commit, push, or merge
-unless the user explicitly asks. The steps below describe *how* to carry out
-Git work once the user has asked for it — they are not license to act
-autonomously.
+Commit, push or merge only when the user explicitly asks. Implement, verify,
+and report — then wait for a commit instruction. The steps below describe
+*how* to carry out Git work once asked.
 
 - Check branch before any edit: `git branch --show-current`
 - **Never edit on `main` or `master`** — tell user to create feature branch first
-- When asked to commit: feature branch → commit → push → merge to main → push main → delete branch
+- When asked to commit: feature branch → `reviewer` agent on the diff (fix or report its findings) → commit → push → merge to main → push main → delete branch
 - Conventional commits: `type[scope]: description` (feat/fix/docs/refactor/chore/etc.)
 - Never use `--no-verify` unless user explicitly asks
 
@@ -123,13 +119,9 @@ the Salesforce enterprise account:
 The `/opsx:propose` flow auto-creates the issue before finalising artifacts, so
 the gate almost never fires in practice — it is a safety net.
 
-## Anti-patterns to avoid
-- Do not use `console.log` in server-side code — use the Pino logger.
-- Do not allow Gherkin block sequences that fail `canFollow()` in gherkin.ts.
-- Do not store secrets in code or committed files — they go in `.env.local`.
-- Do not commit the `logs/` directory or any `.env*` file except `.env.example`.
-- Do not run database migrations against production without a backup.
-- Do not add validation client-side only — validate with Zod on the server too.
+## Guardrails
+- Secrets go in `.env.local`. Commit no `logs/` directory and no `.env*` file except `.env.example`.
+- Back up production before running a database migration against it.
 
 ## Planning sessions
 After every planning session, save the plan to `docs/plans/YYYY-MM-DD-HH:MM-<short-description>.md`

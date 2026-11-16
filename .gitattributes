@@ -1,0 +1,4 @@
+# Token-cost rows are keyed by session_id and every branch appends rows.
+# Union keeps both sides; the cost-tracker hook collapses duplicate session
+# rows on its next write.
+tokencost/cost.csv merge=union
