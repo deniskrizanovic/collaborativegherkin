@@ -7,6 +7,8 @@ import {
   CRAP_THRESHOLD,
   collectSourceFiles,
   measureFunctions,
+  parseArgs,
+  reportFor,
   scoreFunctions,
 } from "./lint-crap.mjs";
 
@@ -245,5 +247,95 @@ describe("buildReport", () => {
     const { exitCode, output } = buildReport(fns, "/repo");
     expect(exitCode).toBe(1);
     expect(output).toContain("handleKey");
+  });
+});
+
+describe("buildReport with all", () => {
+  const scored = (name: string, complexity: number, coverage: number, line = 1) => ({
+    file: "/repo/src/lib/example.ts",
+    name,
+    line,
+    complexity,
+    coverage,
+    score: complexity ** 2 * (1 - coverage) ** 3 + complexity,
+  });
+
+  it("lists every function when every score passes, and exits zero", () => {
+    const { exitCode, output } = buildReport([scored("tidy", 12, 1, 7)], "/repo", { all: true });
+    expect(exitCode).toBe(0);
+    expect(output).toMatch(/^✓ crap: 1 function\(s\) scored/);
+    const row = output.split("\n").find((l: string) => l.includes("tidy"));
+    expect(row).toMatch(/12\.0\s+12\s+100%\s+tidy\s+src\/lib\/example\.ts:7/);
+  });
+
+  it("lists an offender above a passing function, and exits non-zero", () => {
+    const { exitCode, output } = buildReport(
+      [scored("tidy", 12, 1), scored("risky", 6, 0)],
+      "/repo",
+      { all: true },
+    );
+    expect(exitCode).toBe(1);
+    expect(output).toMatch(/^✗ crap: 2 function\(s\) scored, 1 above 30/);
+    expect(output).toMatch(/42\.0\s+6\s+0%\s+risky/);
+    expect(output.indexOf("risky")).toBeLessThan(output.indexOf("tidy"));
+  });
+});
+
+describe("reportFor with file", () => {
+  const at = (file: string, complexity: number, coverage: number) => ({
+    file: `/repo/${file}`,
+    name: file.split("/").pop()?.replace(".ts", "") ?? "",
+    line: 1,
+    complexity,
+    coverage,
+    score: complexity ** 2 * (1 - coverage) ** 3 + complexity,
+  });
+  const tree = [at("src/lib/a.ts", 6, 0), at("src/lib/b.ts", 12, 1), at("src/library/c.ts", 6, 0)];
+
+  it("ignores an offender outside a file path, so the run passes", () => {
+    const { exitCode, output } = reportFor(tree, "/repo", { file: "src/lib/b.ts" });
+    expect(exitCode).toBe(0);
+    expect(output).not.toContain("src/lib/a.ts");
+  });
+
+  it("covers the files under a directory path, and only those", () => {
+    const { exitCode, output } = reportFor(tree, "/repo", { file: "src/lib/" });
+    expect(exitCode).toBe(1);
+    expect(output).toContain("src/lib/a.ts:1");
+    expect(output).not.toContain("src/library/c.ts");
+  });
+
+  it("reports that no scored file matches the path, and exits 2", () => {
+    expect(reportFor(tree, "/repo", { file: "src/missing" })).toEqual({
+      exitCode: 2,
+      output: "✗ crap: no scored file matches --file src/missing.",
+    });
+  });
+
+  it("covers every file for the working directory itself", () => {
+    const { output } = reportFor(tree, "/repo", { file: ".", all: true });
+    expect(output).toMatch(/^✗ crap: 3 function\(s\) scored/);
+  });
+});
+
+describe("parseArgs", () => {
+  it("defaults to the offender report over the whole tree", () => {
+    expect(parseArgs([])).toEqual({ all: false, file: undefined });
+  });
+
+  it("reads --all", () => {
+    expect(parseArgs(["--all"])).toEqual({ all: true, file: undefined });
+  });
+
+  it("reads --file <path>", () => {
+    expect(parseArgs(["--file", "src/lib"])).toEqual({ all: false, file: "src/lib" });
+  });
+
+  it("reads --all and --file together", () => {
+    expect(parseArgs(["--file", "src/lib", "--all"])).toEqual({ all: true, file: "src/lib" });
+  });
+
+  it("rejects an unknown option", () => {
+    expect(() => parseArgs(["--bogus"])).toThrow(/bogus/);
   });
 });

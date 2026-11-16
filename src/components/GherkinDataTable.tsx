@@ -1,4 +1,4 @@
-import { Node, mergeAttributes } from "@tiptap/core";
+import { mergeAttributes, Node } from "@tiptap/core";
 import { GherkinBlockType } from "@/lib/gherkin";
 
 export const STEP_TYPES: GherkinBlockType[] = ["given", "when", "then", "and", "but"];
@@ -31,7 +31,12 @@ export const GherkinDataTable = Node.create({
     return {
       // JSON string: Y.js attribute equality is reference-based, so arrays always
       // trigger setAttribute; a string only writes when the content actually changes.
-      rows: { default: JSON.stringify([["", ""], ["", ""]]) },
+      rows: {
+        default: JSON.stringify([
+          ["", ""],
+          ["", ""],
+        ]),
+      },
     };
   },
 
@@ -88,8 +93,7 @@ export const GherkinDataTable = Node.create({
             td.contentEditable = "true";
             td.textContent = cell;
             const isHeader = ri === 0;
-            td.style.cssText =
-              `border:1px solid #cdd3d6;padding:4px 10px;min-width:60px;outline:none;font-family:'IBM Plex Mono',monospace;font-size:0.82rem;color:${isHeader ? "#002664" : "#22272b"};background:${isHeader ? "rgba(0,38,100,0.06)" : "#ffffff"};font-weight:${isHeader ? "600" : "400"};`;
+            td.style.cssText = `border:1px solid #cdd3d6;padding:4px 10px;min-width:60px;outline:none;font-family:'IBM Plex Mono',monospace;font-size:0.82rem;color:${isHeader ? "#002664" : "#22272b"};background:${isHeader ? "rgba(0,38,100,0.06)" : "#ffffff"};font-weight:${isHeader ? "600" : "400"};`;
 
             td.addEventListener("focus", () => {
               focusedRow = ri;
@@ -143,17 +147,17 @@ export const GherkinDataTable = Node.create({
       const insertRowAboveBtn = makeBtn(
         "insert-row-above",
         "Insert row above",
-        '<line x1="3" y1="8" x2="13" y2="8"/><polyline points="6,5 8,3 10,5"/>'
+        '<line x1="3" y1="8" x2="13" y2="8"/><polyline points="6,5 8,3 10,5"/>',
       );
       const insertRowBelowBtn = makeBtn(
         "insert-row-below",
         "Insert row below",
-        '<line x1="3" y1="8" x2="13" y2="8"/><polyline points="6,11 8,13 10,11"/>'
+        '<line x1="3" y1="8" x2="13" y2="8"/><polyline points="6,11 8,13 10,11"/>',
       );
       const deleteRowBtn = makeBtn(
         "delete-row",
         "Delete row",
-        '<line x1="3" y1="8" x2="13" y2="8"/><line x1="6" y1="5" x2="10" y2="5"/>'
+        '<line x1="3" y1="8" x2="13" y2="8"/><line x1="6" y1="5" x2="10" y2="5"/>',
       );
 
       toolbar.appendChild(insertRowAboveBtn);
@@ -164,17 +168,17 @@ export const GherkinDataTable = Node.create({
       const insertColBeforeBtn = makeBtn(
         "insert-col-before",
         "Insert column before",
-        '<line x1="8" y1="3" x2="8" y2="13"/><polyline points="5,6 3,8 5,10"/>'
+        '<line x1="8" y1="3" x2="8" y2="13"/><polyline points="5,6 3,8 5,10"/>',
       );
       const insertColAfterBtn = makeBtn(
         "insert-col-after",
         "Insert column after",
-        '<line x1="8" y1="3" x2="8" y2="13"/><polyline points="11,6 13,8 11,10"/>'
+        '<line x1="8" y1="3" x2="8" y2="13"/><polyline points="11,6 13,8 11,10"/>',
       );
       const deleteColBtn = makeBtn(
         "delete-col",
         "Delete column",
-        '<line x1="8" y1="3" x2="8" y2="13"/><line x1="11" y1="5" x2="11" y2="11"/>'
+        '<line x1="8" y1="3" x2="8" y2="13"/><line x1="11" y1="5" x2="11" y2="11"/>',
       );
 
       toolbar.appendChild(insertColBeforeBtn);
@@ -185,7 +189,7 @@ export const GherkinDataTable = Node.create({
       const deleteTableBtn = makeBtn(
         "delete-table",
         "Delete table",
-        '<polyline points="3,4 13,4"/><path d="M5,4V3h6v1"/><rect x="4" y="5" width="8" height="8" rx="1"/><line x1="7" y1="7" x2="7" y2="11"/><line x1="9" y1="7" x2="9" y2="11"/>'
+        '<polyline points="3,4 13,4"/><path d="M5,4V3h6v1"/><rect x="4" y="5" width="8" height="8" rx="1"/><line x1="7" y1="7" x2="7" y2="11"/><line x1="9" y1="7" x2="9" y2="11"/>',
       );
       toolbar.appendChild(deleteTableBtn);
 
@@ -214,14 +218,20 @@ export const GherkinDataTable = Node.create({
 
       insertColBeforeBtn.addEventListener("mousedown", (e) => {
         e.preventDefault();
-        rows = rows.map((r) => { r.splice(focusedCol, 0, ""); return r; });
+        rows = rows.map((r) => {
+          r.splice(focusedCol, 0, "");
+          return r;
+        });
         buildTable();
         commitRows();
       });
 
       insertColAfterBtn.addEventListener("mousedown", (e) => {
         e.preventDefault();
-        rows = rows.map((r) => { r.splice(focusedCol + 1, 0, ""); return r; });
+        rows = rows.map((r) => {
+          r.splice(focusedCol + 1, 0, "");
+          return r;
+        });
         buildTable();
         commitRows();
       });

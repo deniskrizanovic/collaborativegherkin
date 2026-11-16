@@ -1,7 +1,7 @@
-import NextAuth, { type NextAuthConfig } from "next-auth";
-import ResendProvider from "next-auth/providers/resend";
-import CredentialsProvider from "next-auth/providers/credentials";
 import { PrismaAdapter } from "@auth/prisma-adapter";
+import NextAuth, { type NextAuthConfig } from "next-auth";
+import CredentialsProvider from "next-auth/providers/credentials";
+import ResendProvider from "next-auth/providers/resend";
 import { db } from "@/lib/db";
 
 declare module "next-auth" {
@@ -30,8 +30,7 @@ if (process.env.NODE_ENV !== "production" && process.env.TEST_AUTH_SECRET) {
         // secret defaults to the server-side value. A caller that explicitly
         // submits a non-matching secret is still rejected (defense in depth).
         const submitted =
-          (credentials.secret as string | undefined) ??
-          process.env.TEST_AUTH_SECRET;
+          (credentials.secret as string | undefined) ?? process.env.TEST_AUTH_SECRET;
         if (submitted !== process.env.TEST_AUTH_SECRET) return null;
         return db.user.upsert({
           where: { email: credentials.email as string },
@@ -40,7 +39,7 @@ if (process.env.NODE_ENV !== "production" && process.env.TEST_AUTH_SECRET) {
           select: { id: true, email: true, name: true },
         });
       },
-    })
+    }),
   );
 }
 

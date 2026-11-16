@@ -1,9 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
+import { auth } from "@/auth";
 import { db } from "@/lib/db";
 import logger from "@/lib/logger";
 import { Session } from "@/lib/session";
-import { auth } from "@/auth";
 
 const CreateSessionSchema = z.object({
   title: z.string().min(1).max(200),

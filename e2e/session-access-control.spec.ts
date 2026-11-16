@@ -1,4 +1,4 @@
-import { test, expect, request } from "@playwright/test";
+import { expect, request, test } from "@playwright/test";
 import { createSession } from "./helpers";
 
 // Characterisation tests for the session access-control contract (ADR-0005).
@@ -72,7 +72,10 @@ test.describe("session access control — API contract (ADR-0005)", () => {
 });
 
 test.describe("session access control — collaborator UX (ADR-0005)", () => {
-  test("a second user opens the shared link: no error banner, settings load", async ({ page, browser }) => {
+  test("a second user opens the shared link: no error banner, settings load", async ({
+    page,
+    browser,
+  }) => {
     const sessionId = await createSession(page, "Shared with a collaborator");
     const url = `${BASE_URL}/sessions/${sessionId}`;
 
@@ -82,7 +85,7 @@ test.describe("session access control — collaborator UX (ADR-0005)", () => {
       // The settings GET on load must succeed for a non-owner (200), not 403.
       const [getRes] = await Promise.all([
         page2.waitForResponse(
-          (r) => r.url().includes(`/api/sessions/${sessionId}`) && r.request().method() === "GET"
+          (r) => r.url().includes(`/api/sessions/${sessionId}`) && r.request().method() === "GET",
         ),
         page2.goto(url),
       ]);
@@ -99,7 +102,10 @@ test.describe("session access control — collaborator UX (ADR-0005)", () => {
     }
   });
 
-  test("a second user can change the model and it persists (PATCH 200, no banner)", async ({ page, browser }) => {
+  test("a second user can change the model and it persists (PATCH 200, no banner)", async ({
+    page,
+    browser,
+  }) => {
     const sessionId = await createSession(page, "Collaborator changes model");
     const url = `${BASE_URL}/sessions/${sessionId}`;
 
@@ -112,16 +118,16 @@ test.describe("session access control — collaborator UX (ADR-0005)", () => {
       const select = page2.locator(".session-model-select");
       await expect(select).toBeEnabled();
       const current = await select.inputValue();
-      const options = await select.locator("option").evaluateAll((els) =>
-        (els as HTMLOptionElement[]).map((e) => e.value)
-      );
+      const options = await select
+        .locator("option")
+        .evaluateAll((els) => (els as HTMLOptionElement[]).map((e) => e.value));
       const target = options.find((v) => v !== current);
       expect(target, "need a second model option to select").toBeTruthy();
 
       // Selecting a new model fires a PATCH — it must succeed for a non-owner.
       const [patchRes] = await Promise.all([
         page2.waitForResponse(
-          (r) => r.url().includes(`/api/sessions/${sessionId}`) && r.request().method() === "PATCH"
+          (r) => r.url().includes(`/api/sessions/${sessionId}`) && r.request().method() === "PATCH",
         ),
         select.selectOption(target!),
       ]);
@@ -138,7 +144,10 @@ test.describe("session access control — collaborator UX (ADR-0005)", () => {
     }
   });
 
-  test("a second user can save a new prompt (modal closes, no banner)", async ({ page, browser }) => {
+  test("a second user can save a new prompt (modal closes, no banner)", async ({
+    page,
+    browser,
+  }) => {
     const sessionId = await createSession(page, "Collaborator edits prompt");
     const url = `${BASE_URL}/sessions/${sessionId}`;
 
@@ -156,7 +165,7 @@ test.describe("session access control — collaborator UX (ADR-0005)", () => {
 
       const [patchRes] = await Promise.all([
         page2.waitForResponse(
-          (r) => r.url().includes(`/api/sessions/${sessionId}`) && r.request().method() === "PATCH"
+          (r) => r.url().includes(`/api/sessions/${sessionId}`) && r.request().method() === "PATCH",
         ),
         page2.locator(".session-prompt-save").click(),
       ]);

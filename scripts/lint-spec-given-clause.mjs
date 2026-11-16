@@ -131,20 +131,20 @@ function main() {
 
   if (violations.length === 0) {
     console.log(
-      `✓ spec given-clause: ${files.length} spec file(s) scanned, every scenario declares a GIVEN precondition`
+      `✓ spec given-clause: ${files.length} spec file(s) scanned, every scenario declares a GIVEN precondition`,
     );
     return;
   }
 
   console.error(
-    `✗ spec given-clause: ${violations.length} scenario(s) missing a '- **GIVEN**' clause:\n`
+    `✗ spec given-clause: ${violations.length} scenario(s) missing a '- **GIVEN**' clause:\n`,
   );
   for (const v of violations) {
     console.error(`  ${relative(process.cwd(), v.file)}:${v.line}  Scenario: ${v.scenario}`);
   }
   console.error(
     `\nEvery '#### Scenario:' must contain a '- **GIVEN**' clause describing its ` +
-      `initial state, before the next scenario/requirement/heading boundary.`
+      `initial state, before the next scenario/requirement/heading boundary.`,
   );
   process.exitCode = 1;
 }

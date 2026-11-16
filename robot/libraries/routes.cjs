@@ -152,6 +152,14 @@ async function clearRoutes(page) {
   countedHandlers.clear();
   if (page) await page.unrouteAll({ behavior: "ignoreErrors" });
 }
-clearRoutes.rfdoc = "Release every held route, reset every request count, then remove all route handlers from the active page.";
+clearRoutes.rfdoc =
+  "Release every held route, reset every request count, then remove all route handlers from the active page.";
 
-module.exports = { fulfillRoute, fulfillCountedRoute, routeRequestCount, holdRoute, releaseRoute, clearRoutes };
+module.exports = {
+  fulfillRoute,
+  fulfillCountedRoute,
+  routeRequestCount,
+  holdRoute,
+  releaseRoute,
+  clearRoutes,
+};

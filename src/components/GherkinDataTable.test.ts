@@ -1,8 +1,13 @@
 // @vitest-environment jsdom
-import { describe, it, expect, vi } from "vitest";
-import { GherkinDataTable, focusFirstTableCell } from "./GherkinDataTable";
+import { describe, expect, it, vi } from "vitest";
+import { focusFirstTableCell, GherkinDataTable } from "./GherkinDataTable";
 
-function makeNodeView(initialRows: string[][] = [["a", "b"], ["c", "d"]]) {
+function makeNodeView(
+  initialRows: string[][] = [
+    ["a", "b"],
+    ["c", "d"],
+  ],
+) {
   const committedRows: { value: string } = { value: JSON.stringify(initialRows) };
   const trMock = { setNodeMarkup: vi.fn(), delete: vi.fn() };
   const editorMock = {
@@ -54,7 +59,10 @@ function makeNodeView(initialRows: string[][] = [["a", "b"], ["c", "d"]]) {
 describe("GherkinDataTable node view", () => {
   describe("insert row above", () => {
     it("inserts a blank row before the focused row", () => {
-      const { getBtn, fireMousedown, getCommittedRows } = makeNodeView([["h1", "h2"], ["r1", "r2"]]);
+      const { getBtn, fireMousedown, getCommittedRows } = makeNodeView([
+        ["h1", "h2"],
+        ["r1", "r2"],
+      ]);
       fireMousedown(getBtn("insert-row-above"));
       const rows = getCommittedRows();
       expect(rows).toHaveLength(3);
@@ -65,7 +73,10 @@ describe("GherkinDataTable node view", () => {
 
   describe("insert row below", () => {
     it("inserts a blank row after the focused row", () => {
-      const { getBtn, fireMousedown, getCommittedRows } = makeNodeView([["h1", "h2"], ["r1", "r2"]]);
+      const { getBtn, fireMousedown, getCommittedRows } = makeNodeView([
+        ["h1", "h2"],
+        ["r1", "r2"],
+      ]);
       fireMousedown(getBtn("insert-row-below"));
       const rows = getCommittedRows();
       expect(rows).toHaveLength(3);
@@ -77,7 +88,11 @@ describe("GherkinDataTable node view", () => {
 
   describe("delete row", () => {
     it("removes the focused row", () => {
-      const { view, getBtn, fireMousedown, getCommittedRows } = makeNodeView([["h1", "h2"], ["r1", "r2"], ["r3", "r4"]]);
+      const { view, getBtn, fireMousedown, getCommittedRows } = makeNodeView([
+        ["h1", "h2"],
+        ["r1", "r2"],
+        ["r3", "r4"],
+      ]);
       // focus row 1 by simulating a focus event on the cell
       const cell = view.dom.querySelector("[data-cell='1-0']") as HTMLElement;
       cell.dispatchEvent(new FocusEvent("focus"));
@@ -96,7 +111,10 @@ describe("GherkinDataTable node view", () => {
 
   describe("insert col before", () => {
     it("inserts a blank column before the focused column", () => {
-      const { getBtn, fireMousedown, getCommittedRows } = makeNodeView([["h1", "h2"], ["r1", "r2"]]);
+      const { getBtn, fireMousedown, getCommittedRows } = makeNodeView([
+        ["h1", "h2"],
+        ["r1", "r2"],
+      ]);
       fireMousedown(getBtn("insert-col-before"));
       const rows = getCommittedRows();
       expect(rows[0]).toEqual(["", "h1", "h2"]);
@@ -106,7 +124,10 @@ describe("GherkinDataTable node view", () => {
 
   describe("insert col after", () => {
     it("inserts a blank column after the focused column", () => {
-      const { getBtn, fireMousedown, getCommittedRows } = makeNodeView([["h1", "h2"], ["r1", "r2"]]);
+      const { getBtn, fireMousedown, getCommittedRows } = makeNodeView([
+        ["h1", "h2"],
+        ["r1", "r2"],
+      ]);
       fireMousedown(getBtn("insert-col-after"));
       const rows = getCommittedRows();
       expect(rows[0]).toEqual(["h1", "", "h2"]);
@@ -116,7 +137,10 @@ describe("GherkinDataTable node view", () => {
 
   describe("delete col", () => {
     it("removes the focused column", () => {
-      const { view, getBtn, fireMousedown, getCommittedRows } = makeNodeView([["h1", "h2", "h3"], ["r1", "r2", "r3"]]);
+      const { view, getBtn, fireMousedown, getCommittedRows } = makeNodeView([
+        ["h1", "h2", "h3"],
+        ["r1", "r2", "r3"],
+      ]);
       const cell = view.dom.querySelector("[data-cell='0-1']") as HTMLElement;
       cell.dispatchEvent(new FocusEvent("focus"));
       fireMousedown(getBtn("delete-col"));
@@ -143,7 +167,10 @@ describe("GherkinDataTable node view", () => {
   describe("update()", () => {
     it("rebuilds the table when rows attribute changes", () => {
       const { view } = makeNodeView([["a", "b"]]);
-      const newRows = [["x", "y"], ["p", "q"]];
+      const newRows = [
+        ["x", "y"],
+        ["p", "q"],
+      ];
       const result = view.update({
         attrs: { rows: JSON.stringify(newRows) },
         type: { name: "gherkin_data_table" },
@@ -155,13 +182,21 @@ describe("GherkinDataTable node view", () => {
     });
 
     it("keeps the cell elements when the rows equal its own last commit", () => {
-      const { view } = makeNodeView([["a", "b"], ["c", "d"]]);
+      const { view } = makeNodeView([
+        ["a", "b"],
+        ["c", "d"],
+      ]);
       const cell = view.dom.querySelector("[data-cell='0-0']") as HTMLElement;
       cell.textContent = "typed";
       cell.dispatchEvent(new FocusEvent("blur"));
       // ProseMirror calls update() with the rows the blur just committed
       view.update({
-        attrs: { rows: JSON.stringify([["typed", "b"], ["c", "d"]]) },
+        attrs: {
+          rows: JSON.stringify([
+            ["typed", "b"],
+            ["c", "d"],
+          ]),
+        },
         type: { name: "gherkin_data_table" },
       });
       expect(view.dom.querySelector("[data-cell='0-0']")).toBe(cell);
@@ -180,7 +215,10 @@ describe("GherkinDataTable node view", () => {
 
   describe("focusFirstTableCell", () => {
     it("focuses the first cell of the node view, even when a later cell had focus", () => {
-      const { view } = makeNodeView([["h1", "h2"], ["r1", "r2"]]);
+      const { view } = makeNodeView([
+        ["h1", "h2"],
+        ["r1", "r2"],
+      ]);
       document.body.appendChild(view.dom);
       // jsdom only focuses contenteditable elements that have a tabIndex
       view.dom.querySelectorAll<HTMLElement>("[data-cell]").forEach((c) => (c.tabIndex = 0));

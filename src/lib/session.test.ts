@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import { Session, SessionNotFoundError } from "@/lib/session";
 
 const fakeSessionTable = {
@@ -24,7 +24,14 @@ beforeEach(() => {
 describe("Session.list", () => {
   it("returns sessions for the given user ordered by createdAt desc", async () => {
     const rows = [
-      { id: "abc", title: "My session", prompt: null, model: null, createdAt: new Date(), userId: VALID_USER_ID },
+      {
+        id: "abc",
+        title: "My session",
+        prompt: null,
+        model: null,
+        createdAt: new Date(),
+        userId: VALID_USER_ID,
+      },
     ];
     fakeSessionTable.findMany.mockResolvedValue(rows);
 
@@ -57,7 +64,14 @@ describe("Session.list", () => {
 
 describe("Session.create", () => {
   it("returns the created session", async () => {
-    const created = { id: "xyz", title: "New session", prompt: null, model: null, createdAt: new Date(), userId: VALID_USER_ID };
+    const created = {
+      id: "xyz",
+      title: "New session",
+      prompt: null,
+      model: null,
+      createdAt: new Date(),
+      userId: VALID_USER_ID,
+    };
     fakeSessionTable.create.mockResolvedValue(created);
 
     const result = await makeSession().create({ title: "New session", userId: VALID_USER_ID });
@@ -72,7 +86,7 @@ describe("Session.create", () => {
     fakeSessionTable.create.mockRejectedValue(new Error("db down"));
 
     await expect(
-      makeSession().create({ title: "New session", userId: VALID_USER_ID })
+      makeSession().create({ title: "New session", userId: VALID_USER_ID }),
     ).rejects.toThrow("db down");
   });
 });
@@ -81,7 +95,14 @@ describe("Session.create", () => {
 
 describe("Session.get", () => {
   it("returns the session when it exists", async () => {
-    const row = { id: "abc", title: "My session", prompt: null, model: null, createdAt: new Date(), userId: VALID_USER_ID };
+    const row = {
+      id: "abc",
+      title: "My session",
+      prompt: null,
+      model: null,
+      createdAt: new Date(),
+      userId: VALID_USER_ID,
+    };
     fakeSessionTable.findUnique.mockResolvedValue(row);
 
     const result = await makeSession().get("abc");
@@ -132,7 +153,9 @@ describe("Session.update", () => {
   it("throws SessionNotFoundError when Prisma throws P2025", async () => {
     fakeSessionTable.update.mockRejectedValue({ code: "P2025" });
 
-    await expect(makeSession().update("missing", { prompt: "x" })).rejects.toBeInstanceOf(SessionNotFoundError);
+    await expect(makeSession().update("missing", { prompt: "x" })).rejects.toBeInstanceOf(
+      SessionNotFoundError,
+    );
   });
 
   it("propagates non-P2025 db errors", async () => {

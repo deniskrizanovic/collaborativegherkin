@@ -1,4 +1,4 @@
-import { describe, it, expect } from "vitest";
+import { describe, expect, it } from "vitest";
 import { lintParity, parseParityTable, parsePlaywrightList } from "./lint-e2e-parity.mjs";
 
 function spec(file: string, title: string, expectedStatus = "passed") {
@@ -17,14 +17,18 @@ const listJson = JSON.stringify({
         {
           title: "nested describe",
           file: "a.spec.ts",
-          specs: [spec("a.spec.ts", "SC-1.1.2: Inside describe"), spec("a.spec.ts", "SC-1.1.3: Skipped", "skipped")],
+          specs: [
+            spec("a.spec.ts", "SC-1.1.2: Inside describe"),
+            spec("a.spec.ts", "SC-1.1.3: Skipped", "skipped"),
+          ],
         },
       ],
     },
   ],
 });
 
-const HEADER = "| Playwright file | Title | Key assertions | Robot suite | Chunk | Status |\n|---|---|---|---|---|---|";
+const HEADER =
+  "| Playwright file | Title | Key assertions | Robot suite | Chunk | Status |\n|---|---|---|---|---|---|";
 
 function table(...rows: string[]) {
   return `# Parity\n\n## a.spec.ts\n\n${HEADER}\n${rows.join("\n")}\n`;
@@ -48,9 +52,13 @@ function pw(title: string, skipped = false, file = "a.spec.ts"): Test {
   return { file, title, skipped };
 }
 
-function lint(tests: Test[], rows: string[], suites = [{ file: "robot/suites/a.robot", content: robot() }]) {
+function lint(
+  tests: Test[],
+  rows: string[],
+  suites = [{ file: "robot/suites/a.robot", content: robot() }],
+) {
   return lintParity({ tests, rows: parseParityTable(table(...rows)), suites }).map(
-    (e) => `${e.file} › ${e.title}: ${e.message}`
+    (e) => `${e.file} › ${e.title}: ${e.message}`,
   );
 }
 
@@ -64,7 +72,9 @@ describe("parsePlaywrightList", () => {
   });
 
   it("uses the spec file basename", () => {
-    const json = JSON.stringify({ suites: [{ file: "sub/b.spec.ts", specs: [spec("sub/b.spec.ts", "T")] }] });
+    const json = JSON.stringify({
+      suites: [{ file: "sub/b.spec.ts", specs: [spec("sub/b.spec.ts", "T")] }],
+    });
     expect(parsePlaywrightList(json)[0].file).toBe("b.spec.ts");
   });
 
@@ -74,9 +84,13 @@ describe("parsePlaywrightList", () => {
 
   it("throws when the JSON lacks the expected fields", () => {
     expect(() => parsePlaywrightList(JSON.stringify({ errors: [] }))).toThrow(/suites/);
-    const noStatus = JSON.stringify({ suites: [{ specs: [{ file: "a.spec.ts", title: "T", tests: [{}] }] }] });
+    const noStatus = JSON.stringify({
+      suites: [{ specs: [{ file: "a.spec.ts", title: "T", tests: [{}] }] }],
+    });
     expect(() => parsePlaywrightList(noStatus)).toThrow(/expectedStatus/);
-    const noTitle = JSON.stringify({ suites: [{ specs: [{ file: "a.spec.ts", tests: [{ expectedStatus: "passed" }] }] }] });
+    const noTitle = JSON.stringify({
+      suites: [{ specs: [{ file: "a.spec.ts", tests: [{ expectedStatus: "passed" }] }] }],
+    });
     expect(() => parsePlaywrightList(noTitle)).toThrow(/title/);
   });
 });
@@ -98,12 +112,17 @@ describe("parseParityTable", () => {
   });
 
   it("throws on a header that doesn't match", () => {
-    const md = table(row("a.spec.ts", "T1")).replace("| Playwright file | Title |", "| Title | Playwright file |");
+    const md = table(row("a.spec.ts", "T1")).replace(
+      "| Playwright file | Title |",
+      "| Title | Playwright file |",
+    );
     expect(() => parseParityTable(md)).toThrow(/header/);
   });
 
   it("throws on a row without 6 cells", () => {
-    expect(() => parseParityTable(table("| a.spec.ts | T1 | a.robot | ported |"))).toThrow(/6 cells/);
+    expect(() => parseParityTable(table("| a.spec.ts | T1 | a.robot | ported |"))).toThrow(
+      /6 cells/,
+    );
   });
 });
 
@@ -114,39 +133,51 @@ describe("lintParity", () => {
     const errors = lint(
       [pw("T1"), pw("T2", true)],
       [row("a.spec.ts", "T1"), row("a.spec.ts", "T2", "a.robot", "skip")],
-      suites(robot(robotTest("T1"), robotTest("T2", "skip")))
+      suites(robot(robotTest("T1"), robotTest("T2", "skip"))),
     );
     expect(errors).toEqual([]);
   });
 
   it("fails on a listed test with no PARITY.md row", () => {
-    expect(lint([pw("T1"), pw("T2")], [row("a.spec.ts", "T1")], suites(robot(robotTest("T1"))))).toEqual([
-      "a.spec.ts › T2: Playwright test has no robot/PARITY.md row",
-    ]);
+    expect(
+      lint([pw("T1"), pw("T2")], [row("a.spec.ts", "T1")], suites(robot(robotTest("T1")))),
+    ).toEqual(["a.spec.ts › T2: Playwright test has no robot/PARITY.md row"]);
   });
 
   it("fails on a PARITY.md row with no listed test", () => {
     expect(
-      lint([pw("T1")], [row("a.spec.ts", "T1"), row("a.spec.ts", "Gone")], suites(robot(robotTest("T1"), robotTest("Gone"))))
+      lint(
+        [pw("T1")],
+        [row("a.spec.ts", "T1"), row("a.spec.ts", "Gone")],
+        suites(robot(robotTest("T1"), robotTest("Gone"))),
+      ),
     ).toEqual(["a.spec.ts › Gone: robot/PARITY.md row (line 8) names no Playwright test"]);
   });
 
   it("fails on a row marked pending", () => {
-    expect(lint([pw("T1")], [row("a.spec.ts", "T1", "a.robot", "pending")], suites(robot(robotTest("T1"))))).toEqual([
-      'a.spec.ts › T1: robot/PARITY.md status is "pending", expected "ported" or "skip"',
-    ]);
+    expect(
+      lint(
+        [pw("T1")],
+        [row("a.spec.ts", "T1", "a.robot", "pending")],
+        suites(robot(robotTest("T1"))),
+      ),
+    ).toEqual(['a.spec.ts › T1: robot/PARITY.md status is "pending", expected "ported" or "skip"']);
   });
 
   it("fails on an unknown status", () => {
-    expect(lint([pw("T1")], [row("a.spec.ts", "T1", "a.robot", "portd")], suites(robot(robotTest("T1"))))).toEqual([
-      'a.spec.ts › T1: robot/PARITY.md status is "portd", expected "ported" or "skip"',
-    ]);
+    expect(
+      lint(
+        [pw("T1")],
+        [row("a.spec.ts", "T1", "a.robot", "portd")],
+        suites(robot(robotTest("T1"))),
+      ),
+    ).toEqual(['a.spec.ts › T1: robot/PARITY.md status is "portd", expected "ported" or "skip"']);
   });
 
   it("fails when the Robot suite file doesn't exist", () => {
-    expect(lint([pw("T1")], [row("a.spec.ts", "T1", "missing.robot")], suites(robot(robotTest("T1"))))).toEqual([
-      "a.spec.ts › T1: Robot suite robot/suites/missing.robot does not exist",
-    ]);
+    expect(
+      lint([pw("T1")], [row("a.spec.ts", "T1", "missing.robot")], suites(robot(robotTest("T1")))),
+    ).toEqual(["a.spec.ts › T1: Robot suite robot/suites/missing.robot does not exist"]);
   });
 
   it("fails when the suite has no test of exactly the title", () => {
@@ -159,8 +190,11 @@ describe("lintParity", () => {
     const title = "SC-1.1.1: Thing — variant";
     const errors = lint(
       [pw(title)],
-      [row("a.spec.ts", "sc-1.1.1: thing — variant"), row("a.spec.ts", "SC-1.1.1: Thing - variant")],
-      suites(robot(robotTest(title)))
+      [
+        row("a.spec.ts", "sc-1.1.1: thing — variant"),
+        row("a.spec.ts", "SC-1.1.1: Thing - variant"),
+      ],
+      suites(robot(robotTest(title))),
     );
     expect(errors).toEqual([
       `a.spec.ts › ${title}: Playwright test has no robot/PARITY.md row`,
@@ -174,22 +208,28 @@ describe("lintParity", () => {
   it("checks every title generated in a loop", () => {
     const letter = "SC-3.12.3 — letter";
     const slash = "SC-3.12.3 — slash";
-    expect(lint([pw(letter), pw(slash)], [row("a.spec.ts", letter)], suites(robot(robotTest(letter))))).toEqual([
-      `a.spec.ts › ${slash}: Playwright test has no robot/PARITY.md row`,
-    ]);
+    expect(
+      lint([pw(letter), pw(slash)], [row("a.spec.ts", letter)], suites(robot(robotTest(letter)))),
+    ).toEqual([`a.spec.ts › ${slash}: Playwright test has no robot/PARITY.md row`]);
   });
 
   it("fails on a duplicated (file, title) pair in Playwright or PARITY.md", () => {
-    expect(lint([pw("T1"), pw("T1")], [row("a.spec.ts", "T1")], suites(robot(robotTest("T1"))))).toEqual([
-      "a.spec.ts › T1: Playwright lists this test 2 times",
-    ]);
     expect(
-      lint([pw("T1")], [row("a.spec.ts", "T1"), row("a.spec.ts", "T1")], suites(robot(robotTest("T1"))))
+      lint([pw("T1"), pw("T1")], [row("a.spec.ts", "T1")], suites(robot(robotTest("T1")))),
+    ).toEqual(["a.spec.ts › T1: Playwright lists this test 2 times"]);
+    expect(
+      lint(
+        [pw("T1")],
+        [row("a.spec.ts", "T1"), row("a.spec.ts", "T1")],
+        suites(robot(robotTest("T1"))),
+      ),
     ).toEqual(["a.spec.ts › T1: robot/PARITY.md has 2 rows for this test (lines 7, 8)"]);
   });
 
   it("fails on a duplicated Robot test name in the suite", () => {
-    expect(lint([pw("T1")], [row("a.spec.ts", "T1")], suites(robot(robotTest("T1"), robotTest("T1"))))).toEqual([
+    expect(
+      lint([pw("T1")], [row("a.spec.ts", "T1")], suites(robot(robotTest("T1"), robotTest("T1")))),
+    ).toEqual([
       "a.spec.ts › T1: Robot suite robot/suites/a.robot has 2 tests named exactly this title",
     ]);
   });
@@ -205,7 +245,11 @@ describe("lintParity", () => {
     ];
     for (const [name, skipped, status, tags] of cases) {
       it(name, () => {
-        const errors = lint([pw("T1", skipped)], [row("a.spec.ts", "T1", "a.robot", status)], suites(robot(robotTest("T1", tags))));
+        const errors = lint(
+          [pw("T1", skipped)],
+          [row("a.spec.ts", "T1", "a.robot", status)],
+          suites(robot(robotTest("T1", tags))),
+        );
         expect(errors).toEqual([
           `a.spec.ts › T1: skip status disagrees: Playwright ${skipped ? "skipped" : "runs"}, ` +
             `PARITY.md "${status}", Robot ${tags ? "tagged skip" : "not tagged skip"}`,
@@ -218,7 +262,7 @@ describe("lintParity", () => {
     const errors = lint(
       [pw("T1", true)],
       [row("a.spec.ts", "T1", "a.robot", "skip")],
-      suites(robot(robotTest("T1", "smoke    SKIP")))
+      suites(robot(robotTest("T1", "smoke    SKIP"))),
     );
     expect(errors).toEqual([]);
   });

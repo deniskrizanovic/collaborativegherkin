@@ -1,5 +1,5 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
 import { NextRequest } from "next/server";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import { AVAILABLE_MODELS } from "@/lib/llm-constants";
 
 const VALID_USER_ID = "cm0000000000000000000000";
@@ -36,7 +36,7 @@ async function importRoute() {
 async function mockAuth(userId: string | null) {
   const { auth } = await import("@/auth");
   vi.mocked(auth).mockResolvedValue(
-    userId ? ({ user: { id: userId, email: "test@example.com" } } as any) : null
+    userId ? ({ user: { id: userId, email: "test@example.com" } } as any) : null,
   );
 }
 
@@ -44,7 +44,14 @@ function makeParams(id: string) {
   return { params: Promise.resolve({ id }) };
 }
 
-const baseRow = { id: "abc", title: "My session", prompt: null, model: null, createdAt: new Date("2024-01-01"), userId: VALID_USER_ID };
+const baseRow = {
+  id: "abc",
+  title: "My session",
+  prompt: null,
+  model: null,
+  createdAt: new Date("2024-01-01"),
+  userId: VALID_USER_ID,
+};
 
 describe("GET /api/sessions/[id]", () => {
   it("returns 401 when unauthenticated", async () => {
@@ -67,7 +74,13 @@ describe("GET /api/sessions/[id]", () => {
     const body = await res.json();
 
     expect(res.status).toBe(200);
-    expect(body).toMatchObject({ id: "abc", title: "My session", prompt: null, model: null, userId: VALID_USER_ID });
+    expect(body).toMatchObject({
+      id: "abc",
+      title: "My session",
+      prompt: null,
+      model: null,
+      userId: VALID_USER_ID,
+    });
   });
 
   it("returns 404 when session is not found", async () => {

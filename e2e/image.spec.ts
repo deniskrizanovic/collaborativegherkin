@@ -1,5 +1,12 @@
-import { test, expect, Page } from "@playwright/test";
-import { chooseImageFile, cursorPosition, documentNodes, endUndoStep, openSession, PNG_1x1 } from "./helpers";
+import { expect, Page, test } from "@playwright/test";
+import {
+  chooseImageFile,
+  cursorPosition,
+  documentNodes,
+  endUndoStep,
+  openSession,
+  PNG_1x1,
+} from "./helpers";
 
 // spec §3.3, §3.4, §3.6, §3.8
 
@@ -36,10 +43,16 @@ async function dropImageAt(page: Page, x: number, y: number) {
       const dt = new DataTransfer();
       dt.items.add(new File([bytes], "test.png", { type: "image/png" }));
       el.dispatchEvent(
-        new DragEvent("drop", { bubbles: true, cancelable: true, dataTransfer: dt, clientX: x, clientY: y })
+        new DragEvent("drop", {
+          bubbles: true,
+          cancelable: true,
+          dataTransfer: dt,
+          clientX: x,
+          clientY: y,
+        }),
       );
     },
-    { base64: PNG_1x1.toString("base64"), x, y }
+    { base64: PNG_1x1.toString("base64"), x, y },
   );
 }
 
@@ -58,10 +71,11 @@ test.describe("image blocks", () => {
     expect(box).not.toBeNull();
     expect(box!.width).toBeGreaterThan(0);
     expect(box!.height).toBeGreaterThan(0);
-
   });
 
-  test("SC-3.8.2: Slash-command Image selection opens file picker and embeds image", async ({ page }) => {
+  test("SC-3.8.2: Slash-command Image selection opens file picker and embeds image", async ({
+    page,
+  }) => {
     await openSession(page);
 
     await page.locator('[data-gherkin-type="then"]').last().click();
@@ -75,7 +89,6 @@ test.describe("image blocks", () => {
 
     await chooseImageFile(page);
     await expect(page.locator(".gherkin-image-block")).toBeVisible();
-
   });
 
   test("SC-3.8.3: Drag and drop image embeds at drop position", async ({ page }) => {
@@ -83,29 +96,56 @@ test.describe("image blocks", () => {
     const { x, y } = await centreOf(page, '[data-gherkin-type="then"]');
     await dropImageAt(page, x, y);
     await expect(page.locator(".gherkin-image-block")).toBeVisible();
-    expect(await documentNodes(page)).toEqual(["feature", "scenario", "given", "when", "then", "image"]);
+    expect(await documentNodes(page)).toEqual([
+      "feature",
+      "scenario",
+      "given",
+      "when",
+      "then",
+      "image",
+    ]);
   });
 
-  test("SC-3.8.3: Drag and drop image embeds at drop position — cancelled file picker", async ({ page }) => {
+  test("SC-3.8.3: Drag and drop image embeds at drop position — cancelled file picker", async ({
+    page,
+  }) => {
     await openSession(page);
     // Opens the file chooser, which is left unanswered.
     await page.locator(".gherkin-toolbar-btn", { hasText: "Image" }).click();
     const { x, y } = await centreOf(page, '[data-gherkin-type="given"]');
     await dropImageAt(page, x, y);
     await expect(page.locator(".gherkin-image-block")).toBeVisible();
-    expect(await documentNodes(page)).toEqual(["feature", "scenario", "given", "image", "when", "then"]);
+    expect(await documentNodes(page)).toEqual([
+      "feature",
+      "scenario",
+      "given",
+      "image",
+      "when",
+      "then",
+    ]);
   });
 
-  test("SC-3.8.5: Image dropped outside every block embeds after the nearest block — below the last block", async ({ page }) => {
+  test("SC-3.8.5: Image dropped outside every block embeds after the nearest block — below the last block", async ({
+    page,
+  }) => {
     await openSession(page);
     const box = await page.locator('[data-gherkin-type="then"]').boundingBox();
     expect(box).not.toBeNull();
     await dropImageAt(page, box!.x + box!.width / 2, box!.y + box!.height + 40);
     await expect(page.locator(".gherkin-image-block")).toBeVisible();
-    expect(await documentNodes(page)).toEqual(["feature", "scenario", "given", "when", "then", "image"]);
+    expect(await documentNodes(page)).toEqual([
+      "feature",
+      "scenario",
+      "given",
+      "when",
+      "then",
+      "image",
+    ]);
   });
 
-  test("SC-3.8.5: Image dropped outside every block embeds after the nearest block — on the toolbar", async ({ page }) => {
+  test("SC-3.8.5: Image dropped outside every block embeds after the nearest block — on the toolbar", async ({
+    page,
+  }) => {
     await openSession(page);
     // Cursor in Then, so a drop that used the cursor would land after Then, not Feature.
     await page.locator('[data-gherkin-type="then"]').click();
@@ -113,7 +153,14 @@ test.describe("image blocks", () => {
     const { x, y } = await centreOf(page, ".gherkin-toolbar");
     await dropImageAt(page, x, y);
     await expect(page.locator(".gherkin-image-block")).toBeVisible();
-    expect(await documentNodes(page)).toEqual(["feature", "image", "scenario", "given", "when", "then"]);
+    expect(await documentNodes(page)).toEqual([
+      "feature",
+      "image",
+      "scenario",
+      "given",
+      "when",
+      "then",
+    ]);
   });
 
   // spec §3.12 — image block selection
@@ -131,21 +178,33 @@ test.describe("image blocks", () => {
     await page.locator('[data-gherkin-type="then"]').click();
     await page.keyboard.press("End");
     // Wait until the editor has the caret at the end of Then (node 4).
-    await expect.poll(() => cursorPosition(page)).toEqual({ index: 4, offset: "Before image".length, empty: true });
+    await expect
+      .poll(() => cursorPosition(page))
+      .toEqual({ index: 4, offset: "Before image".length, empty: true });
     await expect(imageBlock).not.toHaveClass(/ProseMirror-selectednode/);
     await page.keyboard.press("ArrowRight");
     await expect(imageBlock).toHaveClass(/ProseMirror-selectednode/);
   });
 
   for (const key of ["x", "/"]) {
-    test(`SC-3.12.3: Typing does not replace a selected image — ${key === "/" ? "slash" : "letter"}`, async ({ page }) => {
+    test(`SC-3.12.3: Typing does not replace a selected image — ${key === "/" ? "slash" : "letter"}`, async ({
+      page,
+    }) => {
       await buildThenImageAnd(page);
       const editor = page.locator(".gherkin-editor");
       const textBefore = await editor.textContent();
       await page.locator(".gherkin-image-block").click();
       await page.keyboard.type(key);
       await expect(page.locator(".gherkin-image-block")).toHaveCount(1);
-      expect(await documentNodes(page)).toEqual(["feature", "scenario", "given", "when", "then", "image", "and"]);
+      expect(await documentNodes(page)).toEqual([
+        "feature",
+        "scenario",
+        "given",
+        "when",
+        "then",
+        "image",
+        "and",
+      ]);
       expect(await editor.textContent()).toBe(textBefore);
       await expect(page.locator(".block-picker")).not.toBeVisible();
     });
@@ -156,7 +215,14 @@ test.describe("image blocks", () => {
     await page.locator(".gherkin-image-block").click();
     await page.keyboard.press("Backspace");
     await expect(page.locator(".gherkin-image-block")).toHaveCount(0);
-    expect(await documentNodes(page)).toEqual(["feature", "scenario", "given", "when", "then", "and"]);
+    expect(await documentNodes(page)).toEqual([
+      "feature",
+      "scenario",
+      "given",
+      "when",
+      "then",
+      "and",
+    ]);
     await expect(page.locator('[data-gherkin-type="then"]')).toHaveText("Before image");
     await expect(page.locator('[data-gherkin-type="and"]')).toHaveText("After image");
   });
@@ -173,11 +239,27 @@ test.describe("image blocks", () => {
 
     await page.keyboard.press("ControlOrMeta+z");
     await expect(imageBlock).toHaveCount(1);
-    expect(await documentNodes(page)).toEqual(["feature", "scenario", "given", "when", "then", "image", "and"]);
+    expect(await documentNodes(page)).toEqual([
+      "feature",
+      "scenario",
+      "given",
+      "when",
+      "then",
+      "image",
+      "and",
+    ]);
     // Undo selects the image again, so typing must not replace it.
     await expect(imageBlock).toHaveClass(/ProseMirror-selectednode/);
     await page.keyboard.type("x");
-    expect(await documentNodes(page)).toEqual(["feature", "scenario", "given", "when", "then", "image", "and"]);
+    expect(await documentNodes(page)).toEqual([
+      "feature",
+      "scenario",
+      "given",
+      "when",
+      "then",
+      "image",
+      "and",
+    ]);
     await expect(page.locator('[data-gherkin-type="then"]')).toHaveText("Before image");
     await expect(page.locator('[data-gherkin-type="and"]')).toHaveText("After image");
 
@@ -185,7 +267,9 @@ test.describe("image blocks", () => {
     await page.locator('[data-gherkin-type="and"]').click();
     await expect.poll(async () => (await cursorPosition(page)).index).toBe(6);
     await page.keyboard.press("End");
-    await expect.poll(() => cursorPosition(page)).toEqual({ index: 6, offset: "After image".length, empty: true });
+    await expect
+      .poll(() => cursorPosition(page))
+      .toEqual({ index: 6, offset: "After image".length, empty: true });
     await page.keyboard.type(" still typing");
     await expect(page.locator('[data-gherkin-type="and"]')).toHaveText("After image still typing");
     expect(errors).toEqual([]);

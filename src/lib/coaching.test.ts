@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import {
   Coaching,
   CoachingConfigError,
@@ -7,11 +7,7 @@ import {
 } from "@/lib/coaching";
 import { AVAILABLE_MODELS, DEFAULT_PROMPT } from "@/lib/llm-constants";
 
-function makeResponse(
-  ok: boolean,
-  status: number,
-  body: unknown
-): Response {
+function makeResponse(ok: boolean, status: number, body: unknown): Response {
   const text = typeof body === "string" ? body : JSON.stringify(body);
   return {
     ok,
@@ -33,11 +29,15 @@ describe("Coaching", () => {
       fakeFetch.mockResolvedValue(
         makeResponse(true, 200, {
           choices: [{ message: { content: "Looks good!" } }],
-        })
+        }),
       );
 
       const coaching = new Coaching({ fetch: fakeFetch, apiKey: "key" });
-      const result = await coaching.reviewGherkin("Given a step", "custom prompt", AVAILABLE_MODELS[0]);
+      const result = await coaching.reviewGherkin(
+        "Given a step",
+        "custom prompt",
+        AVAILABLE_MODELS[0],
+      );
       expect(result).toBe("Looks good!");
     });
 
@@ -45,7 +45,7 @@ describe("Coaching", () => {
       fakeFetch.mockResolvedValue(
         makeResponse(true, 200, {
           choices: [{ message: { content: "ok" } }],
-        })
+        }),
       );
 
       const coaching = new Coaching({ fetch: fakeFetch, apiKey: "key" });
@@ -59,7 +59,7 @@ describe("Coaching", () => {
       fakeFetch.mockResolvedValue(
         makeResponse(true, 200, {
           choices: [{ message: { content: "ok" } }],
-        })
+        }),
       );
 
       const coaching = new Coaching({ fetch: fakeFetch, apiKey: "key" });
@@ -73,7 +73,7 @@ describe("Coaching", () => {
       const coaching = new Coaching({ fetch: fakeFetch, apiKey: undefined });
 
       await expect(
-        coaching.reviewGherkin("content", DEFAULT_PROMPT, AVAILABLE_MODELS[0])
+        coaching.reviewGherkin("content", DEFAULT_PROMPT, AVAILABLE_MODELS[0]),
       ).rejects.toBeInstanceOf(CoachingConfigError);
       expect(fakeFetch).not.toHaveBeenCalled();
     });
@@ -82,7 +82,7 @@ describe("Coaching", () => {
       fakeFetch.mockResolvedValue(
         makeResponse(false, 429, {
           error: { metadata: { retry_after_seconds: 42 } },
-        })
+        }),
       );
 
       const coaching = new Coaching({ fetch: fakeFetch, apiKey: "key" });
@@ -109,7 +109,7 @@ describe("Coaching", () => {
 
       const coaching = new Coaching({ fetch: fakeFetch, apiKey: "key" });
       await expect(
-        coaching.reviewGherkin("content", DEFAULT_PROMPT, AVAILABLE_MODELS[0])
+        coaching.reviewGherkin("content", DEFAULT_PROMPT, AVAILABLE_MODELS[0]),
       ).rejects.toBeInstanceOf(CoachingRequestError);
     });
   });

@@ -116,20 +116,20 @@ function main() {
 
   if (violations.length === 0) {
     console.log(
-      `✓ spec traceability: ${files.length} spec file(s) scanned, every scenario declares its tests`
+      `✓ spec traceability: ${files.length} spec file(s) scanned, every scenario declares its tests`,
     );
     return;
   }
 
   console.error(
-    `✗ spec traceability: ${violations.length} scenario(s) missing a '> **Tests:**' line:\n`
+    `✗ spec traceability: ${violations.length} scenario(s) missing a '> **Tests:**' line:\n`,
   );
   for (const v of violations) {
     console.error(`  ${relative(process.cwd(), v.file)}:${v.line}  Scenario: ${v.scenario}`);
   }
   console.error(
     `\nEvery '#### Scenario:' must be immediately followed by a '> **Tests:**' line ` +
-      `citing the test(s), or '> **Tests:** none' when untested.`
+      `citing the test(s), or '> **Tests:** none' when untested.`,
   );
   process.exitCode = 1;
 }

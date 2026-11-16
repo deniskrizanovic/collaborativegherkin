@@ -1,12 +1,12 @@
-import { describe, it, expect, beforeEach, afterEach } from "vitest";
-import { mkdtempSync, mkdirSync, writeFileSync, rmSync } from "node:fs";
-import { join } from "node:path";
+import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
+import { join } from "node:path";
+import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import {
-  findSleepCalls,
-  findLibraryDelays,
-  collectRobotFiles,
   collectLibraryFiles,
+  collectRobotFiles,
+  findLibraryDelays,
+  findSleepCalls,
   lintFiles,
 } from "./lint-robot-no-sleep.mjs";
 

@@ -1,8 +1,8 @@
-import { describe, it, expect, beforeEach, afterEach } from "vitest";
-import { mkdtempSync, mkdirSync, writeFileSync, rmSync } from "node:fs";
-import { join } from "node:path";
+import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
-import { findViolations, collectSpecFiles, lintFiles } from "./lint-spec-traceability.mjs";
+import { join } from "node:path";
+import { afterEach, beforeEach, describe, expect, it } from "vitest";
+import { collectSpecFiles, findViolations, lintFiles } from "./lint-spec-traceability.mjs";
 
 const withLink = `### Requirement: Example
 A thing SHALL happen.

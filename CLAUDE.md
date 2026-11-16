@@ -26,7 +26,8 @@ pnpm build     # production build
 pnpm test      # run tests with Vitest
 pnpm exec vitest run <path>   # one test file (`pnpm test -- <path>` ignores the path and runs everything)
 pnpm lint      # lint with oxlint
-pnpm lint:format  # Biome format/import-order check on files changed vs main (pre-commit formats staged files)
+pnpm format       # Biome format + import sort, written to the whole tree
+pnpm lint:format  # Biome format/import-order check on the whole tree (pre-commit formats staged files)
 pnpm test:robot       # Robot e2e suite — the e2e suite CI and test:all run
 pnpm test:e2e         # Playwright e2e — parity reference, manual (CI runs it weekly)
 pnpm lint:e2e-parity  # every Playwright test has a robot/PARITY.md row + same-named Robot test
@@ -73,8 +74,6 @@ logs/             # Written at runtime — never commit
   duplicate them elsewhere.
 - Real-time collaboration is handled by Tiptap's built-in Y.js integration.
   The sync layer should not be modified without careful testing.
-- Use the logger from `src/lib/logger.ts` instead of `console.log` everywhere
-  in server-side code.
 - Review rules (error handling, server-side Zod, test style) live in
   `CODING_STANDARDS.md`; the `reviewer` agent applies them to the diff.
 

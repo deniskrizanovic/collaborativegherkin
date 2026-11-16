@@ -1,4 +1,4 @@
-import { Node, mergeAttributes } from "@tiptap/core";
+import { mergeAttributes, Node } from "@tiptap/core";
 import { EditorState, NodeSelection, Plugin, PluginKey } from "@tiptap/pm/state";
 
 export function isImageSelected(state: EditorState): boolean {

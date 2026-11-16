@@ -1,5 +1,5 @@
-import { describe, it, expect, vi, afterEach } from "vitest";
 import { renderToStaticMarkup } from "react-dom/server";
+import { afterEach, describe, expect, it, vi } from "vitest";
 
 // The render test asserts properties of the rendered client payload, not the
 // click flow, so signIn is mocked to a no-op.

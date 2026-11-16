@@ -1,17 +1,19 @@
 /* ── Design tokens ─────────────────────────────────────────────── */
 :root {
-  --bg:           #ffffff;
-  --surface:      #f2f2f2;
-  --border:       #cdd3d6;
-  --text:         #22272b;
-  --text-muted:   #495054;
+  --bg: #ffffff;
+  --surface: #f2f2f2;
+  --border: #cdd3d6;
+  --text: #22272b;
+  --text-muted: #495054;
   --focus-colour: #0086b3;
-  --radius:       4px;
-  --font-body:    'Public Sans', sans-serif;
-  --font-mono:    'IBM Plex Mono', monospace;
+  --radius: 4px;
+  --font-body: "Public Sans", sans-serif;
+  --font-mono: "IBM Plex Mono", monospace;
 }
 
-*, *::before, *::after {
+*,
+*::before,
+*::after {
   box-sizing: border-box;
   margin: 0;
   padding: 0;
@@ -105,7 +107,9 @@ h1 {
   text-decoration: none;
   font-size: 0.9rem;
   border-bottom: 1px solid var(--border);
-  transition: color 0.12s, padding-left 0.12s;
+  transition:
+    color 0.12s,
+    padding-left 0.12s;
   gap: 1rem;
 }
 
@@ -207,7 +211,9 @@ kbd {
   background: var(--surface);
   cursor: pointer;
   color: var(--text-muted);
-  transition: border-color 0.15s, color 0.15s;
+  transition:
+    border-color 0.15s,
+    color 0.15s;
 }
 .session-edit-prompt-btn:hover:not(:disabled) {
   border-color: #002664;
@@ -229,7 +235,9 @@ kbd {
   cursor: pointer;
   outline: none;
   max-width: 260px;
-  transition: border-color 0.15s, color 0.15s;
+  transition:
+    border-color 0.15s,
+    color 0.15s;
 }
 .session-model-select:hover:not(:disabled) {
   border-color: #002664;
@@ -250,7 +258,9 @@ kbd {
   background: #002664;
   cursor: pointer;
   color: #ffffff;
-  transition: background 0.15s, opacity 0.15s;
+  transition:
+    background 0.15s,
+    opacity 0.15s;
   letter-spacing: 0.01em;
 }
 .session-review-btn:hover:not(:disabled) {
@@ -271,14 +281,16 @@ kbd {
   display: inline-block;
   width: 0.7rem;
   height: 0.7rem;
-  border: 2px solid rgba(255,255,255,0.4);
+  border: 2px solid rgba(255, 255, 255, 0.4);
   border-top-color: #ffffff;
   border-radius: 50%;
   animation: spin 0.7s linear infinite;
   flex-shrink: 0;
 }
 @keyframes spin {
-  to { transform: rotate(360deg); }
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 .session-view-last-review-btn {
@@ -291,7 +303,9 @@ kbd {
   background: var(--surface);
   cursor: pointer;
   color: var(--text-muted);
-  transition: border-color 0.15s, color 0.15s;
+  transition:
+    border-color 0.15s,
+    color 0.15s;
 }
 .session-view-last-review-btn:hover {
   border-color: #002664;
@@ -302,7 +316,7 @@ kbd {
 .session-review-modal {
   position: fixed;
   inset: 0;
-  background: rgba(0,0,0,0.45);
+  background: rgba(0, 0, 0, 0.45);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -426,7 +440,7 @@ kbd {
 .session-prompt-modal {
   position: fixed;
   inset: 0;
-  background: rgba(0,0,0,0.45);
+  background: rgba(0, 0, 0, 0.45);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -465,7 +479,9 @@ kbd {
   padding: 0.75rem;
   resize: vertical;
   outline: none;
-  transition: border-color 0.15s, box-shadow 0.15s;
+  transition:
+    border-color 0.15s,
+    box-shadow 0.15s;
 }
 .session-prompt-textarea:focus {
   border-color: var(--focus-colour);
@@ -488,7 +504,10 @@ kbd {
   background: #002664;
   color: #ffffff;
   cursor: pointer;
-  transition: background 0.12s, border-color 0.12s, opacity 0.12s;
+  transition:
+    background 0.12s,
+    border-color 0.12s,
+    opacity 0.12s;
 }
 .session-prompt-save:hover:not(:disabled) {
   background: #001a4d;
@@ -509,7 +528,9 @@ kbd {
   background: none;
   color: var(--text-muted);
   cursor: pointer;
-  transition: border-color 0.12s, color 0.12s;
+  transition:
+    border-color 0.12s,
+    color 0.12s;
 }
 .session-prompt-cancel:hover {
   border-color: #002664;
@@ -550,7 +571,7 @@ kbd {
   border-radius: var(--radius);
   background: #ffffff;
   overflow: hidden;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
   transition: border-color 0.15s;
 }
 
@@ -581,7 +602,10 @@ kbd {
   background: transparent;
   cursor: pointer;
   color: var(--text-muted);
-  transition: background 0.12s, border-color 0.12s, color 0.12s;
+  transition:
+    background 0.12s,
+    border-color 0.12s,
+    color 0.12s;
 }
 
 .gherkin-toolbar-btn:hover {
@@ -603,7 +627,9 @@ kbd {
   background: rgba(0, 38, 100, 0.06);
   color: #002664;
   cursor: pointer;
-  transition: background 0.12s, border-color 0.12s;
+  transition:
+    background 0.12s,
+    border-color 0.12s;
 }
 
 .gherkin-export-btn:hover,
@@ -641,7 +667,7 @@ kbd {
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: 4px;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.10);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
 }
 
 .gherkin-table-toolbar::after {
@@ -685,7 +711,10 @@ kbd {
   background: none;
   cursor: pointer;
   color: var(--text-muted);
-  transition: background 0.12s, border-color 0.12s, color 0.12s;
+  transition:
+    background 0.12s,
+    border-color 0.12s,
+    color 0.12s;
 }
 
 .gherkin-table-toolbar-btn:hover {
@@ -812,7 +841,7 @@ kbd {
   background: #ffffff;
   border: 1px solid var(--border);
   border-radius: var(--radius);
-  box-shadow: 0 4px 16px rgba(0,0,0,0.12);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
 }
 
 .block-picker-item {
@@ -839,7 +868,9 @@ kbd {
   background: rgba(0, 38, 100, 0.06);
   color: #002664;
   cursor: pointer;
-  transition: background 0.12s, border-color 0.12s;
+  transition:
+    background 0.12s,
+    border-color 0.12s;
 }
 
 .gherkin-import-btn:hover {
@@ -849,7 +880,7 @@ kbd {
 .gherkin-import-modal {
   position: fixed;
   inset: 0;
-  background: rgba(0,0,0,0.45);
+  background: rgba(0, 0, 0, 0.45);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -878,7 +909,9 @@ kbd {
   padding: 0.75rem;
   resize: vertical;
   outline: none;
-  transition: border-color 0.15s, box-shadow 0.15s;
+  transition:
+    border-color 0.15s,
+    box-shadow 0.15s;
 }
 
 .gherkin-import-textarea:focus {
@@ -920,7 +953,9 @@ kbd {
   border: 1px solid var(--border);
   border-radius: var(--radius);
   cursor: pointer;
-  transition: border-color 0.12s, color 0.12s;
+  transition:
+    border-color 0.12s,
+    color 0.12s;
 }
 
 .gherkin-import-cancel:hover {

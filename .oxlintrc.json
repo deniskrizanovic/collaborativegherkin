@@ -127,6 +127,18 @@
         "prefer-rest-params": "error",
         "prefer-spread": "error"
       }
+    },
+    {
+      "files": ["src/**"],
+      "rules": {
+        "no-console": "error"
+      }
+    },
+    {
+      "files": ["src/**/*.{test,spec}.{ts,tsx}"],
+      "rules": {
+        "no-console": "off"
+      }
     }
   ],
   "ignorePatterns": [

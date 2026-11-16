@@ -1,13 +1,15 @@
-import { test, expect } from "@playwright/test";
-import { openSession, pressEnterAndWait } from "./helpers";
-import * as path from "path";
+import { expect, test } from "@playwright/test";
 import * as fs from "fs";
 import * as os from "os";
+import * as path from "path";
+import { openSession, pressEnterAndWait } from "./helpers";
 
 // spec §3.11
 
 test.describe("data table insertion", () => {
-  test("SC-3.11.1: Table button shown when cursor is on step or data table — visible on Given", async ({ page }) => {
+  test("SC-3.11.1: Table button shown when cursor is on step or data table — visible on Given", async ({
+    page,
+  }) => {
     await openSession(page);
 
     await page.locator('[data-gherkin-type="given"]').first().click();
@@ -15,7 +17,9 @@ test.describe("data table insertion", () => {
     await expect(page.locator(".gherkin-toolbar-btn", { hasText: "Table" })).toBeVisible();
   });
 
-  test("SC-3.11.1: Table button shown when cursor is on step or data table — absent on Feature", async ({ page }) => {
+  test("SC-3.11.1: Table button shown when cursor is on step or data table — absent on Feature", async ({
+    page,
+  }) => {
     await openSession(page);
 
     await page.locator('[data-gherkin-type="feature"]').click();
@@ -23,7 +27,9 @@ test.describe("data table insertion", () => {
     await expect(page.locator(".gherkin-toolbar-btn", { hasText: "Table" })).not.toBeVisible();
   });
 
-  test("SC-3.11.2: Clicking Table inserts 2×2 stub with cursor in first cell — node inserted", async ({ page }) => {
+  test("SC-3.11.2: Clicking Table inserts 2×2 stub with cursor in first cell — node inserted", async ({
+    page,
+  }) => {
     await openSession(page);
 
     await page.locator('[data-gherkin-type="given"]').first().click();
@@ -44,11 +50,17 @@ test.describe("data table insertion", () => {
     await page.locator("[data-gherkin-table] td").first().click();
 
     await expect(page.locator(".gherkin-table-toolbar")).toBeVisible();
-    await expect(page.locator('.gherkin-table-toolbar-btn[data-action="insert-row-below"]')).toBeVisible();
-    await expect(page.locator('.gherkin-table-toolbar-btn[data-action="insert-col-after"]')).toBeVisible();
+    await expect(
+      page.locator('.gherkin-table-toolbar-btn[data-action="insert-row-below"]'),
+    ).toBeVisible();
+    await expect(
+      page.locator('.gherkin-table-toolbar-btn[data-action="insert-col-after"]'),
+    ).toBeVisible();
   });
 
-  test("SC-3.11.2: Clicking Table inserts 2×2 stub with cursor in first cell — first cell focused", async ({ page }) => {
+  test("SC-3.11.2: Clicking Table inserts 2×2 stub with cursor in first cell — first cell focused", async ({
+    page,
+  }) => {
     await openSession(page);
     await page.locator('[data-gherkin-type="given"]').first().click();
     await page.locator(".gherkin-toolbar-btn", { hasText: "Table" }).click();
@@ -63,7 +75,9 @@ test.describe("data table insertion", () => {
     await expect(firstCell).toHaveText("header");
   });
 
-  test("SC-3.11.9: Choosing Table in the block picker puts the cursor in the first cell", async ({ page }) => {
+  test("SC-3.11.9: Choosing Table in the block picker puts the cursor in the first cell", async ({
+    page,
+  }) => {
     await openSession(page);
     // Same route to a step block as SC-3.11.3: on the new when block prevType=given
     await pressEnterAndWait(page, "scenario");
@@ -76,7 +90,9 @@ test.describe("data table insertion", () => {
     await expect(firstCell).toBeFocused();
     await page.keyboard.type("picked");
     await expect(firstCell).toHaveText("picked");
-    await expect(page.locator(".gherkin-editor [data-gherkin-type]", { hasText: "/" })).toHaveCount(0);
+    await expect(page.locator(".gherkin-editor [data-gherkin-type]", { hasText: "/" })).toHaveCount(
+      0,
+    );
   });
 
   test("SC-3.11.4: Tab moves focus to next cell", async ({ page }) => {
@@ -124,7 +140,9 @@ test.describe("data table insertion", () => {
 });
 
 test.describe("data table export", () => {
-  test("SC-3.11.7: TXT export uses pipe-delimited rows padded to column width", async ({ page }) => {
+  test("SC-3.11.7: TXT export uses pipe-delimited rows padded to column width", async ({
+    page,
+  }) => {
     await openSession(page);
 
     await page.locator('[data-gherkin-type="feature"]').first().click();

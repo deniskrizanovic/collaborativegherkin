@@ -79,7 +79,10 @@ function stopServer(server) {
 // the terminal (or a cancelled CI job) never reaches it directly.
 let server = null;
 
-for (const [signal, code] of [["SIGINT", 130], ["SIGTERM", 143]]) {
+for (const [signal, code] of [
+  ["SIGINT", 130],
+  ["SIGTERM", 143],
+]) {
   process.on(signal, () => {
     stopServer(server);
     process.exit(code);
@@ -128,5 +131,5 @@ main().then(
   (err) => {
     console.error(err);
     process.exit(1);
-  }
+  },
 );

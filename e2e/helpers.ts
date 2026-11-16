@@ -6,7 +6,7 @@ export async function pressEnterAndWait(page: Page, expectedType: string): Promi
   await page.waitForFunction(
     ({ selector, before }: { selector: string; before: number }) =>
       document.querySelectorAll(selector).length > before,
-    { selector: `[data-gherkin-type="${expectedType}"]`, before }
+    { selector: `[data-gherkin-type="${expectedType}"]`, before },
   );
   await page.locator(`[data-gherkin-type="${expectedType}"]`).last().click();
 }
@@ -49,7 +49,7 @@ export async function documentNodes(page: Page): Promise<string[]> {
       if (child.classList.contains("gherkin-image-block")) return "image";
       if (child.hasAttribute("data-gherkin-table")) return "table";
       return child.tagName.toLowerCase();
-    })
+    }),
   );
 }
 
@@ -60,9 +60,12 @@ export async function documentNodes(page: Page): Promise<string[]> {
  * Mirrors Robot's `Cursor Position`. ProseMirror picks up caret moves made by
  * keys such as End a few ms after the key, so poll it before the next key.
  */
-export async function cursorPosition(page: Page): Promise<{ index: number; offset: number; empty: boolean }> {
+export async function cursorPosition(
+  page: Page,
+): Promise<{ index: number; offset: number; empty: boolean }> {
   return page.locator(".gherkin-editor").evaluate((el) => {
-    const { $from, empty } = (el as unknown as { editor: import("@tiptap/core").Editor }).editor.state.selection;
+    const { $from, empty } = (el as unknown as { editor: import("@tiptap/core").Editor }).editor
+      .state.selection;
     return { index: $from.index(0), offset: $from.parentOffset, empty };
   });
 }
@@ -76,9 +79,14 @@ export async function cursorPosition(page: Page): Promise<{ index: number; offse
 export async function endUndoStep(page: Page): Promise<void> {
   await page.locator(".gherkin-editor").evaluate((el) => {
     const { state } = (el as unknown as { editor: import("@tiptap/core").Editor }).editor;
-    const plugin = state.plugins.find((p) => (p as unknown as { key: string }).key.startsWith("y-undo$"));
-    const undoManager = (plugin?.getState(state) as { undoManager?: { stopCapturing(): void } } | undefined)?.undoManager;
-    if (!undoManager) throw new Error("endUndoStep: no y-undo plugin with an undoManager on the editor");
+    const plugin = state.plugins.find((p) =>
+      (p as unknown as { key: string }).key.startsWith("y-undo$"),
+    );
+    const undoManager = (
+      plugin?.getState(state) as { undoManager?: { stopCapturing(): void } } | undefined
+    )?.undoManager;
+    if (!undoManager)
+      throw new Error("endUndoStep: no y-undo plugin with an undoManager on the editor");
     undoManager.stopCapturing();
   });
 }
@@ -94,8 +102,8 @@ export async function clickEditor(page: Page) {
 // Minimal 1×1 PNG.
 export const PNG_1x1 = Buffer.from(
   "89504e470d0a1a0a0000000d49484452000000010000000108020000009001" +
-  "2e00000000c4944415478016360f8cfc00000000200016c3455300000000049454e44ae426082",
-  "hex"
+    "2e00000000c4944415478016360f8cfc00000000200016c3455300000000049454e44ae426082",
+  "hex",
 );
 
 /**
@@ -105,5 +113,7 @@ export const PNG_1x1 = Buffer.from(
  * the editor silently inserts nothing.
  */
 export async function chooseImageFile(page: Page, name = "test-img.png"): Promise<void> {
-  await page.locator('input[type="file"]').setInputFiles({ name, mimeType: "image/png", buffer: PNG_1x1 });
+  await page
+    .locator('input[type="file"]')
+    .setInputFiles({ name, mimeType: "image/png", buffer: PNG_1x1 });
 }

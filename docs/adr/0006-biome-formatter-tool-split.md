@@ -19,6 +19,8 @@ Biome processes only `*.{ts,tsx,js,mjs,cjs,json,jsonc,css}`, respects `.gitignor
 
 ### Adoption is staged-only, with no bulk reformat
 
+Superseded by [ADR 0008](0008-whole-tree-formatting.md): the whole tree was reformatted once, `pnpm format` formats it, and `lint:format` checks every in-scope file.
+
 There is no one-shot reformat commit and no `pnpm format` script that could rewrite the whole tree. Files get formatted when they are committed:
 
 - The husky pre-commit hook (`lint-staged`) runs `biome check --write` on staged in-scope files before ESLint, and re-stages the result.

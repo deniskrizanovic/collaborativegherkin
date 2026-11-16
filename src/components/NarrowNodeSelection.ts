@@ -1,6 +1,13 @@
 import { Extension } from "@tiptap/core";
 import { isChangeOrigin } from "@tiptap/extension-collaboration";
-import { EditorState, NodeSelection, Plugin, PluginKey, TextSelection, Transaction } from "@tiptap/pm/state";
+import {
+  EditorState,
+  NodeSelection,
+  Plugin,
+  PluginKey,
+  TextSelection,
+  Transaction,
+} from "@tiptap/pm/state";
 
 /**
  * Only an image may hold a NodeSelection. A NodeSelection on any other node
@@ -9,7 +16,8 @@ import { EditorState, NodeSelection, Plugin, PluginKey, TextSelection, Transacti
  */
 export function narrowNodeSelection(state: EditorState): Transaction | null {
   const { selection } = state;
-  if (!(selection instanceof NodeSelection) || selection.node.type.name === "gherkin_image") return null;
+  if (!(selection instanceof NodeSelection) || selection.node.type.name === "gherkin_image")
+    return null;
   const pos = selection.node.isTextblock ? selection.from + 1 : selection.from;
   return state.tr.setSelection(TextSelection.near(state.doc.resolve(pos)));
 }
@@ -21,7 +29,9 @@ export function narrowNodeSelection(state: EditorState): Transaction | null {
  * transactions from the binding are narrowed: a NodeSelection made locally,
  * by a command or a drop, is left alone.
  */
-export function narrowNodeSelectionPlugin(isRemote: (tr: Transaction) => boolean = isChangeOrigin): Plugin {
+export function narrowNodeSelectionPlugin(
+  isRemote: (tr: Transaction) => boolean = isChangeOrigin,
+): Plugin {
   return new Plugin({
     key: new PluginKey("narrowNodeSelection"),
     appendTransaction: (transactions, _oldState, newState) =>

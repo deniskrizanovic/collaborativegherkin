@@ -154,7 +154,9 @@ export function lintFiles(files) {
   for (const file of files) {
     const content = readFileSync(file, "utf8");
     const isRobot = ROBOT_EXTENSIONS.some((ext) => file.endsWith(ext));
-    violations.push(...(isRobot ? findSleepCalls(content, file) : findLibraryDelays(content, file)));
+    violations.push(
+      ...(isRobot ? findSleepCalls(content, file) : findLibraryDelays(content, file)),
+    );
   }
   return violations;
 }
@@ -166,7 +168,9 @@ function main() {
   const violations = lintFiles(files);
 
   if (violations.length === 0) {
-    console.log(`✓ robot no-sleep: ${files.length} Robot and library file(s) scanned, no fixed delays`);
+    console.log(
+      `✓ robot no-sleep: ${files.length} Robot and library file(s) scanned, no fixed delays`,
+    );
     return;
   }
 
@@ -177,7 +181,7 @@ function main() {
   console.error(
     `\nFixed delays are forbidden in robot/suites/**, robot/resources/** and ` +
       `robot/libraries/**. Wait with an ` +
-      `auto-waiting assertion (Get Element Count, Get Text, ...) or a Wait For keyword.`
+      `auto-waiting assertion (Get Element Count, Get Text, ...) or a Wait For keyword.`,
   );
   process.exitCode = 1;
 }

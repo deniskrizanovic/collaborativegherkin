@@ -16,15 +16,22 @@
 // A file no unit test loads is 0% covered. E2e runs contribute nothing.
 //
 // Runs the whole unit suite under coverage, so it is in `test:all` and CI but
-// not the husky pre-commit hook. Exit 0 = pass, 1 = offenders, 2 = the Vitest
-// run failed or produced no coverage.
+// not the husky pre-commit hook. Exit 0 = pass, 1 = offenders, 2 = an unknown
+// option, a `--file` path matching no scored file, or a Vitest run that failed
+// or produced no coverage.
 //
-// See openspec/changes/add-crap-metric-gate (design D1–D5).
+// Options (`test:all` and CI pass none):
+//   --all          list every scored function, worst first, not just offenders
+//   --file <path>  limit the report and exit code to that file or directory
+//
+// See openspec/changes/add-crap-metric-gate (design D1–D5) and
+// openspec/changes/retro-tooling-gates.
 
 import { execFileSync } from "node:child_process";
 import { readdirSync, readFileSync, rmSync } from "node:fs";
-import { join, relative } from "node:path";
+import { join, relative, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
+import { parseArgs as parseNodeArgs } from "node:util";
 import ts from "typescript";
 
 export const CRAP_THRESHOLD = 30;
@@ -236,35 +243,90 @@ export function scoreFunctions(sources, coverageMap) {
 }
 
 /**
+ * Parse the gate's command-line options. Throws on an unknown option.
+ * @param {string[]} argv
+ * @returns {{ all: boolean, file: string | undefined }}
+ */
+export function parseArgs(argv) {
+  const { values } = parseNodeArgs({
+    args: argv,
+    strict: true,
+    options: { all: { type: "boolean", default: false }, file: { type: "string" } },
+  });
+  return { all: values.all, file: values.file };
+}
+
+/**
+ * Keep the functions in `path` (relative to `cwd`), or in files under it.
+ * @template {{ file: string }} T
+ * @param {T[]} scored
+ * @param {string} path
+ * @param {string} cwd
+ * @returns {T[]}
+ */
+export function filterByPath(scored, path, cwd) {
+  const target = relative(cwd, resolve(cwd, path));
+  // `.` (or cwd itself) resolves to "", which covers every file.
+  if (target === "") return scored;
+  return scored.filter((fn) => {
+    const file = relative(cwd, fn.file);
+    return file === target || file.startsWith(`${target}/`);
+  });
+}
+
+/**
+ * Apply the `--file` and `--all` options, then build the report. A `--file`
+ * path matching no scored function is exit 2.
+ * @param {{ file: string, name: string, line: number, complexity: number, coverage: number, score: number }[]} scored
+ * @param {string} cwd
+ * @param {{ all?: boolean, file?: string }} [options]
+ * @returns {{ exitCode: number, output: string }}
+ */
+export function reportFor(scored, cwd, { all = false, file } = {}) {
+  if (file === undefined) return buildReport(scored, cwd, { all });
+  const inPath = filterByPath(scored, file, cwd);
+  if (inPath.length === 0) {
+    return { exitCode: 2, output: `✗ crap: no scored file matches --file ${file}.` };
+  }
+  return buildReport(inPath, cwd, { all });
+}
+
+/**
  * Turn scored functions into the gate's output and exit code.
  * @param {{ file: string, name: string, line: number, complexity: number, coverage: number, score: number }[]} scored
  * @param {string} cwd file paths are shown relative to this
+ * @param {{ all?: boolean }} [options] `all` lists every function, not just offenders
  * @returns {{ exitCode: number, output: string }}
  */
-export function buildReport(scored, cwd) {
+export function buildReport(scored, cwd, { all = false } = {}) {
   const where = (fn) => `${relative(cwd, fn.file)}:${fn.line}`;
   const worstFirst = [...scored].sort((a, b) => b.score - a.score);
   const offenders = worstFirst.filter((fn) => fn.score > CRAP_THRESHOLD);
+  const exitCode = offenders.length === 0 ? 0 : 1;
 
-  if (offenders.length === 0) {
+  if (exitCode === 0 && !all) {
     const worst = worstFirst[0];
     const tail = worst ? `, worst ${worst.score.toFixed(1)} (${worst.name} ${where(worst)})` : "";
-    return { exitCode: 0, output: `✓ crap: ${scored.length} function(s) scored${tail}` };
+    return { exitCode, output: `✓ crap: ${scored.length} function(s) scored${tail}` };
   }
 
-  const rows = offenders.map(
+  const rows = (all ? worstFirst : offenders).map(
     (fn) =>
       `  ${fn.score.toFixed(1).padStart(7)}  ${String(fn.complexity).padStart(4)}  ` +
       `${`${Math.round(fn.coverage * 100)}%`.padStart(4)}  ${fn.name}  ${where(fn)}`,
   );
+  const heading = all
+    ? `${exitCode === 0 ? "✓" : "✗"} crap: ${scored.length} function(s) scored, ` +
+      `${offenders.length} above ${CRAP_THRESHOLD}:\n`
+    : `✗ crap: ${offenders.length} function(s) score above ${CRAP_THRESHOLD}:\n`;
   const output = [
-    `✗ crap: ${offenders.length} function(s) score above ${CRAP_THRESHOLD}:\n`,
+    heading,
     "    score  comp   cov  function",
     ...rows,
     `\nCRAP = comp² × (1 − cov)³ + comp, from Vitest unit coverage only. ` +
       `Lower a score by adding unit tests or simplifying the function.`,
   ].join("\n");
-  return { exitCode: 1, output };
+  return { exitCode, output };
 }
 
 /** Run the unit suite under istanbul coverage and return the coverage map. */
@@ -306,6 +368,14 @@ function runCoverage(cwd) {
 /** CLI entry point. Exits 1 when any function scores above the threshold. */
 function main() {
   const cwd = process.cwd();
+  let options;
+  try {
+    options = parseArgs(process.argv.slice(2));
+  } catch (err) {
+    console.error(`✗ crap: ${err.message}\nUsage: lint-crap.mjs [--all] [--file <path>]`);
+    process.exitCode = 2;
+    return;
+  }
   const coverageMap = runCoverage(cwd);
   if (!coverageMap) {
     process.exitCode = 2;
@@ -315,7 +385,7 @@ function main() {
     file,
     content: readFileSync(file, "utf8"),
   }));
-  const { exitCode, output } = buildReport(scoreFunctions(sources, coverageMap), cwd);
+  const { exitCode, output } = reportFor(scoreFunctions(sources, coverageMap), cwd, options);
   (exitCode === 0 ? console.log : console.error)(output);
   process.exitCode = exitCode;
 }

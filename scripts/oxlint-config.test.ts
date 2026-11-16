@@ -196,6 +196,27 @@ describe("oxlint config", () => {
     expect(result.status).toBe(0);
   });
 
+  it("reports a console call in application code", () => {
+    const result = lintFixture({
+      "src/lib/widget.ts": 'export const f = () => console.log("hi");\n',
+    });
+    expect(result.diagnostics.map(ruleOf)).toEqual(["no-console"]);
+    expect(result.diagnostics[0].severity).toBe("error");
+    expect(result.status).not.toBe(0);
+  });
+
+  it("allows a console call in a src/ test file", () => {
+    const result = lintFixture({
+      "src/lib/widget.test.ts": 'export const f = () => console.log("hi");\n',
+    });
+    expect(result).toEqual({ status: 0, diagnostics: [] });
+  });
+
+  it("allows a console call outside src/", () => {
+    const result = lintFixture({ "scripts/tool.mjs": 'console.error("usage");\n' });
+    expect(result).toEqual({ status: 0, diagnostics: [] });
+  });
+
   it("lint wired into lint-staged, CI and test:all", () => {
     const tsTasks: string[] = packageJson["lint-staged"]["*.{ts,tsx}"];
     const biomeIndex = tsTasks.findIndex((task) => task.startsWith("biome check --write"));

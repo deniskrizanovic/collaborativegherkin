@@ -1,8 +1,8 @@
-import { describe, it, expect, beforeEach, afterEach } from "vitest";
-import { mkdtempSync, mkdirSync, rmSync } from "node:fs";
-import { join } from "node:path";
+import { mkdirSync, mkdtempSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
-import { parseIssueUrl, collectActiveChanges, findViolations } from "./lint-issue-link.mjs";
+import { join } from "node:path";
+import { afterEach, beforeEach, describe, expect, it } from "vitest";
+import { collectActiveChanges, findViolations, parseIssueUrl } from "./lint-issue-link.mjs";
 
 const openIssueProposal = `## GitHub Issue
 
@@ -74,7 +74,9 @@ describe("findViolations", () => {
 
   it("flags a change whose issue lookup returns not-found (throws)", async () => {
     const changes = [{ name: "my-change", proposalContent: openIssueProposal }];
-    const lookup = async (_n: string) => { throw new Error("HTTP 404: Not Found"); };
+    const lookup = async (_n: string) => {
+      throw new Error("HTTP 404: Not Found");
+    };
     const violations = await findViolations(changes, lookup);
     expect(violations).toHaveLength(1);
     expect(violations[0].change).toBe("my-change");
@@ -82,7 +84,9 @@ describe("findViolations", () => {
 
   it("fails closed when the lookup errors (unauthenticated / offline)", async () => {
     const changes = [{ name: "my-change", proposalContent: openIssueProposal }];
-    const lookup = async (_n: string) => { throw new Error("gh: not authenticated"); };
+    const lookup = async (_n: string) => {
+      throw new Error("gh: not authenticated");
+    };
     const violations = await findViolations(changes, lookup);
     expect(violations).toHaveLength(1);
     expect(violations[0].change).toBe("my-change");

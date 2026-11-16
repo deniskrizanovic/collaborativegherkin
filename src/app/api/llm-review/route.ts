@@ -1,16 +1,16 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { auth } from "@/auth";
-import { db } from "@/lib/db";
-import logger from "@/lib/logger";
-import { AVAILABLE_MODELS, DEFAULT_MODEL, DEFAULT_PROMPT } from "@/lib/llm-constants";
-import { Session, SessionNotFoundError } from "@/lib/session";
 import {
   Coaching,
   CoachingConfigError,
   CoachingRequestError,
   RateLimitError,
 } from "@/lib/coaching";
+import { db } from "@/lib/db";
+import { AVAILABLE_MODELS, DEFAULT_MODEL, DEFAULT_PROMPT } from "@/lib/llm-constants";
+import logger from "@/lib/logger";
+import { Session, SessionNotFoundError } from "@/lib/session";
 
 const PostSchema = z.object({
   content: z.string().min(1),

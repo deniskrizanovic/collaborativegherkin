@@ -1,4 +1,4 @@
-import { test, expect } from "@playwright/test";
+import { expect, test } from "@playwright/test";
 import { openSession } from "./helpers";
 
 // spec §7.1
@@ -27,7 +27,9 @@ test.describe("Gherkin text import", () => {
     await expect(page.locator('[data-gherkin-type="feature"]')).toHaveCount(1);
   });
 
-  test("SC-7.1.3: Inserting Gherkin creates blocks, skips non-matching, clears modal — valid sequence", async ({ page }) => {
+  test("SC-7.1.3: Inserting Gherkin creates blocks, skips non-matching, clears modal — valid sequence", async ({
+    page,
+  }) => {
     await openSession(page);
     await page.locator(".gherkin-import-btn").click();
     const gherkin = [
@@ -47,7 +49,9 @@ test.describe("Gherkin text import", () => {
     await expect(page.locator('[data-gherkin-type="then"]')).toHaveCount(2);
   });
 
-  test("SC-7.1.3: Inserting Gherkin creates blocks, skips non-matching, clears modal — out-of-order inserted leniently", async ({ page }) => {
+  test("SC-7.1.3: Inserting Gherkin creates blocks, skips non-matching, clears modal — out-of-order inserted leniently", async ({
+    page,
+  }) => {
     await openSession(page);
     await page.locator(".gherkin-import-btn").click();
     await page.locator(".gherkin-import-textarea").fill("Scenario: Orphan\nGiven context");
@@ -56,7 +60,9 @@ test.describe("Gherkin text import", () => {
     await expect(page.locator('[data-gherkin-type="given"]')).toHaveCount(2);
   });
 
-  test("SC-7.1.3: Inserting Gherkin creates blocks, skips non-matching, clears modal — textarea cleared", async ({ page }) => {
+  test("SC-7.1.3: Inserting Gherkin creates blocks, skips non-matching, clears modal — textarea cleared", async ({
+    page,
+  }) => {
     await openSession(page);
     await page.locator(".gherkin-import-btn").click();
     await page.locator(".gherkin-import-textarea").fill("Feature: Test");
@@ -66,7 +72,9 @@ test.describe("Gherkin text import", () => {
     await expect(page.locator(".gherkin-import-textarea")).toHaveValue("");
   });
 
-  test("SC-7.1.3: Inserting Gherkin creates blocks, skips non-matching, clears modal — markdown-prefixed Gherkin parsed", async ({ page }) => {
+  test("SC-7.1.3: Inserting Gherkin creates blocks, skips non-matching, clears modal — markdown-prefixed Gherkin parsed", async ({
+    page,
+  }) => {
     await openSession(page);
     await page.locator(".gherkin-import-btn").click();
     const gherkin = [
@@ -86,7 +94,9 @@ test.describe("Gherkin text import", () => {
     await expect(page.locator('[data-gherkin-type="then"]')).toHaveCount(2);
   });
 
-  test("SC-7.1.3: Inserting Gherkin creates blocks, skips non-matching, clears modal — pipe rows become DataTable", async ({ page }) => {
+  test("SC-7.1.3: Inserting Gherkin creates blocks, skips non-matching, clears modal — pipe rows become DataTable", async ({
+    page,
+  }) => {
     await openSession(page);
     await page.locator(".gherkin-import-btn").click();
     const gherkin = [
@@ -105,17 +115,23 @@ test.describe("Gherkin text import", () => {
     await expect(page.locator("[data-gherkin-table]")).toHaveCount(1);
   });
 
-  test("SC-7.1.3: Inserting Gherkin creates blocks, skips non-matching, clears modal — plain text skipped", async ({ page }) => {
+  test("SC-7.1.3: Inserting Gherkin creates blocks, skips non-matching, clears modal — plain text skipped", async ({
+    page,
+  }) => {
     await openSession(page);
     const blocksBefore = await page.locator(".gherkin-editor [data-gherkin-type]").count();
     await page.locator(".gherkin-import-btn").click();
-    await page.locator(".gherkin-import-textarea").fill("This is just plain text with no keywords at all");
+    await page
+      .locator(".gherkin-import-textarea")
+      .fill("This is just plain text with no keywords at all");
     await page.locator(".gherkin-import-confirm").click();
     await expect(page.locator(".gherkin-import-modal")).not.toBeVisible();
     await expect(page.locator(".gherkin-editor [data-gherkin-type]")).toHaveCount(blocksBefore);
   });
 
-  test("SC-7.1.3: Inserting Gherkin creates blocks, skips non-matching, clears modal — case-insensitive with colon", async ({ page }) => {
+  test("SC-7.1.3: Inserting Gherkin creates blocks, skips non-matching, clears modal — case-insensitive with colon", async ({
+    page,
+  }) => {
     await openSession(page);
     const givenCountBefore = await page.locator('[data-gherkin-type="given"]').count();
     await page.locator(".gherkin-import-btn").click();
@@ -124,7 +140,9 @@ test.describe("Gherkin text import", () => {
     await expect(page.locator('[data-gherkin-type="given"]')).toHaveCount(givenCountBefore + 1);
   });
 
-  test("SC-7.1.3: Inserting Gherkin creates blocks, skips non-matching, clears modal — case-insensitive without colon", async ({ page }) => {
+  test("SC-7.1.3: Inserting Gherkin creates blocks, skips non-matching, clears modal — case-insensitive without colon", async ({
+    page,
+  }) => {
     await openSession(page);
     const givenCountBefore = await page.locator('[data-gherkin-type="given"]').count();
     await page.locator(".gherkin-import-btn").click();
