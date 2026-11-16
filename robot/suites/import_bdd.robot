@@ -1,6 +1,6 @@
 *** Settings ***
 Documentation       Business-language twin of import.robot: spec §7.1 Gherkin
-...                 text import (openspec/specs/gherkin-import/spec.md).
+...                 text import (openspec/specs/product/gherkin/gherkin-import/spec.md).
 ...
 ...                 Each test is the GIVEN/THEN lines of its scenario; the steps
 ...                 live in ../resources/steps/gherkin_import.resource and

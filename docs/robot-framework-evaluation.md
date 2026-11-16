@@ -736,7 +736,7 @@ test could repeat its spec scenario word for word.
 
 ### 6.2 Example: SC-3.3.6
 
-The spec (`openspec/specs/gherkin-editor/spec.md`):
+The spec (`openspec/specs/product/gherkin/gherkin-editor/spec.md`):
 
 ```
 GIVEN the block picker menu is open

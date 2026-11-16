@@ -1,7 +1,7 @@
 *** Settings ***
 Documentation       Business-language twin of collaboration.robot: spec §3.5
 ...                 real-time collaboration
-...                 (openspec/specs/realtime-collaboration/spec.md).
+...                 (openspec/specs/product/gherkin/realtime-collaboration/spec.md).
 ...
 ...                 Each test is the GIVEN/WHEN/THEN lines of its scenario; the
 ...                 steps live in ../resources/steps/realtime_collaboration.resource.
@@ -13,7 +13,7 @@ Documentation       Business-language twin of collaboration.robot: spec §3.5
 ...                 collaboration-cursor extension has no stable Tiptap 3 release.
 ...                 SC-3.12.6 (a collaborator removes a selected image) and
 ...                 SC-3.11.10 (inserting a table keeps a collaborator's cursor)
-...                 belong to openspec/specs/gherkin-editor/spec.md.
+...                 belong to openspec/specs/product/gherkin/gherkin-editor/spec.md.
 
 Resource            ../resources/common.resource
 Resource            ../resources/files.resource

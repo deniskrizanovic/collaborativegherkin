@@ -1,5 +1,5 @@
 *** Settings ***
-Documentation       Business-language steps for openspec/specs/llm-review/spec.md.
+Documentation       Business-language steps for openspec/specs/product/gherkin/llm-review/spec.md.
 ...
 ...                 Each keyword is named after a GIVEN/WHEN/THEN line of that
 ...                 spec, so a `bdd` test repeats its scenario word for word.

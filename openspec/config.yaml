@@ -37,3 +37,11 @@ rules:
       the `lint:given` gate over both openspec/specs/** and
       openspec/changes/*/specs/**. Before authoring scenarios, invoke the
       `gherkin-authoring` skill and apply its GIVEN/WHEN/THEN guidance.
+    - >-
+      Every spec MUST sit under a category folder: `product/` (sub-folders
+      `gherkin/`, `sessions/`), `quality/` or `process/`. A modified
+      capability keeps its full existing path. Every local link in a spec
+      MUST be a repo-root target that exists (`/scripts/x.test.ts`, not
+      `../../../scripts/x.test.ts`), so it survives moves and archive.
+      Enforced by the `lint:spec-layout` gate over both openspec/specs/** and
+      openspec/changes/*/specs/**.

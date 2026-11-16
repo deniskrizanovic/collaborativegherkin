@@ -1,6 +1,6 @@
 *** Settings ***
 Documentation       Business-language twin of llm_review.robot: spec §8 AI
-...                 coaching review (openspec/specs/llm-review/spec.md).
+...                 coaching review (openspec/specs/product/gherkin/llm-review/spec.md).
 ...
 ...                 Each test is the GIVEN/WHEN/THEN lines of its scenario; the
 ...                 steps live in ../resources/steps/llm_review.resource.

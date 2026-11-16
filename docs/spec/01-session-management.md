@@ -1,7 +1,7 @@
 <!-- SUPERSEDED: This narrative has been migrated to OpenSpec. The structured,
      traceability-enforced source of truth now lives at
-     `openspec/specs/session-management/spec.md` (sections 1.1–1.4). Deleting a
-     session (1.5) is owned by `openspec/specs/session-access-control/` via the
+     `openspec/specs/product/sessions/session-management/spec.md` (sections 1.1–1.4). Deleting a
+     session (1.5) is owned by `openspec/specs/product/sessions/session-access-control/` via the
      `add-session-ownership-authz` change. This file is kept as human-readable
      Given/When/Then narrative only; edit the OpenSpec spec for normative changes. -->
 

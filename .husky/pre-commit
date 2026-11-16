@@ -9,6 +9,11 @@ pnpm run lint:specs
 # Also whole-tree and offline-safe; sibling of lint:specs.
 pnpm run lint:given
 
+# Spec-layout gate — every spec sits under product/, quality/ or process/, and
+# every spec link is a repo-root path that exists. Whole-tree, pure
+# filesystem, no network; sibling of lint:specs.
+pnpm run lint:spec-layout
+
 # OpenSpec structural gate — `openspec validate --all --strict` over main specs
 # and active changes, using the pinned devDependency CLI. Whole-tree, pure
 # filesystem, no network, telemetry off; sibling of lint:specs.

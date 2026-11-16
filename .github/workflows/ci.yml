@@ -92,6 +92,9 @@ jobs:
       - name: Lint specs (given clause)
         run: pnpm run lint:given
 
+      - name: Lint specs (layout and links)
+        run: pnpm run lint:spec-layout
+
       - name: Lint specs (openspec validate)
         run: pnpm run lint:openspec
 

@@ -1,6 +1,6 @@
 *** Settings ***
 Documentation       Business-language twin of initial_content.robot: spec §3.1
-...                 initial scaffold content (openspec/specs/gherkin-editor/spec.md).
+...                 initial scaffold content (openspec/specs/product/gherkin/gherkin-editor/spec.md).
 ...
 ...                 Each test is the GIVEN/WHEN/THEN lines of its scenario; the
 ...                 steps live in ../resources/steps/gherkin_editor.resource.

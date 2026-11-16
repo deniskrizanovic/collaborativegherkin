@@ -1,7 +1,7 @@
 *** Settings ***
 Documentation       Business-language twin of export.robot and of the export
 ...                 tests in data_table.robot: spec §3.6 / §3.9 / §3.11 export
-...                 (openspec/specs/gherkin-export/spec.md).
+...                 (openspec/specs/product/gherkin/gherkin-export/spec.md).
 ...
 ...                 Each test is the GIVEN/WHEN/THEN lines of its scenario; the
 ...                 steps live in ../resources/steps/gherkin_export.resource and
