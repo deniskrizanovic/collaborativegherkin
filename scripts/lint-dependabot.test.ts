@@ -19,6 +19,9 @@ updates:
       interval: "weekly"
     assignees:
       - "deniskrizanovic"
+    cooldown:
+      default-days: 3
+      semver-major-days: 7
     groups:
       minor-and-patch:
         update-types:
@@ -31,9 +34,10 @@ updates:
       - dependency-name: "@auth/prisma-adapter"
 `;
 
-/** Build a single-entry npm config with the given extra keys and ignore entries. */
+/** Build a single-entry npm config with the given extra keys, cooldown, and ignore entries. */
 function npmConfig({
   extra = '    assignees: ["deniskrizanovic"]\n',
+  cooldown = "    cooldown:\n      default-days: 3\n",
   ignore = [] as string[],
 } = {}) {
   const ignoreBlock =
@@ -46,7 +50,7 @@ updates:
     directory: "/"
     schedule:
       interval: "weekly"
-${extra}${ignoreBlock}`;
+${extra}${cooldown}${ignoreBlock}`;
 }
 
 function lint(configContent: string | null, adrContent: string = adr) {
@@ -120,5 +124,32 @@ describe("lintDependabot — assignees", () => {
     expect(violations).toHaveLength(1);
     expect(violations[0]).toContain("reviewers");
     expect(violations[0]).toMatch(/retired/i);
+  });
+});
+
+describe("lintDependabot — cooldown", () => {
+  it("accepts an update entry with a cooldown", () => {
+    expect(
+      lint(
+        npmConfig({
+          cooldown: "    cooldown:\n      default-days: 3\n      semver-major-days: 7\n",
+        }),
+      ),
+    ).toEqual([]);
+  });
+
+  it("flags an update entry with no cooldown", () => {
+    const violations = lint(npmConfig({ cooldown: "" }));
+    expect(violations).toHaveLength(1);
+    expect(violations[0]).toContain("npm");
+    expect(violations[0]).toContain("cooldown");
+  });
+
+  it("flags a non-positive cooldown default-days", () => {
+    const violations = lint(npmConfig({ cooldown: "    cooldown:\n      default-days: 0\n" }));
+    expect(violations).toHaveLength(1);
+    expect(violations[0]).toContain("npm");
+    expect(violations[0]).toContain("default-days");
+    expect(violations[0]).toMatch(/positive integer/);
   });
 });

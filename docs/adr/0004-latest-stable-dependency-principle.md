@@ -30,3 +30,5 @@ E2E test `SC-3.5.2: Remote user cursors visible in distinct colour` (`e2e/collab
 - The Dependabot major-version exception for `@tiptap/*` packages (added in commit `5025cb1`) is removed — it contradicts this principle.
 - The Dependabot major-version exception for `next` is also removed.
 - Each major upgrade is performed as an atomic step with a full test run (`typecheck + lint + unit tests + e2e`) before the next step begins.
+- "Latest stable" is applied after a Dependabot cooldown: a release is proposed only once it is 3 days old (7 days for majors), which shrinks the window in which a hijacked npm release can land. `lint:dependabot` requires a cooldown on every update entry.
+- Minor and patch Dependabot PRs auto-merge once the required `ci` check passes on `main` (`.github/workflows/dependabot-automerge.yml`). Major bumps stay manual.

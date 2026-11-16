@@ -1,0 +1,30 @@
+name: Dependabot CI alert
+
+# Comments on a Dependabot PR when its CI run fails, linking the failed run.
+# Covers major bumps too. workflow_run only fires for this file on main.
+# See openspec/changes/add-dependabot-automerge.
+
+on:
+  workflow_run:
+    workflows: [CI]
+    types: [completed]
+
+permissions:
+  pull-requests: write
+
+jobs:
+  alert:
+    runs-on: ubuntu-latest
+    if: >-
+      github.event.workflow_run.conclusion == 'failure' &&
+      github.event.workflow_run.event == 'pull_request' &&
+      github.event.workflow_run.actor.login == 'dependabot[bot]'
+    steps:
+      - name: Comment on the PR
+        env:
+          PR_NUMBER: ${{ github.event.workflow_run.pull_requests[0].number }}
+          RUN_URL: ${{ github.event.workflow_run.html_url }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh pr comment "$PR_NUMBER" --repo "$GITHUB_REPOSITORY" --body "\`ci\` failed on this Dependabot update: $RUN_URL"
+

@@ -8,6 +8,11 @@ updates:
     open-pull-requests-limit: 10
     assignees:
       - "deniskrizanovic"
+    # Wait before proposing a fresh release: hijacked npm releases are usually
+    # yanked within days. Required on every entry (enforced by lint:dependabot).
+    cooldown:
+      default-days: 3
+      semver-major-days: 7
     groups:
       minor-and-patch:
         update-types:

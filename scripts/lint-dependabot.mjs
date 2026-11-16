@@ -12,12 +12,16 @@
 //     the latest-stable principle;
 //   - an `updates[*]` entry whose `assignees` does not include the owner, so
 //     every Dependabot PR reaches the owner as a participating notification;
+//   - an `updates[*]` entry with no `cooldown`, or whose `cooldown.default-days`
+//     is not a positive integer, so a freshly published (possibly hijacked)
+//     release is never proposed the same day;
 //   - a `reviewers` key, which is no longer a documented Dependabot option.
 //
 // Offline-safe (pure filesystem), so it runs in `test:all`, CI, and the husky
 // pre-commit hook like `lint:specs`.
 //
-// See openspec/changes/address-dependabot-upgrades-2026-10.
+// See openspec/changes/address-dependabot-upgrades-2026-10 and
+// openspec/changes/add-dependabot-automerge (cooldown).
 
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
@@ -68,9 +72,18 @@ export function lintDependabot(configContent, adrContent, { configPath, adrPath 
       violations.push(`${configPath}: ${label} must list "${OWNER}" in "assignees"`);
     }
 
+    const defaultDays = entry?.cooldown?.["default-days"];
+    if (entry?.cooldown == null) {
+      violations.push(
+        `${configPath}: ${label} must set a "cooldown" with a positive "default-days"`,
+      );
+    } else if (!Number.isInteger(defaultDays) || defaultDays <= 0) {
+      violations.push(`${configPath}: ${label} "cooldown.default-days" must be a positive integer`);
+    }
+
     if (entry && Object.hasOwn(entry, "reviewers")) {
       violations.push(
-        `${configPath}: ${label} uses "reviewers", a retired Dependabot option; use "assignees" instead`
+        `${configPath}: ${label} uses "reviewers", a retired Dependabot option; use "assignees" instead`,
       );
     }
 
@@ -79,7 +92,7 @@ export function lintDependabot(configContent, adrContent, { configPath, adrPath 
       if (typeof name !== "string") continue;
       if (!adrContent.includes(`\`${name}\``)) {
         violations.push(
-          `${configPath}: ${label} ignores "${name}", which ${adrPath} does not document as an exception`
+          `${configPath}: ${label} ignores "${name}", which ${adrPath} does not document as an exception`,
         );
       }
     }
@@ -115,7 +128,7 @@ function main() {
 
   if (violations.length === 0) {
     console.log(
-      `✓ dependabot: ${configPath} is valid, assigned to ${OWNER}, and every ignore rule is documented in ADR 0004`
+      `✓ dependabot: ${configPath} is valid, assigned to ${OWNER}, has a cooldown on every entry, and every ignore rule is documented in ADR 0004`,
     );
     return;
   }
@@ -126,7 +139,7 @@ function main() {
   }
   console.error(
     `\nDependabot cannot apply a config it cannot parse. Every "ignore" entry must ` +
-      `name a dependency documented, in backticks, as an ADR 0004 exception.`
+      `name a dependency documented, in backticks, as an ADR 0004 exception.`,
   );
   process.exitCode = 1;
 }
