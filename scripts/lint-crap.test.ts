@@ -1,4 +1,4 @@
-import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
+import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
@@ -8,6 +8,7 @@ import {
   collectSourceFiles,
   measureFunctions,
   parseArgs,
+  parseFailureReport,
   reportFor,
   scoreFunctions,
 } from "./lint-crap.mjs";
@@ -110,6 +111,123 @@ export const View = () => <div>{1}</div>;`;
       "constructor",
       "View",
     ]);
+  });
+
+  it("does not import the typescript package", () => {
+    const script = readFileSync(join(__dirname, "lint-crap.mjs"), "utf8");
+    expect(script).not.toMatch(
+      /(?:\bfrom\s*|\bimport\s*\(?\s*|require\(\s*)["']typescript(?:\/[^"']*)?["']/,
+    );
+  });
+});
+
+describe("measureFunctions — TypeScript syntax", () => {
+  it("adds no complexity for type annotations, generics, as, satisfies and non-null", () => {
+    const src = `enum Mode { A, B }
+interface Shape { k: string }
+type Key = keyof Shape;
+export function pick<T extends object>(x: T | null, k: Key): string {
+  const v = x! as unknown as Shape;
+  const c = { k } satisfies { k: Key };
+  if (v) return String(c.k);
+  return "";
+}`;
+    const fns = measureFunctions(src, "pick.ts");
+    expect(fns.map((f) => [f.name, f.complexity])).toEqual([["pick", 2]]);
+  });
+
+  it("skips overload signatures and declare functions", () => {
+    const src = `export function parse(x: string): number;
+export function parse(x: number): number;
+export function parse(x: string | number): number {
+  return Number(x);
+}
+declare function helper(): void;
+abstract class Base {
+  abstract run(): void;
+}`;
+    const fns = measureFunctions(src, "parse.ts");
+    expect(fns.map((f) => [f.name, f.line])).toEqual([["parse", 3]]);
+  });
+
+  it("scores a TSX component with a JSX conditional", () => {
+    const src = `export function Panel({ cond }: { cond: boolean }) {
+  return <div>{cond ? <A /> : <B />}</div>;
+}`;
+    const fns = measureFunctions(src, "Panel.tsx");
+    expect(fns.map((f) => [f.name, f.complexity])).toEqual([["Panel", 2]]);
+  });
+
+  it("parses an angle-bracket assertion in a .ts file", () => {
+    const src = `export function cast(value: unknown) {
+  return <string>value;
+}`;
+    const fns = measureFunctions(src, "cast.ts");
+    expect(fns.map((f) => [f.name, f.complexity])).toEqual([["cast", 1]]);
+  });
+
+  it("names private methods, quoted keys and computed keys as written", () => {
+    const src = `const KEY = "x";
+class C {
+  #p() { return 1; }
+  'k'() { return 2; }
+  [KEY]() { return 3; }
+}`;
+    expect(measureFunctions(src, "c.ts").map((f) => f.name)).toEqual(["#p", "'k'", "[KEY]"]);
+  });
+
+  it("names class property arrows by their key", () => {
+    const src = `class C {
+  handle = () => 1;
+  #priv = () => 2;
+}
+const o = { onClick: () => 3 };`;
+    expect(measureFunctions(src, "c.ts").map((f) => f.name)).toEqual([
+      "handle",
+      "#priv",
+      "onClick",
+    ]);
+  });
+
+  it("parses decorators and names accessor field arrows by their key", () => {
+    const src = `@sealed
+class C {
+  @logged run() { return 1; }
+  accessor handle = () => 2;
+}`;
+    expect(measureFunctions(src, "c.ts").map((f) => [f.name, f.line])).toEqual([
+      ["run", 3],
+      ["handle", 4],
+    ]);
+  });
+
+  it("names a typed arrow by its variable, without the type annotation", () => {
+    const src = "const f: (a: number) => number = (a) => a;";
+    expect(measureFunctions(src, "f.ts").map((f) => f.name)).toEqual(["f"]);
+  });
+});
+
+describe("measureFunctions — parse failure", () => {
+  const BROKEN = "/repo/src/lib/broken.ts";
+  const content = "const a = 1;\nconst b = 2;\nconst c = ;\n";
+  const parseError = (): Parameters<typeof parseFailureReport>[0] => {
+    try {
+      measureFunctions(content, BROKEN);
+    } catch (err) {
+      return err as Parameters<typeof parseFailureReport>[0];
+    }
+    throw new Error("expected a parse error");
+  };
+
+  it("throws a parse error naming the file, line and column", () => {
+    expect(parseError()).toMatchObject({ file: BROKEN, line: 3, column: 10 });
+  });
+
+  it("reports an unparseable file and exits 2", () => {
+    expect(parseFailureReport(parseError(), "/repo")).toEqual({
+      exitCode: 2,
+      output: "✗ crap: cannot parse src/lib/broken.ts:3:10 — Unexpected token",
+    });
   });
 });
 
