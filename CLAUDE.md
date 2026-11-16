@@ -29,6 +29,7 @@ pnpm lint:format  # Biome format/import-order check on files changed vs main (pr
 pnpm test:robot       # Robot e2e suite — the e2e suite CI and test:all run
 pnpm test:e2e         # Playwright e2e — parity reference, manual (CI runs it weekly)
 pnpm lint:e2e-parity  # every Playwright test has a robot/PARITY.md row + same-named Robot test
+pnpm lint:crap        # CRAP score (complexity × unit-test coverage) per src/ function; fails above 30
 pnpm seed      # seed dev database with placeholder user
 pnpm exec prisma migrate dev   # run database migrations in development
 pnpm exec prisma studio        # open database browser UI
