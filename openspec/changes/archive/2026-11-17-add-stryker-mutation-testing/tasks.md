@@ -51,7 +51,7 @@
 - [x] 8.3 Add `test:mutation:staged` (`node scripts/mutation-staged.mjs`) to `package.json`, and append it as the last command of the `*.{ts,tsx}` lint-staged array
 - [x] 8.4 Extend `scripts/mutation-config.test.ts`: lint-staged runs `test:mutation:staged` last for `.ts` files, and `ci.yml` does not run `test:mutation:staged`
 - [x] 8.5 Link the "Staged library files are mutation-tested before a commit lands" scenarios to the 8.2 tests (staged files mutated whole, out-of-scope files, no mutants, report left alone); keep `none` for "A staged file scoring below the threshold fails the commit", verified by 8.6
-- [ ] 8.6 Manually verify: stage `src/lib/session.ts` with a new untested branch and confirm the commit is rejected; stage a comment-only change to it and confirm it passes; confirm `reports/mutation/mutation.json` is unchanged afterwards
+- [x] 8.6 Manually verify: stage `src/lib/session.ts` with a new untested branch and confirm the commit is rejected; stage a comment-only change to it and confirm it passes; confirm `reports/mutation/mutation.json` is unchanged afterwards
 
 ## 9. Docs and gates
 
@@ -60,4 +60,4 @@
 
 ## 10. After merge
 
-- [ ] 10.1 After merge, dispatch the `Mutation testing` workflow once from the Actions page and confirm it uploads `mutation-report` and, on a green run, opens no drift issue
+- [x] 10.1 After merge, dispatch the `Mutation testing` workflow once from the Actions page and confirm it uploads `mutation-report` and, on a green run, opens no drift issue
