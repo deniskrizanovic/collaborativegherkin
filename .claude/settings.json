@@ -24,14 +24,14 @@
           {
             "type": "command",
             "if": "Bash(git branch -d*)",
-            "command": "cd /Users/dkrizanovic/projects/collaborativegherkin && result=$(pnpm run lint:unarchived 2>&1); code=$?; if [ $code -ne 0 ]; then echo \"$result\" >&2; printf '{\"continue\": false, \"stopReason\": \"Unarchived-change gate failed — archive the finished change before deleting its branch.\"}'; fi",
+            "command": "cmd=$(jq -r '.tool_input.command'); if printf '%s\\n' \"$cmd\" | grep -qE '(^|[;&|(])[[:space:]]*git branch -d([[:space:]]|$)'; then cd /Users/dkrizanovic/projects/collaborativegherkin && result=$(pnpm run lint:unarchived 2>&1); code=$?; if [ $code -ne 0 ]; then echo \"$result\" >&2; printf '{\"continue\": false, \"stopReason\": \"Unarchived-change gate failed — archive the finished change before deleting its branch.\"}'; fi; fi",
             "timeout": 30,
             "statusMessage": "Checking for unarchived changes..."
           },
           {
             "type": "command",
             "if": "Bash(git branch -D*)",
-            "command": "cd /Users/dkrizanovic/projects/collaborativegherkin && result=$(pnpm run lint:unarchived 2>&1); code=$?; if [ $code -ne 0 ]; then echo \"$result\" >&2; printf '{\"continue\": false, \"stopReason\": \"Unarchived-change gate failed — archive the finished change before deleting its branch.\"}'; fi",
+            "command": "cmd=$(jq -r '.tool_input.command'); if printf '%s\\n' \"$cmd\" | grep -qE '(^|[;&|(])[[:space:]]*git branch -D([[:space:]]|$)'; then cd /Users/dkrizanovic/projects/collaborativegherkin && result=$(pnpm run lint:unarchived 2>&1); code=$?; if [ $code -ne 0 ]; then echo \"$result\" >&2; printf '{\"continue\": false, \"stopReason\": \"Unarchived-change gate failed — archive the finished change before deleting its branch.\"}'; fi; fi",
             "timeout": 30,
             "statusMessage": "Checking for unarchived changes..."
           }
