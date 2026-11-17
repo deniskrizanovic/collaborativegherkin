@@ -69,3 +69,4 @@ reports/
 
 # Per-user Claude Code settings
 .claude/settings.local.json
+.claude/*.doctor-bak
