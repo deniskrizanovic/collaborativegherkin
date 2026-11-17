@@ -69,6 +69,31 @@ describe("Coaching", () => {
       expect(body.provider).toEqual({ allow_fallbacks: true });
     });
 
+    it("posts JSON to the OpenRouter chat completions endpoint with the API key", async () => {
+      fakeFetch.mockResolvedValue(
+        makeResponse(true, 200, {
+          choices: [{ message: { content: "ok" } }],
+        }),
+      );
+
+      const coaching = new Coaching({ fetch: fakeFetch, apiKey: "key" });
+      await coaching.reviewGherkin("Given a step", "custom prompt", AVAILABLE_MODELS[0]);
+
+      const [url, init] = fakeFetch.mock.calls[0];
+      expect(url).toBe("https://openrouter.ai/api/v1/chat/completions");
+      expect(init.method).toBe("POST");
+      expect(init.headers).toEqual({
+        "Content-Type": "application/json",
+        Authorization: "Bearer key",
+      });
+      const body = JSON.parse(init.body as string);
+      expect(body.model).toBe(AVAILABLE_MODELS[0]);
+      expect(body.messages).toEqual([
+        { role: "system", content: "custom prompt" },
+        { role: "user", content: "Given a step" },
+      ]);
+    });
+
     it("throws CoachingConfigError when apiKey is undefined", async () => {
       const coaching = new Coaching({ fetch: fakeFetch, apiKey: undefined });
 
@@ -102,6 +127,37 @@ describe("Coaching", () => {
         .catch((e) => e);
       expect(err).toBeInstanceOf(RateLimitError);
       expect((err as RateLimitError).retryAfterSeconds).toBeNull();
+    });
+
+    it.each([
+      ["no metadata", { error: {} }],
+      ["no retry_after_seconds", { error: { metadata: {} } }],
+      ["no error", {}],
+    ])(
+      "throws RateLimitError with null retryAfterSeconds when the 429 body has %s",
+      async (_, body) => {
+        fakeFetch.mockResolvedValue(makeResponse(false, 429, body));
+
+        const coaching = new Coaching({ fetch: fakeFetch, apiKey: "key" });
+        const err = await coaching
+          .reviewGherkin("content", DEFAULT_PROMPT, AVAILABLE_MODELS[0])
+          .catch((e) => e);
+        expect(err).toBeInstanceOf(RateLimitError);
+        expect((err as RateLimitError).retryAfterSeconds).toBeNull();
+      },
+    );
+
+    it.each([
+      ["no choices", {}],
+      ["an empty choices array", { choices: [] }],
+      ["a choice with no message", { choices: [{}] }],
+      ["a message with no content", { choices: [{ message: {} }] }],
+    ])("returns an empty string when the response has %s", async (_, body) => {
+      fakeFetch.mockResolvedValue(makeResponse(true, 200, body));
+
+      const coaching = new Coaching({ fetch: fakeFetch, apiKey: "key" });
+      const result = await coaching.reviewGherkin("content", DEFAULT_PROMPT, AVAILABLE_MODELS[0]);
+      expect(result).toBe("");
     });
 
     it("throws CoachingRequestError on non-429 failure", async () => {

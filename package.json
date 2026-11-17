@@ -26,6 +26,8 @@
     "typecheck": "tsc --noEmit",
     "test": "vitest",
     "test:e2e": "playwright test",
+    "test:mutation": "stryker run",
+    "test:mutation:staged": "node scripts/mutation-staged.mjs",
     "test:robot:init": "uv sync --locked && uv run rfbrowser init chromium",
     "test:robot": "node scripts/run-robot.mjs",
     "e2e:all": "run-s test:robot",
@@ -41,7 +43,8 @@
     "*.{ts,tsx}": [
       "biome check --write --no-errors-on-unmatched --files-ignore-unknown=true",
       "oxlint --max-warnings=0",
-      "bash -c 'tsc --noEmit'"
+      "bash -c 'tsc --noEmit'",
+      "pnpm run test:mutation:staged"
     ],
     "*.{js,mjs,cjs,json,jsonc,css}": [
       "biome check --write --no-errors-on-unmatched --files-ignore-unknown=true"
@@ -85,6 +88,8 @@
     "@electric-sql/pglite": "^0.5.16",
     "@fission-ai/openspec": "^2.0.0",
     "@playwright/test": "^1.65.0",
+    "@stryker-mutator/core": "^10.1.1",
+    "@stryker-mutator/vitest-runner": "^10.1.1",
     "@types/better-sqlite3": "^9.6.0",
     "@types/jsdom": "^30.0.0",
     "@types/node": "^26.6.6",

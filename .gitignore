@@ -63,5 +63,9 @@ __pycache__/
 # Coverage output (lint:crap writes coverage/crap/)
 coverage/
 
+# Stryker mutation run (test:mutation writes reports/mutation/ and .stryker-tmp/)
+reports/
+.stryker-tmp/
+
 # Per-user Claude Code settings
 .claude/settings.local.json

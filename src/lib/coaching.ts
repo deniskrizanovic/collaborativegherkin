@@ -5,6 +5,7 @@ interface CoachingDeps {
 
 export class RateLimitError extends Error {
   constructor(readonly retryAfterSeconds: number | null) {
+    // Stryker disable next-line StringLiteral: error message text, no behaviour
     super("rate_limited");
   }
 }
@@ -17,6 +18,7 @@ export class Coaching {
 
   async reviewGherkin(content: string, prompt: string, model: string): Promise<string> {
     if (!this.deps.apiKey) {
+      // Stryker disable next-line StringLiteral: error message text, no behaviour
       throw new CoachingConfigError("OPENROUTER_API_KEY is not set");
     }
 
@@ -52,6 +54,7 @@ export class Coaching {
         throw new RateLimitError(retryAfter);
       }
 
+      // Stryker disable next-line StringLiteral: error message text, no behaviour
       throw new CoachingRequestError(`OpenRouter request failed: ${response.status} ${text}`);
     }
 

@@ -1,0 +1,97 @@
+name: Mutation testing
+
+# A full Stryker run is many times slower than the unit suite, so it stays out
+# of ci.yml, test:all and the pre-commit hook. This workflow runs it weekly
+# against main. A failed scheduled run (mutation score below the `break`
+# threshold in stryker.config.json) opens (or comments on) one `mutation-drift`
+# issue; the next green run on main comments on it and closes it. Drift issues
+# never block merges.
+#
+# See openspec/changes/add-stryker-mutation-testing (design D4).
+
+on:
+  schedule:
+    # Every Monday at 04:00 UTC, an hour after the Playwright weekly run.
+    # GitHub runs schedules on the default branch only.
+    - cron: '0 4 * * 1'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  mutation:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+
+    steps:
+      - uses: actions/checkout@v7
+
+      # Reads the pnpm version from package.json "packageManager".
+      - uses: pnpm/action-setup@v6
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: '22'
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      # Unit tests use in-memory SQLite or PGlite, so no database, secrets or
+      # browsers are needed.
+      - name: Mutation tests
+        run: pnpm run test:mutation
+
+      - name: Upload mutation report
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: mutation-report
+          path: reports/mutation/
+
+      - name: Open or update drift issue
+        if: failure() && github.event_name == 'schedule'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+          run_url="$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID"
+          body_file="$RUNNER_TEMP/drift-body.md"
+
+          {
+            echo "The scheduled mutation run on \`main\` failed: $run_url"
+            echo
+            echo "The mutation score fell below the \`break\` threshold in \`stryker.config.json\`, or the run did not finish. The \`mutation-report\` artifact on the run lists every surviving mutant. Add tests that kill them, and re-run the workflow. The next green run on \`main\` closes this issue."
+          } > "$body_file"
+
+          gh label create mutation-drift --force \
+            --color "d93f0b" \
+            --description "Weekly mutation run on main is below its score threshold"
+
+          issue="$(gh issue list --label mutation-drift --state open --json number --limit 1 --jq '.[0].number // empty')"
+          if [ -n "$issue" ]; then
+            gh issue comment "$issue" --body-file "$body_file"
+          else
+            gh issue create --label mutation-drift \
+              --title "Mutation score below threshold on main" \
+              --body-file "$body_file"
+          fi
+
+      - name: Close drift issue
+        if: success() && github.ref == 'refs/heads/main'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+          run_url="$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID"
+          issue="$(gh issue list --label mutation-drift --state open --json number --limit 1 --jq '.[0].number // empty')"
+          if [ -n "$issue" ]; then
+            body_file="$RUNNER_TEMP/drift-close.md"
+            echo "The mutation run on \`main\` met the threshold: $run_url" > "$body_file"
+            gh issue comment "$issue" --body-file "$body_file"
+            gh issue close "$issue"
+          fi
