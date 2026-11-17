@@ -5,6 +5,7 @@ import {
   exportToMarkdown,
   exportToText,
   GHERKIN_BLOCK_TYPES,
+  GherkinBlockSchema,
   NEXT_BLOCK_ON_ENTER,
   parseGherkin,
 } from "@/lib/gherkin";
@@ -22,6 +23,12 @@ describe("canFollow — empty document", () => {
       expect(canFollow(null, type)).toBe(false);
     },
   );
+});
+
+describe("canFollow — unknown previous type", () => {
+  it("rejects any next block after a type with no follow rules", () => {
+    expect(canFollow("image" as GherkinBlockType, "given")).toBe(false);
+  });
 });
 
 describe("canFollow — after feature", () => {
@@ -174,6 +181,35 @@ describe("exportToText", () => {
   it("preserves block text exactly, including leading/trailing spaces", () => {
     expect(exportToText([{ type: "given", text: "  spaced  " }])).toBe("Given:   spaced  ");
   });
+
+  it("labels rule and background blocks", () => {
+    expect(
+      exportToText([
+        { type: "rule", text: "Only members" },
+        { type: "background", text: "A member exists" },
+      ]),
+    ).toBe("Rule: Only members\nBackground: A member exists");
+  });
+
+  it("exports an image block as its source", () => {
+    expect(exportToText([{ type: "image", src: "/img/flow.png", alt: "flow" }])).toBe(
+      "/img/flow.png",
+    );
+  });
+});
+
+describe("GherkinBlockSchema", () => {
+  it("accepts a block with a known type and text", () => {
+    expect(GherkinBlockSchema.parse({ type: "given", text: "a step" })).toEqual({
+      type: "given",
+      text: "a step",
+    });
+  });
+
+  it("rejects an unknown type or missing text", () => {
+    expect(GherkinBlockSchema.safeParse({ type: "image", text: "x" }).success).toBe(false);
+    expect(GherkinBlockSchema.safeParse({ type: "given" }).success).toBe(false);
+  });
 });
 
 // ─── exportToMarkdown ─────────────────────────────────────────────────────────
@@ -252,6 +288,14 @@ describe("exportToText — data table", () => {
       ],
     };
     expect(exportToText([block])).toBe("| name  | age |\n| Alice | 30  |");
+  });
+
+  it("exports a row with fewer cells than the header", () => {
+    const block = {
+      type: "data_table" as const,
+      rows: [["name", "age"], ["Alice"]],
+    };
+    expect(exportToText([block])).toBe("| name  | age |\n| Alice |");
   });
 
   it("includes data table rows in document order alongside other blocks", () => {
@@ -357,6 +401,42 @@ describe("parseGherkin", () => {
       { type: "data_table", rows: [["a"]] },
       { type: "and", text: "more" },
       { type: "data_table", rows: [["b"]] },
+    ]);
+  });
+
+  it("only matches a keyword at the start of the line", () => {
+    expect(parseGherkin("Note: Given a step\nwe agreed Then it ships")).toEqual([]);
+  });
+
+  it("accepts several spaces after a heading or list marker", () => {
+    expect(parseGherkin("##   Scenario: Pay\n-    Given a basket")).toEqual([
+      { type: "scenario", text: "Pay" },
+      { type: "given", text: "a basket" },
+    ]);
+  });
+
+  it("parses indented keyword and table lines", () => {
+    expect(parseGherkin("    Given a basket  \n\t| a | b |  ")).toEqual([
+      { type: "given", text: "a basket" },
+      { type: "data_table", rows: [["a", "b"]] },
+    ]);
+  });
+
+  it("treats a line as a table row only when it starts and ends with a pipe", () => {
+    expect(parseGherkin("Given a | b |\n| a | b | trailing")).toEqual([
+      { type: "given", text: "a | b |" },
+    ]);
+  });
+
+  it("drops a separator row only when the whole row is separator characters", () => {
+    expect(parseGherkin("| --- | a |\n| a | --- |")).toEqual([
+      {
+        type: "data_table",
+        rows: [
+          ["---", "a"],
+          ["a", "---"],
+        ],
+      },
     ]);
   });
 

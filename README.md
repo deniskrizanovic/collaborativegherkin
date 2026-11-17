@@ -218,6 +218,8 @@ Visit `http://localhost:3000` — you'll be redirected to the sign-in page. Ente
 | `pnpm test`           | Run Vitest unit tests                          |
 | `pnpm test:robot`     | Run the Robot Framework end-to-end suite (`robot/`) — the e2e suite CI runs on every change |
 | `pnpm test:e2e`       | Run the Playwright end-to-end tests by hand — the parity reference for Robot; CI runs them weekly |
+| `pnpm test:mutation`  | Run Stryker mutation testing over `src/lib` (about a minute); report in `reports/mutation/`. Manual, and CI runs it weekly |
+| `pnpm test:mutation:staged` | Run Stryker on each staged in-scope `src/lib` file (whole file); runs in the pre-commit hook and fails the commit below the break threshold |
 | `pnpm test:all`       | Typecheck, every lint gate, unit tests, and Robot for e2e (not Playwright) |
 | `pnpm lint`           | Lint the codebase                              |
 | `pnpm lint:format`    | Check Biome formatting and import order on files changed against `main` |

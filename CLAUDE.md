@@ -30,6 +30,8 @@ pnpm format       # Biome format + import sort, written to the whole tree
 pnpm lint:format  # Biome format/import-order check on the whole tree (pre-commit formats staged files)
 pnpm test:robot       # Robot e2e suite — the e2e suite CI and test:all run
 pnpm test:e2e         # Playwright e2e — parity reference, manual (CI runs it weekly)
+pnpm test:mutation    # Stryker mutation run over src/lib (~1 min); manual, CI runs it weekly; fails below the break threshold
+pnpm test:mutation:staged  # Stryker on each staged in-scope src/lib file (whole file); runs in the pre-commit hook; fails below break
 pnpm lint:e2e-parity  # every Playwright test has a robot/PARITY.md row + same-named Robot test
 pnpm lint:crap        # CRAP score (complexity × unit-test coverage) per src/ function; fails above 30
 pnpm lint:openspec    # openspec validate --all --strict on specs + active changes; any warning fails
